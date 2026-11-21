@@ -13,7 +13,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 It speaks English, German and Spanish, at three levels, and reads itself aloud: a visitor picks whether they want it explained the way a six year old is told it, the way an adult who knows nothing about the subject is told it, or in full, and whoever cannot read it presses play instead.
 
-## One application, five tables
+## One application, four tables
 
 Everything here is one application: it opens on the two reference bodies of pkpdsim, a man and a woman, with the tables arranged around them, and a touch on a card or on the organ it points at opens that table. Touching a body is what every table is then solved for, and **Back** in the panel of a table returns to them. One build, one address, one port.
 
@@ -66,7 +66,7 @@ The documentation explains the protocol, the simulator and the table: `npm run d
 | `packages/glimepiride-sim` | the glimepiride individual, the request that solves them and the pharmacokinetics of the result |
 | `packages/perfusion-sim` | the machine perfusion: the settings of the machine, the parameters they are, and the request that solves six hours of it |
 | `packages/tuio-simulator` | the TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
-| `packages/cardiovascular-table`, `packages/liver-table`, `packages/lobes-table`, `packages/glimepiride-table`, `packages/perfusion-table` | the five tables: what each one draws, which object does what on it, and what it says about itself |
+| `packages/cardiovascular-table`, `packages/lobes-table`, `packages/glimepiride-table`, `packages/perfusion-table` | the four tables: what each one draws, which object does what on it, and what it says about itself |
 | `apps/table` | the one application: the body, the tables behind it, and the development server that carries the simulator |
 | `scripts/sync-assets.mjs` | copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
 | `scripts/export_model.py` | compiles an SBML model that comes from its own repository into the WebAssembly an application runs |

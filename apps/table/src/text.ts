@@ -74,7 +74,7 @@ export interface AboutCopy {
 const EN: HubCopy = {
   about: {
     title: "About these tables",
-    intro: "Five working models of the human body, built from the open models of our laboratory and solved while you move the objects on the glass.",
+    intro: "Four working models of the human body, built from the open models of our laboratory and solved while you move the objects on the glass.",
     open: "About these tables",
     groupTitle: "The laboratory",
     groupLines: [
@@ -108,15 +108,15 @@ const EN: HubCopy = {
   heading: "The body on the table",
   motivation: {
     child: [
-      "Five models of the human body you can move with your hands.",
+      "Four models of the human body you can move with your hands.",
       "Follow the blood, meet the liver, and see where a tablet goes.",
     ],
     adult: [
-      "Five working models of the human body, solved while you move the objects on the glass.",
+      "Four working models of the human body, solved while you move the objects on the glass.",
       "How the blood reaches every organ, what the liver does with it, and where a tablet goes.",
     ],
     expert: [
-      "Five pkpdsim models, solved live: the circulation, the liver and its two supplies, lobe resection and regeneration, a glimepiride PBPK, and a liver in machine perfusion.",
+      "Four pkpdsim models, solved live: the circulation, hepatectomy and regeneration, a glimepiride PBPK, and a liver in machine perfusion.",
       "Every object on the glass is a parameter of the exported SBML, and every number is read out of the solution.",
     ],
   },
@@ -147,14 +147,14 @@ const EN: HubCopy = {
     label: "The table",
     info: {
       child: "Turn it, and it walks around the cards. Hold it still, and that table opens.",
-      adult: "Turn this object to walk around the five tables. Hold it still on one, and it opens.",
-      expert: "The first object of the surface, marker 0, is the table switch: its angle picks one of the five tables and holding it still opens that one.",
+      adult: "Turn this object to walk around the four tables. Hold it still on one, and it opens.",
+      expert: "The first object of the surface, marker 0, is the table switch: its angle picks one of the four tables and holding it still opens that one.",
     },
   },
-  pickTitle: "Five tables, one body",
+  pickTitle: "Four tables, one body",
   pickText: {
     child: "Put the round object on the table and turn it. Every card is one thing you can try out.",
-    adult: "Put the first object on the glass and turn it to walk around the five tables, or press a card. Each one opens a model of the same body.",
+    adult: "Put the first object on the glass and turn it to walk around the four tables, or press a card. Each one opens a model of the same body.",
     expert: "Each card opens a model of pkpdsim, solved in this browser: the circulation, the liver, the lobes of the liver, a drug through the body, and a liver on a machine.",
   },
   holdToOpen: "Hold the object still to open it",
@@ -170,15 +170,6 @@ const EN: HubCopy = {
         child: "Your heart pushes blood to every part of you, again and again. Make a vessel narrow, or the heart beat faster, and see what changes.",
         adult: "The heart pushes five to six litres of blood through the body every minute. Narrow the vessels of an organ or change the beat, and watch the pressures and the flows of the whole body settle somewhere new.",
         expert: "The steady pressure network of the pkpdsim cardiovascular model, with four organ resistances, the heart rate and the contractility as objects. The pressures, the flows and the cardiac output follow from the algebraic solution, and the compiled SBML heart beats beside it.",
-      },
-    },
-    liver: {
-      label: "Liver", title: "The liver",
-      blurb: {child: "Why do you need a liver?", adult: "Why the body needs a liver."},
-      about: {
-        child: "Everything you eat goes to the liver first. It has two pipes bringing blood, and it checks what arrives before the rest of you gets it.",
-        adult: "Everything the gut absorbs passes the liver before it reaches the rest of the body. See where its two blood supplies come from, what happens along one sinusoid, and what the liver does to a drug.",
-        expert: "The dual supply of the liver: three quarters of its flow from the portal vein, one quarter from the hepatic artery, with the portal pressure and the gradient from the steady pressure network, and one lobule with its three zones.",
       },
     },
     lobes: {
@@ -214,7 +205,7 @@ const EN: HubCopy = {
 const DE: HubCopy = {
   about: {
     title: "Über diese Tische",
-    intro: "Fünf Modelle des menschlichen Körpers, gebaut aus den offenen Modellen unseres Labors und gerechnet, während Sie die Objekte auf dem Glas bewegen.",
+    intro: "Vier Modelle des menschlichen Körpers, gebaut aus den offenen Modellen unseres Labors und gerechnet, während Sie die Objekte auf dem Glas bewegen.",
     open: "Über diese Tische",
     groupTitle: "Das Labor",
     groupLines: [
@@ -248,15 +239,15 @@ const DE: HubCopy = {
   heading: "Der Körper auf dem Tisch",
   motivation: {
     child: [
-      "Fünf Modelle des menschlichen Körpers, die du mit den Händen bewegen kannst.",
+      "Vier Modelle des menschlichen Körpers, die du mit den Händen bewegen kannst.",
       "Folge dem Blut, lerne die Leber kennen und schau, wohin eine Tablette geht.",
     ],
     adult: [
-      "Fünf arbeitende Modelle des menschlichen Körpers, gerechnet während Sie die Objekte auf dem Glas bewegen.",
+      "Vier arbeitende Modelle des menschlichen Körpers, gerechnet während Sie die Objekte auf dem Glas bewegen.",
       "Wie das Blut zu jedem Organ kommt, was die Leber damit macht, und wohin eine Tablette geht.",
     ],
     expert: [
-      "Fünf Modelle aus pkpdsim, live gerechnet: der Kreislauf, die Leber mit ihren zwei Zuflüssen, Resektion und Regeneration der Lappen, ein PBPK-Modell von Glimepirid und eine Leber in Maschinenperfusion.",
+      "Vier Modelle aus pkpdsim, live gerechnet: der Kreislauf, Leberresektion und Regeneration, ein PBPK-Modell von Glimepirid und eine Leber in Maschinenperfusion.",
       "Jedes Objekt auf dem Glas ist ein Parameter des exportierten SBML, und jede Zahl wird aus der Lösung abgelesen.",
     ],
   },
@@ -287,14 +278,14 @@ const DE: HubCopy = {
     label: "Der Tisch",
     info: {
       child: "Dreh es, dann wandert es um die Karten. Halt es still, dann geht der Tisch auf.",
-      adult: "Drehen Sie dieses Objekt, um durch die fünf Tische zu wandern. Halten Sie es still, dann öffnet sich der Tisch.",
-      expert: "Das erste Objekt der Oberfläche, Marker 0, ist der Tischwähler: sein Winkel wählt einen der fünf Tische, Stillhalten öffnet ihn.",
+      adult: "Drehen Sie dieses Objekt, um durch die vier Tische zu wandern. Halten Sie es still, dann öffnet sich der Tisch.",
+      expert: "Das erste Objekt der Oberfläche, Marker 0, ist der Tischwähler: sein Winkel wählt einen der vier Tische, Stillhalten öffnet ihn.",
     },
   },
-  pickTitle: "Fünf Tische, ein Körper",
+  pickTitle: "Vier Tische, ein Körper",
   pickText: {
     child: "Stell das runde Objekt auf den Tisch und dreh es. Jede Karte ist etwas zum Ausprobieren.",
-    adult: "Stellen Sie das erste Objekt auf das Glas und drehen Sie es, um durch die fünf Tische zu wandern, oder berühren Sie eine Karte. Jede öffnet ein Modell desselben Körpers.",
+    adult: "Stellen Sie das erste Objekt auf das Glas und drehen Sie es, um durch die vier Tische zu wandern, oder berühren Sie eine Karte. Jede öffnet ein Modell desselben Körpers.",
     expert: "Jede Karte öffnet ein Modell aus pkpdsim, gelöst in diesem Browser: der Kreislauf, die Leber, die Leberlappen, ein Medikament durch den Körper und eine Leber an der Maschine.",
   },
   holdToOpen: "Objekt stillhalten, dann geht der Tisch auf",
@@ -310,15 +301,6 @@ const DE: HubCopy = {
         child: "Dein Herz pumpt Blut in jeden Teil von dir, immer wieder. Mach ein Gefäß enger oder das Herz schneller und schau, was sich ändert.",
         adult: "Das Herz pumpt fünf bis sechs Liter Blut pro Minute durch den Körper. Verengen Sie die Gefäße eines Organs oder ändern Sie den Herzschlag, und sehen Sie zu, wie sich Drücke und Flüsse im ganzen Körper neu einstellen.",
         expert: "Das stationäre Drucknetzwerk des Kreislaufmodells von pkpdsim, mit vier Organwiderständen, Herzfrequenz und Kontraktilität als Objekten. Drücke, Flüsse und Herzzeitvolumen folgen aus der algebraischen Lösung, und daneben schlägt das kompilierte SBML-Herz.",
-      },
-    },
-    liver: {
-      label: "Leber", title: "Die Leber",
-      blurb: {child: "Wozu brauchst du eine Leber?", adult: "Warum der Körper eine Leber braucht."},
-      about: {
-        child: "Alles, was du isst, kommt zuerst zur Leber. Sie hat zwei Rohre, die Blut bringen, und prüft alles, bevor der Rest von dir es bekommt.",
-        adult: "Alles, was der Darm aufnimmt, passiert die Leber, bevor es den Rest des Körpers erreicht. Sehen Sie, woher ihre zwei Blutzuflüsse kommen, was entlang eines Sinusoids geschieht, und was die Leber mit einem Medikament macht.",
-        expert: "Die duale Blutversorgung der Leber: drei Viertel des Flusses aus der Pfortader, ein Viertel aus der Leberarterie, mit Pfortaderdruck und Gradient aus dem stationären Drucknetzwerk, und ein Läppchen mit seinen drei Zonen.",
       },
     },
     lobes: {
@@ -354,7 +336,7 @@ const DE: HubCopy = {
 const ES: HubCopy = {
   about: {
     title: "Sobre estas mesas",
-    intro: "Cinco modelos del cuerpo humano, hechos con los modelos abiertos de nuestro laboratorio y resueltos mientras mueves los objetos sobre el cristal.",
+    intro: "Cuatro modelos del cuerpo humano, hechos con los modelos abiertos de nuestro laboratorio y resueltos mientras mueves los objetos sobre el cristal.",
     open: "Sobre estas mesas",
     groupTitle: "El laboratorio",
     groupLines: [
@@ -388,15 +370,15 @@ const ES: HubCopy = {
   heading: "El cuerpo sobre la mesa",
   motivation: {
     child: [
-      "Cinco modelos del cuerpo humano que puedes mover con las manos.",
+      "Cuatro modelos del cuerpo humano que puedes mover con las manos.",
       "Sigue la sangre, conoce el hígado y mira adónde va una pastilla.",
     ],
     adult: [
-      "Cinco modelos vivos del cuerpo humano, resueltos mientras usted mueve los objetos sobre el cristal.",
+      "Cuatro modelos vivos del cuerpo humano, resueltos mientras usted mueve los objetos sobre el cristal.",
       "Cómo llega la sangre a cada órgano, qué hace el hígado con ella y adónde va una pastilla.",
     ],
     expert: [
-      "Cinco modelos de pkpdsim, resueltos en vivo: la circulación, el hígado y sus dos aportes, la resección y la regeneración de los lóbulos, un PBPK de glimepirida y un hígado en perfusión de máquina.",
+      "Cuatro modelos de pkpdsim, resueltos en vivo: la circulación, la resección hepática y la regeneración, un PBPK de glimepirida y un hígado en perfusión de máquina.",
       "Cada objeto sobre el cristal es un parámetro del SBML exportado, y cada número se lee de la solución.",
     ],
   },
@@ -427,14 +409,14 @@ const ES: HubCopy = {
     label: "La mesa",
     info: {
       child: "Gíralo y recorre las tarjetas. Mantenlo quieto y esa mesa se abre.",
-      adult: "Gire este objeto para recorrer las cinco mesas. Manténgalo quieto sobre una y se abre.",
-      expert: "El primer objeto de la superficie, el marcador 0, es el selector de mesa: su ángulo elige una de las cinco y mantenerlo quieto la abre.",
+      adult: "Gire este objeto para recorrer las cuatro mesas. Manténgalo quieto sobre una y se abre.",
+      expert: "El primer objeto de la superficie, el marcador 0, es el selector de mesa: su ángulo elige una de las cuatro y mantenerlo quieto la abre.",
     },
   },
-  pickTitle: "Cinco mesas, un cuerpo",
+  pickTitle: "Cuatro mesas, un cuerpo",
   pickText: {
     child: "Pon el objeto redondo sobre la mesa y gíralo. Cada tarjeta es algo para probar.",
-    adult: "Ponga el primer objeto sobre el cristal y gírelo para recorrer las cinco mesas, o toque una tarjeta. Cada una abre un modelo del mismo cuerpo.",
+    adult: "Ponga el primer objeto sobre el cristal y gírelo para recorrer las cuatro mesas, o toque una tarjeta. Cada una abre un modelo del mismo cuerpo.",
     expert: "Cada tarjeta abre un modelo de pkpdsim, resuelto en este navegador: la circulación, el hígado, los lóbulos del hígado, un fármaco por el cuerpo y un hígado en una máquina.",
   },
   holdToOpen: "Mantenga el objeto quieto para abrirla",
@@ -450,15 +432,6 @@ const ES: HubCopy = {
         child: "Tu corazón empuja la sangre a todas las partes de ti, una y otra vez. Estrecha un vaso, o haz latir el corazón más rápido, y mira qué cambia.",
         adult: "El corazón empuja de cinco a seis litros de sangre por el cuerpo cada minuto. Estreche los vasos de un órgano o cambie el latido, y vea cómo las presiones y los flujos de todo el cuerpo se asientan en otro punto.",
         expert: "La red de presiones estacionaria del modelo cardiovascular de pkpdsim, con cuatro resistencias de órgano, la frecuencia cardíaca y la contractilidad como objetos. Presiones, flujos y gasto cardíaco salen de la solución algebraica, y al lado late el corazón SBML compilado.",
-      },
-    },
-    liver: {
-      label: "Hígado", title: "El hígado",
-      blurb: {child: "¿Para qué sirve el hígado?", adult: "Por qué el cuerpo necesita un hígado."},
-      about: {
-        child: "Todo lo que comes llega primero al hígado. Tiene dos tubos que le traen sangre, y revisa lo que llega antes de que lo reciba el resto de ti.",
-        adult: "Todo lo que el intestino absorbe pasa por el hígado antes de llegar al resto del cuerpo. Vea de dónde vienen sus dos aportes de sangre, qué ocurre a lo largo de un sinusoide y qué hace el hígado con un fármaco.",
-        expert: "El doble aporte sanguíneo del hígado: tres cuartos del flujo por la vena porta y un cuarto por la arteria hepática, con la presión portal y el gradiente de la red de presiones estacionaria, y un lobulillo con sus tres zonas.",
       },
     },
     lobes: {

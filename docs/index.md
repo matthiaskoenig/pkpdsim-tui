@@ -7,19 +7,18 @@ The interactive examples in the pkpdsim documentation run in a browser, with sli
 
 Every application also runs without a table, on a mouse and the keyboard, so it can be developed and shown anywhere.
 
-## One application, five tables
+## One application, four tables
 
-Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, with the tables arranged around them and a line from each card to the organ its table is about. Every card carries the pictogram of its table, a heading which says what it shows and one line of what a visitor does there. Touching a card, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
+Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, in a dark disc with the four tables on a ring around it and a line from each icon to the organ its table is about. Every table is a big disc in a colour of its own, which its organ on the body and the sidebar carry too. Touching an icon, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
-| [Cardiovascular circulation](apps/cardiovascular.md) | `?app=cardiovascular` | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself, which beats on the table while they are moved. |
-| [The liver](apps/liver.md) | `?app=liver` | prototype | The gut and the liver itself as two resistances: where the two blood supplies of the liver come from, and what one lobule of it is served with. |
+| [Cardiovascular circulation](apps/cardiovascular.md) | `?app=cardiovascular` | prototype | Two resistance objects on an anatomy, systemic and renal, and two for the heart itself, which beats on the table while they are moved. |
 | [Lobed liver](apps/lobes.md) | `?app=lobes` | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
 | [Glimepiride](apps/glimepiride.md) | `?app=glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
 | [Machine perfusion](apps/perfusion.md) | `?app=perfusion` | prototype | The pump, the oxygen and the temperature of a liver kept alive outside the body, and a dial through the hours of the perfusion. |
 
-The three liver tables are one story, which [The liver](apps/liver.md) is the way into: a liver with two blood supplies which sees the food first, a liver which takes drugs apart, a liver which can be cut and grows back, and a liver which stays alive on a machine when it is outside the body.
+The three liver tables are one story: a liver which takes drugs apart, a liver which can be cut and grows back, and a liver which stays alive on a machine when it is outside the body.
 
 ## Quick start
 
@@ -35,7 +34,7 @@ npm run dev
 
 | Address | What it is |
 | --- | --- |
-| `http://localhost:5173/` | The body with the five tables around it, from which every table is opened |
+| `http://localhost:5173/` | The body with the four tables around it, from which every table is opened |
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
@@ -82,7 +81,7 @@ Everything that is not needed at a glance waits behind the element it belongs to
 
 The table is made for a visitor who has a minute, not for a reader. What that costs the design:
 
-- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, the woman and the man side by side, and the five tables on a ring around them, each joined to the organ it is about. The first object of the surface walks around the ring and opens the table it is held on, the box at the right says what that table is, the settings stand open in a strip along the top, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status: those belong to a table which is already open.
+- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, the woman and the man side by side in a dark disc, and the four tables as big coloured icons on a ring around it, each joined to the organ it is about. The first object of the surface walks around the ring and opens the table it is held on, the sidebar says what that table is, the settings stand open in a strip along the top, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status: those belong to a table which is already open.
 - **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
 - **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
 - **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.

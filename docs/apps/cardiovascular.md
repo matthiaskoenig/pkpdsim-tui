@@ -58,7 +58,7 @@ The organs of the abdomen sit on each other, so their names are read in two colu
 
 ## The liver over the last minute
 
-Under the beats is the monitor of the liver, which is the one organ three of the five tables are about. The table answers within a frame, so a visitor who turns an object sees the number move and has nothing to compare it with; this panel holds the **last sixty seconds** of it, sampled ten times a second, so a hand on an object draws its own curve.
+Under the beats is the monitor of the liver, which is the one organ all three of the other tables are about. The table answers within a frame, so a visitor who turns an object sees the number move and has nothing to compare it with; this panel holds the **last sixty seconds** of it, sampled ten times a second, so a hand on an object draws its own curve.
 
 | The curve | What it is |
 | --- | --- |

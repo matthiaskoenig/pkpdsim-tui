@@ -29,6 +29,12 @@ export interface TableEntry {
   readonly assets: string;
   /** The picture of the table: the thing a visitor puts their hand on when they open it. */
   readonly picture: Pictogram;
+  /**
+   * The colour of the table, which is what it is recognised by: its icon on the body, the organ
+   * it is about and the sidebar which says what it is all carry it. Five hues far enough apart
+   * to be told apart across a room, and dark enough to carry a white picture.
+   */
+  readonly color: string;
   /** Its module, which is only fetched when the table is opened. */
   load(): Promise<TableApp>;
 }
@@ -36,6 +42,7 @@ export interface TableEntry {
 export const TABLES: readonly TableEntry[] = [
   {
     id: "cardiovascular",
+    color: "#c0392b",
     picture: "heart",
     organ: "he",
     organs: ["he", "lu"],
@@ -43,15 +50,8 @@ export const TABLES: readonly TableEntry[] = [
     load: async () => (await import("@pkpdsim-tui/cardiovascular-table")).startCardiovascularTable,
   },
   {
-    id: "liver",
-    picture: "liver",
-    organ: "li",
-    organs: ["li", "si"],
-    assets: "cardiovascular/",
-    load: async () => (await import("@pkpdsim-tui/liver-table")).startLiverTable,
-  },
-  {
     id: "lobes",
+    color: "#7a4fa3",
     picture: "scalpel",
     organ: "li",
     organs: ["li"],
@@ -60,6 +60,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "glimepiride",
+    color: "#3d8b4f",
     picture: "tablet",
     organ: "si",
     organs: ["si", "li", "ki"],
@@ -68,6 +69,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "perfusion",
+    color: "#2f6fb0",
     picture: "pump",
     organ: "li",
     organs: ["li"],
