@@ -26,6 +26,10 @@ export interface KitCopy {
   readonly bodySwitch: string;
   readonly male: string;
   readonly female: string;
+  /** The button which reads the text of a panel, a note or the landing page aloud. */
+  readonly speak: string;
+  readonly speakStop: string;
+  readonly speakInfo: Phrase;
   /** How a table is driven, which depends on what is connected. */
   readonly mouseHint: (markers: string) => Phrase;
   readonly tableHint: Phrase;
@@ -65,6 +69,13 @@ const EN: KitCopy = {
     expert: "Every number, with the mechanism and the model behind it.",
   },
   bodySwitch: "Body",
+  speak: "Read it to me",
+  speakStop: "Stop",
+  speakInfo: {
+    child: "Press it and the table reads this out to you.",
+    adult: "Press it and the table reads this text aloud.",
+    expert: "Reads this text aloud, from the recorded clip of this language where there is one and with the speech of the browser where there is not.",
+  },
   male: "Man",
   female: "Woman",
   mouseHint: markers => ({
@@ -113,6 +124,13 @@ const DE: KitCopy = {
     expert: "Alle Zahlen, mit dem Mechanismus und dem Modell dahinter.",
   },
   bodySwitch: "Körper",
+  speak: "Vorlesen",
+  speakStop: "Stopp",
+  speakInfo: {
+    child: "Drück drauf, dann liest dir der Tisch das vor.",
+    adult: "Drücken Sie darauf, dann liest der Tisch diesen Text vor.",
+    expert: "Liest diesen Text vor, aus der aufgenommenen Datei dieser Sprache, wo es eine gibt, und sonst mit der Sprachausgabe des Browsers.",
+  },
   male: "Mann",
   female: "Frau",
   mouseHint: markers => ({
@@ -162,6 +180,13 @@ const ES: KitCopy = {
     expert: "Todos los números, con el mecanismo y el modelo detrás.",
   },
   bodySwitch: "Cuerpo",
+  speak: "Léemelo",
+  speakStop: "Parar",
+  speakInfo: {
+    child: "Púlsalo y la mesa te lo lee en voz alta.",
+    adult: "Púlselo y la mesa le lee este texto en voz alta.",
+    expert: "Lee este texto en voz alta, desde el audio grabado de este idioma cuando lo hay y con la voz del navegador cuando no.",
+  },
   male: "Hombre",
   female: "Mujer",
   mouseHint: markers => ({

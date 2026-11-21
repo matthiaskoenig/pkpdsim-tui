@@ -138,7 +138,67 @@ body {
   color: var(--ink);
   font-size: 0.88rem;
   line-height: 1.45;
-  pointer-events: none;
+  /* The note is read, and the button inside it is pressed. */
+  pointer-events: auto;
+}
+
+.info-text {
+  margin: 0;
+}
+
+/* The button which reads a text aloud: in the panel, in a note, and on the landing page. */
+.speak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.9rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.45rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.speak--note {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+}
+
+.speak-icon {
+  position: relative;
+  display: inline-block;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.speak-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--surface, #070b10);
+  clip-path: polygon(38% 28%, 38% 72%, 74% 50%);
+}
+
+.speak[data-speaking="true"] {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.speak[data-speaking="true"] .speak-icon::after {
+  clip-path: polygon(33% 33%, 67% 33%, 67% 67%, 33% 67%);
+}
+
+.speak:hover,
+.speak:focus-visible,
+.speak[data-arming="true"] {
+  border-color: var(--accent);
+  color: var(--ink);
+  outline: none;
 }
 
 /* What the objects on the table are doing to the body, in words rather than in numbers. */

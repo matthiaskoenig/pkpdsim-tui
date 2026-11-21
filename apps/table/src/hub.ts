@@ -12,8 +12,8 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, languageOptions, LEVELS, pointerPoints, svg, tokenPoints,
-  words,
+  attributes, chooseQuery, createInfo, languageOptions, LEVELS, pointerPoints, speechFor, svg,
+  tokenPoints, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {entryCopy, OVERVIEW, TABLES} from "./tables.ts";
@@ -131,6 +131,8 @@ interface Pill {
   readonly group: SVGGElement;
   readonly plate: SVGRectElement;
   readonly text: SVGTextElement;
+  /** The triangle of the pill which reads the page aloud, for the pills which have one. */
+  readonly icon: SVGPathElement | undefined;
   readonly width: number;
 }
 
@@ -140,7 +142,8 @@ interface Pill {
  * anything: the switches of a table are in its panel instead.
  */
 function createPills(
-  parent: SVGGElement, entries: readonly {id: string; label: string; info: string}[],
+  parent: SVGGElement,
+  entries: readonly {id: string; label: string; info: string; play?: boolean}[],
   group: string, selected: string, choose: (id: string) => void,
 ): readonly Pill[] {
   return entries.map(entry => {
@@ -150,6 +153,10 @@ function createPills(
       "data-dwell": `${group}:${entry.id}`, "data-info": entry.info,
     }, parent);
     const plate = svg("rect", {class: "hub-pill-plate", rx: 15, height: 30}, pill);
+    // A play button is a triangle wherever it is, so a visitor who cannot read the word knows it.
+    const icon = entry.play !== true
+      ? undefined
+      : svg("path", {class: "hub-pill-icon", d: "M -4 -6 L 7 0 L -4 6 Z"}, pill);
     const text = svg("text", {class: "hub-pill-text", "text-anchor": "middle"}, pill);
     text.textContent = entry.label;
     pill.addEventListener("click", () => choose(entry.id));
@@ -159,8 +166,8 @@ function createPills(
       choose(entry.id);
     });
     // A pill is as wide as its word, which differs in three languages.
-    const width = Math.max(78, entry.label.length * 10 + 28);
-    return {group: pill, plate, text, width};
+    const width = Math.max(78, entry.label.length * 10 + 28) + (entry.play === true ? 24 : 0);
+    return {group: pill, plate, text, icon, width};
   });
 }
 
@@ -169,7 +176,9 @@ function placePills(pills: readonly Pill[], right: number, y: number): void {
   let cursor = right - total;
   for (const pill of pills) {
     attributes(pill.plate, {x: cursor, y: y - 21, width: pill.width});
-    attributes(pill.text, {x: cursor + pill.width / 2, y});
+    const shift = pill.icon === undefined ? 0 : 11;
+    attributes(pill.text, {x: cursor + pill.width / 2 + shift, y});
+    pill.icon?.setAttribute("transform", `translate(${cursor + 20} ${y - 6})`);
     cursor += pill.width + 8;
   }
 }
@@ -287,6 +296,18 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       id: level, label: kit.levelNames[level], info: kit.levelInfo[level],
     })),
     "level", voice.level, id => chooseQuery("level", id, "adult"));
+  // Whoever cannot read this yet presses play and is read to instead.
+  const speech = speechFor(voice);
+  const spoken = `${copy.heading}. ${copy.motivation[voice.level].join(" ")}`;
+  const reader = createPills(
+    switches, [{id: "read", label: kit.speak, info: voice.say(kit.speakInfo), play: true}],
+    "speak", "", () => speech.toggle(spoken));
+  const readerPill = reader[0];
+  speech.listen(() => {
+    if (readerPill === undefined) return;
+    readerPill.group.setAttribute("data-speaking", String(speech.speaking()));
+    readerPill.text.textContent = speech.speaking() ? kit.speakStop : kit.speak;
+  });
   const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
 
   const bodies: readonly BodyView[] = (["male", "female"] as const).flatMap(sex => {
@@ -340,7 +361,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   // What a card, a body or an organ is, and the hold which opens it: both are the one layer.
   createInfo(host.surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ]);
+  ], voice);
 
   const draw = (): void => {
     const boxes = cardBoxes(viewport, TABLES.length);
@@ -411,7 +432,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const [index, line] of motivation.entries()) {
       attributes(line, {x: viewport.width / 2, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The switches sit in the corner opposite the status, out of the way of the cards.
+    // The switches sit in the corner opposite the status, out of the way of the cards, with
+    // the button which reads the page aloud above them.
+    placePills(reader, viewport.width - CARD.margin, viewport.height - 88);
     placePills(languages, viewport.width - CARD.margin, viewport.height - 52);
     placePills(levels, viewport.width - CARD.margin, viewport.height - 16);
     attributes(statusDot, {cx: CARD.margin + 6, cy: viewport.height - 44});

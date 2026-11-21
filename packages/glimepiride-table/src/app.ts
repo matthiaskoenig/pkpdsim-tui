@@ -85,7 +85,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     root, visibleStats(glimepirideStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport));
+  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

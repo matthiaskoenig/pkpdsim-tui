@@ -6,6 +6,7 @@
  */
 
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
+import {speechFor} from "./speech.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
 
@@ -134,6 +135,11 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     ${back}
     <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<i class="info-dot" aria-hidden="true">i</i></h1>
     <p class="reading">${escapeHtml(state.reading)}</p>
+    <button class="speak" type="button" data-dwell="speak"
+      data-info="${escapeHtml(voice.say(copy.speakInfo))}">
+      <span class="speak-icon" aria-hidden="true"></span>
+      <span class="speak-label">${escapeHtml(copy.speak)}</span>
+    </button>
     ${tries}
     ${state.choices === undefined || state.choices.length === 0 ? "" : choicesHtml(state.choices)}
     ${objects}
@@ -152,12 +158,33 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
 export function createChrome(container: HTMLElement, options: ChromeOptions): Chrome {
   const panel = document.createElement("aside");
   panel.className = "edge edge--near";
+  const copy = words(options.voice);
+  const speech = speechFor(options.voice);
+  // What the panel says, in the order a visitor reads it: what this table is, what it says
+  // about what is on it right now, and what there is to try. Each sentence is read on its own,
+  // so the recorded ones sound the same at every table.
+  let spoken: readonly string[] = [];
+
+  /** The button says what pressing it does now, which is stopping while it is reading. */
+  const showSpeaking = (): void => {
+    const button = panel.querySelector(".speak");
+    if (!(button instanceof HTMLElement)) return;
+    const reading = speech.speaking();
+    button.dataset["speaking"] = String(reading);
+    const label = button.querySelector(".speak-label");
+    if (label !== null) label.textContent = reading ? copy.speakStop : copy.speak;
+  };
+  speech.listen(showSpeaking);
   // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
   panel.addEventListener("click", event => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.closest(".back") !== null) {
       options.onBack?.();
+      return;
+    }
+    if (target.closest(".speak") !== null) {
+      speech.toggle(spoken);
       return;
     }
     const choice = target.closest(".choice");
@@ -171,10 +198,12 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
   let previous = "";
   return {
     update(state: ChromeUpdate): void {
+      spoken = [state.title, state.about, state.reading, ...state.tries];
       const html = panelHtml(state, options.voice);
       if (html === previous) return;
       previous = html;
       panel.innerHTML = html;
+      showSpeaking();
     },
   };
 }

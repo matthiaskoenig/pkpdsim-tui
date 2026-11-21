@@ -95,7 +95,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport));
+  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

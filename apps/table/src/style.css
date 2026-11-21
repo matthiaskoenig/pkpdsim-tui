@@ -242,3 +242,22 @@
 .hub-pill[data-arming="true"] .hub-pill-text {
   fill: var(--ink);
 }
+
+.hub-pill-icon {
+  fill: var(--accent);
+  pointer-events: none;
+}
+
+/* The pill which reads the page aloud says so while it is reading. */
+.hub-pill[data-speaking="true"] .hub-pill-plate {
+  fill: rgba(39, 179, 172, 0.3);
+  stroke: var(--accent);
+}
+
+.hub-pill[data-speaking="true"] .hub-pill-text {
+  fill: var(--ink);
+}
+
+.hub-pill[data-speaking="true"] .hub-pill-icon {
+  fill: var(--ink);
+}

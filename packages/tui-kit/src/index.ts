@@ -17,6 +17,8 @@ export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";
 export {createReadout, visibleStats} from "./readout.ts";
+export {normalizeSpeech, speechFor, speechKey} from "./speech.ts";
+export type {Speech} from "./speech.ts";
 export type {Readout, StatDefinition} from "./readout.ts";
 export {attributes, clear, line, svg, SVG_NS} from "./svg.ts";
 export type {Attributes} from "./svg.ts";

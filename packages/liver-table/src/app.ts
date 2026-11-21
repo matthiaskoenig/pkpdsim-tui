@@ -68,7 +68,7 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   const tokenLayer = createTokenLayer(root, host);
   createInfo(surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ]);
+  ], voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

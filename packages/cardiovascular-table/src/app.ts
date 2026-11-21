@@ -117,7 +117,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport));
+  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
