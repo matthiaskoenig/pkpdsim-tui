@@ -36,7 +36,7 @@ Every panel, every note and the landing page carry a **play button**. Pressing i
 
 What is read comes from two places:
 
-- **A recorded clip**, where there is one. The whole copy of the application is written down before anybody walks up to the table, so almost everything it says can be recorded in a good voice, in the language it belongs to, and it sounds the same at every table.
+- **A recorded clip**, where there is one. The whole copy of the application is written down before anybody walks up to the table, so almost everything it says can be recorded in a good voice, in the language it belongs to, and it sounds the same at every table. The voice of all three languages is the same kind of voice, a friendly and confident woman: `en_GB-cori-high`, `de_DE-kerstin-medium` and `es_MX-claude-high` in `PIPER_VOICES` of `scripts/speak.py`.
 - **The speech of the browser** for everything else: a reading like *2.5 times as much of the drug in the blood* is built out of the numbers of the moment and was never a sentence anybody could record.
 
 A table which was never given its clips still reads everything aloud. The clips are what makes it pleasant.
