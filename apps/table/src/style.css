@@ -196,7 +196,7 @@
 }
 
 .hub-pill[data-selected="true"] .hub-pill-plate {
-  fill: rgba(39, 179, 172, 0.18);
+  fill: var(--accent);
   stroke: var(--accent);
 }
 
@@ -216,7 +216,7 @@
 }
 
 .hub-pill[data-selected="true"] .hub-pill-text {
-  fill: var(--accent);
+  fill: #f3f8fb;
 }
 
 .hub-pill:hover .hub-pill-text,
