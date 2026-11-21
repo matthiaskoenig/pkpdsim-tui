@@ -42,7 +42,7 @@ export function createMockTableInput(options: MockTableInputOptions): MockTableI
   let snapshot: TableSnapshot = emptySnapshot(options.sensor);
   let status: TableStatus = {
     state: "idle", source: "mouse and keyboard",
-    detail: "Digit keys place a token, drag moves it, the wheel turns it, backspace lifts it.",
+    detail: "No tracker. The surface is driven from this machine.",
   };
   let nextSession = 1;
   let dragging: number | null = null;

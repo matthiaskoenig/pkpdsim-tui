@@ -40,13 +40,12 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   const receiver = new WebsocketTuioReceiver({
     host, port, secure: options.secure ?? false,
     onOpen: () => setStatus({state: "connected", source: receiver.url, detail: ""}),
+    // What to do about it is the business of the application, which knows how it was started.
     onClose: () => setStatus({
-      state: "error", source: receiver.url,
-      detail: "The tracker closed the connection. Start it and reload, or work on the mouse.",
+      state: "error", source: receiver.url, detail: `The tracker on ${receiver.url} closed the connection.`,
     }),
     onError: () => setStatus({
-      state: "error", source: receiver.url,
-      detail: `No tracker on ${receiver.url}. Start the simulator on WebSocket, TUIO 2.0, port ${port}.`,
+      state: "error", source: receiver.url, detail: `No tracker answers on ${receiver.url}.`,
     }),
   });
 
