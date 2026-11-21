@@ -66,9 +66,6 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   const chapters = createChapters(root, voice);
   const readout = createReadout<PressureSolution>(root, stats);
   const tokenLayer = createTokenLayer(root, host);
-  createInfo(surface, () => [
-    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ], voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -84,6 +81,14 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
   let frame = 0;
+
+  // The note layer reads the fingers of the tracker out of the snapshot, on the clock of
+  // the page, so it is built once there is one. Built before the input is opened, its
+  // first frame fell into the wait for the tracker and read a snapshot which did not
+  // exist yet, and the layer died with it.
+  createInfo(surface, () => [
+    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
+  ], voice);
 
   const render = (): void => {
     frame = 0;

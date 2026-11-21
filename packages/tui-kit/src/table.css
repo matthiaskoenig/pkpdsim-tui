@@ -65,6 +65,11 @@ body {
 /* The panel at the edge of the table the people stand at. There is one: the table is read from
    one side, and the same words twice only take the room the body needs. */
 .edge {
+  /* The layer around it is click through, so that the scene keeps the surface. The panel is a
+     card over the scene and takes its own presses: the way back, the switches and the button
+     which reads it out are pressed here, by a mouse and by a finger at rest alike, which reads
+     what is under it with elementFromPoint and so needs the panel to be there. */
+  pointer-events: auto;
   position: absolute;
   max-width: 22rem;
   padding: 0.9rem 1.1rem;

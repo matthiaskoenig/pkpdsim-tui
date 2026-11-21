@@ -79,9 +79,6 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   const readout = createReadout<PerfusionReadout>(
     root, visibleStats(perfusionStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
-  createInfo(surface, () => [
-    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ], voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -96,6 +93,14 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
+
+  // The note layer reads the fingers of the tracker out of the snapshot, on the clock of
+  // the page, so it is built once there is one. Built before the input is opened, its
+  // first frame fell into the wait for the tracker and read a snapshot which did not
+  // exist yet, and the layer died with it.
+  createInfo(surface, () => [
+    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
+  ], voice);
   let series: Series = {};
   let baseline: Series = {};
   let solving = true;
