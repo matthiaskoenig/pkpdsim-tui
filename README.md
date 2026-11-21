@@ -11,6 +11,8 @@ The interactive examples of the pkpdsim documentation run in a browser with slid
 
 Every application also runs without a table, on a mouse and the keyboard, so it can be developed and shown anywhere.
 
+It speaks English, German and Spanish, at three levels, and reads itself aloud: a visitor picks whether they want it explained the way a six year old is told it, the way an adult who knows nothing about the subject is told it, or in full, and whoever cannot read it presses play instead.
+
 ## One application, five tables
 
 Everything here is one application: it opens on the two reference bodies of pkpdsim, a man and a woman, with the tables arranged around them, and a touch on a card or on the organ it points at opens that table. Touching a body is what every table is then solved for, and **Back** in the panel of a table returns to them. One build, one address, one port.
@@ -37,6 +39,7 @@ npm run dev           # the application and the TUIO simulator, both on http://l
 | `http://localhost:5173/?app=cardiovascular` | one table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/simulator/` | the simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | the same, opened on one table |
+| `http://localhost:5173/?lang=de&level=child` | any of them in another language and at another level, which a visitor also switches on the table |
 
 Nothing has to be added to those addresses: a page asks the server it came from whether it carries a tracker, and the development server does, at `/tuio`. The mouse works at the same time as the objects: digit keys place an object, dragging moves it, the wheel turns it, backspace lifts it, escape leaves a table for the body. On the surface of the simulator the objects are placed with a double click and turned with the wheel, and the application under it follows them. `?tuio=off` keeps a page on the mouse alone; the Unity simulator of Interactive Scape, and a real table, are addressed with `?tuio=host:port`.
 
@@ -67,6 +70,7 @@ The documentation explains the protocol, the simulator and the table: `npm run d
 | `apps/table` | the one application: the body, the tables behind it, and the development server that carries the simulator |
 | `scripts/sync-assets.mjs` | copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
 | `scripts/export_model.py` | compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
+| `scripts/speech.mjs`, `scripts/speak.py` | every sentence the tables can say, and the clips which read them aloud |
 | `docs/` | the [Zensical](https://zensical.org/) documentation |
 
 ## Development
@@ -75,6 +79,7 @@ The documentation explains the protocol, the simulator and the table: `npm run d
 npm test              # vitest
 npm run typecheck     # tsc
 npm run build         # the production bundle of the application
+npm run speech        # the clips the tables read aloud, see docs/languages.md
 npm run docs:build    # the documentation, strict
 ```
 

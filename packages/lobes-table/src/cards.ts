@@ -20,7 +20,8 @@ export type Sample = Readonly<Record<string, number>>;
  * push; an adult the flows as well; an expert the gradient which says what the remnant costs.
  */
 export function lobeStats(voice: Voice): readonly StatDefinition<Sample>[] {
-  const copy = voice.pick(LOBE_TEXT).stats;
+  const book = voice.pick(LOBE_TEXT);
+  const copy = book.stats;
   const stat = (
     id: keyof typeof copy, unit: string, digits: number, of: (sample: Sample) => number,
     from?: "adult" | "expert",
@@ -30,7 +31,7 @@ export function lobeStats(voice: Voice): readonly StatDefinition<Sample>[] {
     ...(from === undefined ? {} : {from}),
   });
   return [
-    stat("remnant", "% of reference", 0, sample => 100 * (sample["f_remnant"] ?? 0)),
+    stat("remnant", book.ofReference, 0, sample => 100 * (sample["f_remnant"] ?? 0)),
     stat("portal-pressure", "mmHg", 1, sample => sample["CV_P_po"] ?? 0),
     stat("portal-flow", "l/min", 2, sample => sample["Qpo"] ?? 0, "adult"),
     stat("arterial-flow", "l/min", 2, sample => sample["Qha"] ?? 0, "adult"),

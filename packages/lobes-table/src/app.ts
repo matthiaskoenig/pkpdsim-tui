@@ -11,7 +11,7 @@
 import {createSolver, fetchSolverAssets, loadCoreHost, sampleAt, toSeries} from "@pkpdsim-tui/core-runtime";
 import type {Series, Solver} from "@pkpdsim-tui/core-runtime";
 import {
-  caseChanges, describeStates, intactStates, loadLobeConfig, loadLobeData, lobeRequest,
+  caseChanges, intactStates, loadLobeConfig, loadLobeData, lobeRequest,
   remnantFraction,
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
@@ -79,7 +79,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const config: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
   const days = config.end / (24 * 60);
   const roles = lobeRoles(days, voice);
-  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: "days"};
+  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: copy.days};
 
   host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
@@ -217,9 +217,11 @@ export async function startLobesTable(host: TableHost): Promise<void> {
         .filter(token => !roles.some(role => role.markers.includes(token.marker)))
         .map(token => token.marker))],
       hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
-      credit: `${describeStates(lobes, states)} - `
-        + `${formatNumber(remnantFraction(lobes, states) * 100, 0)} % of the mass left, `
-        + `${sex} ${species} liver`,
+      credit: copy.credit(
+        formatNumber(remnantFraction(lobes, states) * 100, 0),
+        copy.species[species] ?? species,
+        sex === "female" ? kit.female : kit.male,
+      ),
     });
   };
 

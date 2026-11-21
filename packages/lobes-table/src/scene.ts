@@ -89,10 +89,16 @@ export function shortName(voice: Voice, block: {name: string; token: string}): s
   return roman === null ? block.name : voice.pick(LOBE_TEXT).segment(roman[1] ?? "");
 }
 
-/** The part of the name that is worth reading on a block. */
-export function blockName(block: LobeBlock): string {
+/**
+ * Where a segment lies, which is the part of its name worth reading on the block itself. A
+ * child is not told it: the numeral is what a segment is called, and the rest is anatomy.
+ */
+export function blockName(voice: Voice, block: LobeBlock): string {
+  if (voice.child) return "";
   const detail = /\(([^)]+)\)/.exec(block.name);
-  return detail?.[1] ?? block.name;
+  const found = detail?.[1];
+  if (found === undefined) return block.name;
+  return voice.pick(LOBE_TEXT).segmentNames[found] ?? found;
 }
 
 /** The tint of a segment whose branch was closed, in the colour of that branch. */
@@ -198,7 +204,7 @@ export function createLiverScene(
         attributes(visual.plate, {fill, "data-state": state});
         visual.group.setAttribute("data-state", state);
         visual.label.textContent = blockLabel(visual.block);
-        visual.name.textContent = blockName(visual.block);
+        visual.name.textContent = blockName(voice, visual.block);
         visual.value.textContent = resected
           ? copy.resected
           : `${formatNumber(volume * 100, 0)} %`;

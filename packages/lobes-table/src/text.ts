@@ -33,6 +33,13 @@ export interface LobeCopy {
   readonly species: Readonly<Record<string, string>>;
   readonly femaleOnlyHuman: string;
   readonly segment: (numeral: string) => string;
+  /** Where a segment lies, by the name the export of the model gives it. */
+  readonly segmentNames: Readonly<Record<string, string>>;
+  /** The unit of the band which is read against the liver nobody operated on. */
+  readonly ofReference: string;
+  readonly days: string;
+  /** The line under the panel: what is left of the liver, and whose it is. */
+  readonly credit: (share: string, species: string, body: string) => string;
   readonly resected: string;
   readonly massGone: (share: string) => string;
   readonly noSegment: string;
@@ -148,6 +155,19 @@ const EN: LobeCopy = {
   species: {human: "Human", rat: "Rat", mouse: "Mouse"},
   femaleOnlyHuman: "The export has the female liver of the human only.",
   segment: numeral => `segment ${numeral}`,
+  segmentNames: {
+    "caudate lobe": "caudate lobe",
+    "left lateral superior": "left lateral superior",
+    "left lateral inferior": "left lateral inferior",
+    "left medial": "left medial",
+    "right anterior inferior": "right anterior inferior",
+    "right posterior inferior": "right posterior inferior",
+    "right posterior superior": "right posterior superior",
+    "right anterior superior": "right anterior superior",
+  },
+  ofReference: "% of reference",
+  days: "days",
+  credit: (share, species, body) => `${share} % of the liver left, ${body} ${species}`,
   resected: "resected",
   massGone: share => `${share} of the mass gone`,
   noSegment: "no segment",
@@ -296,6 +316,19 @@ const DE: LobeCopy = {
   species: {human: "Mensch", rat: "Ratte", mouse: "Maus"},
   femaleOnlyHuman: "Der Export hat die weibliche Leber nur für den Menschen.",
   segment: numeral => `Segment ${numeral}`,
+  segmentNames: {
+    "caudate lobe": "Lobus caudatus",
+    "left lateral superior": "links lateral superior",
+    "left lateral inferior": "links lateral inferior",
+    "left medial": "links medial",
+    "right anterior inferior": "rechts anterior inferior",
+    "right posterior inferior": "rechts posterior inferior",
+    "right posterior superior": "rechts posterior superior",
+    "right anterior superior": "rechts anterior superior",
+  },
+  ofReference: "% der Referenz",
+  days: "Tage",
+  credit: (share, species, body) => `${share} % der Leber übrig, ${species}, ${body}`,
   resected: "entfernt",
   massGone: share => `${share} der Masse weg`,
   noSegment: "kein Segment",
@@ -443,6 +476,19 @@ const ES: LobeCopy = {
   species: {human: "Humano", rat: "Rata", mouse: "Ratón"},
   femaleOnlyHuman: "La exportación tiene el hígado femenino solo del humano.",
   segment: numeral => `segmento ${numeral}`,
+  segmentNames: {
+    "caudate lobe": "lóbulo caudado",
+    "left lateral superior": "lateral izquierdo superior",
+    "left lateral inferior": "lateral izquierdo inferior",
+    "left medial": "medial izquierdo",
+    "right anterior inferior": "anterior derecho inferior",
+    "right posterior inferior": "posterior derecho inferior",
+    "right posterior superior": "posterior derecho superior",
+    "right anterior superior": "anterior derecho superior",
+  },
+  ofReference: "% de la referencia",
+  days: "días",
+  credit: (share, species, body) => `queda el ${share} % del hígado, ${species}, ${body}`,
   resected: "resecado",
   massGone: share => `${share} de la masa fuera`,
   noSegment: "sin segmento",
