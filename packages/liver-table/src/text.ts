@@ -3,7 +3,7 @@
  * the same for everybody; the words around them are not.
  */
 
-import type {Locale, Phrase} from "@pkpdsim-tui/tui-kit";
+import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 /** What the sentence of the panel is built from, which every language says its own way. */
 export interface LiverFacts {
@@ -25,6 +25,8 @@ export interface Named {
 export interface LiverCopy {
   readonly about: Phrase;
   readonly tries: readonly Phrase[];
+  /** The three questions of the quiz, which send a visitor back to the objects. */
+  readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "flow" | "portal" | "artery" | "share" | "ppo" | "lobule", Named>>;
   readonly roles: Readonly<Record<"portal" | "hepatic", Named>>;
@@ -58,6 +60,47 @@ export interface LiverCopy {
 }
 
 const EN: LiverCopy = {
+  quiz: [
+    {
+      id: "supply",
+      ask: "Where does most of the blood of the liver come from?",
+      choices: [
+        {id: "gut", label: "From the gut, through the portal vein"},
+        {id: "artery", label: "From the artery"},
+        {id: "heart", label: "Straight from the heart"},
+      ],
+      answer: "gut",
+      because: "About three quarters of it comes from the gut and is low in oxygen but full of"
+        + " what was eaten. The artery brings the smaller part, and the oxygen.",
+      tryIt: "Try it: turn the gut object and watch which of the two lines gets thicker.",
+    },
+    {
+      id: "first",
+      ask: "Why does the liver see a meal before the rest of the body does?",
+      choices: [
+        {id: "between", label: "Because it sits between the gut and the body"},
+        {id: "fast", label: "Because it is the fastest organ"},
+        {id: "asks", label: "Because the gut sends it there on purpose"},
+      ],
+      answer: "between",
+      because: "Everything the gut absorbs goes through the liver first. That is why the liver"
+        + " can take a drug apart before it ever reaches the arm.",
+      tryIt: "Try it: open the glimepiride table and see the same thing with a tablet.",
+    },
+    {
+      id: "zones",
+      ask: "One lobule is a street of cells. Where is there the most oxygen?",
+      choices: [
+        {id: "first", label: "Where the blood arrives"},
+        {id: "last", label: "Where the blood leaves"},
+        {id: "even", label: "Evenly everywhere"},
+      ],
+      answer: "first",
+      because: "The cells take oxygen out of the blood as it flows past, so the last cells get"
+        + " the least. They are also the first to be hurt when the liver is short of blood.",
+      tryIt: "Try it: hold a finger on a zone and read what the cells there do.",
+    },
+  ],
   about: {
     child: "The liver gets blood from two pipes: one with oxygen, one with everything you ate. It looks at your food before the rest of you does.",
     adult: "The liver is the only organ with two blood supplies: oxygen from the artery, and everything the gut has absorbed from the portal vein. It sees your food, and every drug you take, before the rest of the body does.",
@@ -220,6 +263,47 @@ const EN: LiverCopy = {
 };
 
 const DE: LiverCopy = {
+  quiz: [
+    {
+      id: "supply",
+      ask: "Woher kommt das meiste Blut der Leber?",
+      choices: [
+        {id: "gut", label: "Aus dem Darm, durch die Pfortader"},
+        {id: "artery", label: "Aus der Arterie"},
+        {id: "heart", label: "Direkt vom Herzen"},
+      ],
+      answer: "gut",
+      because: "Etwa drei Viertel kommen aus dem Darm. Dieses Blut hat wenig Sauerstoff, aber"
+        + " alles, was gegessen wurde. Die Arterie bringt den kleineren Teil und den Sauerstoff.",
+      tryIt: "Probier es: Dreh das Darm-Objekt und sieh zu, welche der beiden Linien dicker wird.",
+    },
+    {
+      id: "first",
+      ask: "Warum sieht die Leber das Essen vor dem Rest des Körpers?",
+      choices: [
+        {id: "between", label: "Weil sie zwischen Darm und Körper sitzt"},
+        {id: "fast", label: "Weil sie das schnellste Organ ist"},
+        {id: "asks", label: "Weil der Darm es extra dorthin schickt"},
+      ],
+      answer: "between",
+      because: "Alles, was der Darm aufnimmt, fließt zuerst durch die Leber. Deshalb kann die"
+        + " Leber ein Medikament abbauen, bevor es überhaupt im Arm ankommt.",
+      tryIt: "Probier es: Öffne den Glimepirid-Tisch und sieh dasselbe mit einer Tablette.",
+    },
+    {
+      id: "zones",
+      ask: "Ein Läppchen ist eine Straße aus Zellen. Wo ist der meiste Sauerstoff?",
+      choices: [
+        {id: "first", label: "Dort, wo das Blut ankommt"},
+        {id: "last", label: "Dort, wo das Blut wieder hinausfließt"},
+        {id: "even", label: "Überall gleich viel"},
+      ],
+      answer: "first",
+      because: "Die Zellen nehmen dem Blut unterwegs den Sauerstoff weg, also bekommen die letzten"
+        + " am wenigsten. Sie nehmen auch zuerst Schaden, wenn die Leber zu wenig Blut bekommt.",
+      tryIt: "Probier es: Halte den Finger auf eine Zone und lies, was die Zellen dort tun.",
+    },
+  ],
   about: {
     child: "Die Leber bekommt Blut aus zwei Rohren: eines mit Sauerstoff, eines mit allem, was du gegessen hast. Sie sieht dein Essen vor dem Rest von dir.",
     adult: "Die Leber ist das einzige Organ mit zwei Blutzuflüssen: Sauerstoff aus der Arterie und alles, was der Darm aufgenommen hat, aus der Pfortader. Sie sieht Ihr Essen und jedes Medikament vor dem Rest des Körpers.",
@@ -382,6 +466,47 @@ const DE: LiverCopy = {
 };
 
 const ES: LiverCopy = {
+  quiz: [
+    {
+      id: "supply",
+      ask: "¿De dónde viene la mayor parte de la sangre del hígado?",
+      choices: [
+        {id: "gut", label: "Del intestino, por la vena porta"},
+        {id: "artery", label: "De la arteria"},
+        {id: "heart", label: "Directamente del corazón"},
+      ],
+      answer: "gut",
+      because: "Unas tres cuartas partes vienen del intestino: esa sangre lleva poco oxígeno, pero"
+        + " todo lo que se ha comido. La arteria trae la parte menor, y el oxígeno.",
+      tryIt: "Pruébalo: gira el objeto del intestino y mira cuál de las dos líneas se engorda.",
+    },
+    {
+      id: "first",
+      ask: "¿Por qué el hígado ve la comida antes que el resto del cuerpo?",
+      choices: [
+        {id: "between", label: "Porque está entre el intestino y el cuerpo"},
+        {id: "fast", label: "Porque es el órgano más rápido"},
+        {id: "asks", label: "Porque el intestino se la manda a propósito"},
+      ],
+      answer: "between",
+      because: "Todo lo que absorbe el intestino pasa primero por el hígado. Por eso el hígado"
+        + " puede descomponer un fármaco antes de que llegue al brazo.",
+      tryIt: "Pruébalo: abre la mesa de glimepirida y mira lo mismo con una pastilla.",
+    },
+    {
+      id: "zones",
+      ask: "Un lobulillo es una calle de células. ¿Dónde hay más oxígeno?",
+      choices: [
+        {id: "first", label: "Donde llega la sangre"},
+        {id: "last", label: "Donde la sangre sale"},
+        {id: "even", label: "Igual en todas partes"},
+      ],
+      answer: "first",
+      because: "Las células van sacando el oxígeno de la sangre por el camino, así que las últimas"
+        + " reciben menos. También son las primeras en sufrir cuando falta sangre.",
+      tryIt: "Pruébalo: apoya un dedo en una zona y lee qué hacen allí las células.",
+    },
+  ],
   about: {
     child: "El hígado recibe sangre por dos tubos: uno con oxígeno y otro con todo lo que has comido. Ve tu comida antes que el resto de ti.",
     adult: "El hígado es el único órgano con dos aportes de sangre: oxígeno por la arteria y todo lo que el intestino ha absorbido por la vena porta. Ve su comida, y cada medicamento que toma, antes que el resto del cuerpo.",

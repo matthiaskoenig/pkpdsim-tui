@@ -1,6 +1,6 @@
 /** What the lobed liver table says, in the three languages and at the three levels. */
 
-import type {Locale, Phrase} from "@pkpdsim-tui/tui-kit";
+import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 export interface Named {
   readonly label: Phrase;
@@ -25,6 +25,8 @@ export interface LobeFacts {
 export interface LobeCopy {
   readonly about: Phrase;
   readonly tries: readonly Phrase[];
+  /** The three questions of the quiz, which send a visitor back to the objects. */
+  readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "remnant" | "portal-pressure" | "gradient" | "portal-flow" | "arterial-flow", Named>>;
   readonly roles: Readonly<Record<"portal" | "arterial" | "resect" | "day", Named>>;
@@ -57,6 +59,47 @@ export interface LobeCopy {
 }
 
 const EN: LobeCopy = {
+  quiz: [
+    {
+      id: "grow",
+      ask: "A surgeon takes half of a liver away. What does the rest do?",
+      choices: [
+        {id: "grows", label: "It grows back over the next days"},
+        {id: "stays", label: "It stays half a liver forever"},
+        {id: "stops", label: "It stops working"},
+      ],
+      answer: "grows",
+      because: "The liver is the only organ which grows back. The part which is left takes over"
+        + " the work and is close to its old size again within days.",
+      tryIt: "Try it: resect a few segments, then wind the day dial forward.",
+    },
+    {
+      id: "clamp",
+      ask: "A clamp closes the portal branch of one segment. What happens to that segment?",
+      choices: [
+        {id: "shrinks", label: "It gets less blood and shrinks"},
+        {id: "grows", label: "It grows faster than the others"},
+        {id: "nothing", label: "Nothing, the artery is enough"},
+      ],
+      answer: "shrinks",
+      because: "Most of the blood of a segment comes through the portal vein. Closing it is how"
+        + " surgeons make the other side grow before they operate on it.",
+      tryIt: "Try it: clamp a segment and watch what the rest of the liver does.",
+    },
+    {
+      id: "pressure",
+      ask: "After a large resection, what happens to the pressure in the portal vein?",
+      choices: [
+        {id: "up", label: "It goes up"},
+        {id: "down", label: "It goes down"},
+        {id: "same", label: "It stays the same"},
+      ],
+      answer: "up",
+      because: "The same blood from the gut now has to pass through a smaller liver, so the"
+        + " pressure in front of it rises. Too much of that is what makes a resection dangerous.",
+      tryIt: "Try it: resect more and more, and watch the portal pressure climb.",
+    },
+  ],
   about: {
     child: "A liver is built of eight pieces. You can take some away, and the rest grows back until the liver is big enough again.",
     adult: "A liver is built of eight pieces, each with its own blood supply. A surgeon can close one off or cut it away, and what is left grows back within days.",
@@ -218,6 +261,47 @@ const EN: LobeCopy = {
 };
 
 const DE: LobeCopy = {
+  quiz: [
+    {
+      id: "grow",
+      ask: "Eine Chirurgin nimmt die Hälfte einer Leber weg. Was macht der Rest?",
+      choices: [
+        {id: "grows", label: "Er wächst in den nächsten Tagen nach"},
+        {id: "stays", label: "Er bleibt für immer eine halbe Leber"},
+        {id: "stops", label: "Er hört auf zu arbeiten"},
+      ],
+      answer: "grows",
+      because: "Die Leber ist das einzige Organ, das nachwächst. Der übrige Teil übernimmt die"
+        + " Arbeit und ist nach wenigen Tagen fast wieder so groß wie vorher.",
+      tryIt: "Probier es: Entferne ein paar Segmente und dreh dann das Tage-Rad vorwärts.",
+    },
+    {
+      id: "clamp",
+      ask: "Eine Klemme schließt den Pfortaderast eines Segments. Was passiert mit dem Segment?",
+      choices: [
+        {id: "shrinks", label: "Es bekommt weniger Blut und schrumpft"},
+        {id: "grows", label: "Es wächst schneller als die anderen"},
+        {id: "nothing", label: "Nichts, die Arterie reicht aus"},
+      ],
+      answer: "shrinks",
+      because: "Das meiste Blut eines Segments kommt durch die Pfortader. Genau so lässt man vor"
+        + " einer Operation die andere Seite wachsen: man schließt die Pfortader der kranken.",
+      tryIt: "Probier es: Klemme ein Segment ab und sieh zu, was der Rest der Leber macht.",
+    },
+    {
+      id: "pressure",
+      ask: "Nach einer großen Resektion: Was passiert mit dem Druck in der Pfortader?",
+      choices: [
+        {id: "up", label: "Er steigt"},
+        {id: "down", label: "Er fällt"},
+        {id: "same", label: "Er bleibt gleich"},
+      ],
+      answer: "up",
+      because: "Dasselbe Blut aus dem Darm muss jetzt durch eine kleinere Leber, also steigt der"
+        + " Druck davor. Zu viel davon ist das, was eine Resektion gefährlich macht.",
+      tryIt: "Probier es: Entferne immer mehr und sieh zu, wie der Pfortaderdruck steigt.",
+    },
+  ],
   about: {
     child: "Eine Leber besteht aus acht Stücken. Man kann welche wegnehmen, und der Rest wächst nach, bis die Leber wieder groß genug ist.",
     adult: "Eine Leber ist aus acht Stücken gebaut, jedes mit eigener Blutversorgung. Chirurginnen und Chirurgen können eines abklemmen oder wegschneiden, und was übrig bleibt, wächst binnen Tagen nach.",
@@ -378,6 +462,47 @@ const DE: LobeCopy = {
 };
 
 const ES: LobeCopy = {
+  quiz: [
+    {
+      id: "grow",
+      ask: "Una cirujana quita la mitad de un hígado. ¿Qué hace el resto?",
+      choices: [
+        {id: "grows", label: "Vuelve a crecer en los días siguientes"},
+        {id: "stays", label: "Se queda para siempre como medio hígado"},
+        {id: "stops", label: "Deja de trabajar"},
+      ],
+      answer: "grows",
+      because: "El hígado es el único órgano que vuelve a crecer. La parte que queda asume el"
+        + " trabajo y en pocos días casi recupera su tamaño.",
+      tryIt: "Pruébalo: quita unos segmentos y luego gira el dial de los días.",
+    },
+    {
+      id: "clamp",
+      ask: "Una pinza cierra la rama portal de un segmento. ¿Qué le pasa a ese segmento?",
+      choices: [
+        {id: "shrinks", label: "Recibe menos sangre y se encoge"},
+        {id: "grows", label: "Crece más rápido que los demás"},
+        {id: "nothing", label: "Nada, con la arteria le basta"},
+      ],
+      answer: "shrinks",
+      because: "La mayor parte de la sangre de un segmento llega por la vena porta. Así se hace"
+        + " crecer el otro lado antes de operar: cerrando la porta del lado enfermo.",
+      tryIt: "Pruébalo: pinza un segmento y mira qué hace el resto del hígado.",
+    },
+    {
+      id: "pressure",
+      ask: "Tras una resección grande, ¿qué pasa con la presión de la vena porta?",
+      choices: [
+        {id: "up", label: "Sube"},
+        {id: "down", label: "Baja"},
+        {id: "same", label: "Se queda igual"},
+      ],
+      answer: "up",
+      because: "La misma sangre del intestino tiene que pasar ahora por un hígado más pequeño,"
+        + " así que la presión delante sube. Demasiada es lo que hace peligrosa una resección.",
+      tryIt: "Pruébalo: quita cada vez más y mira cómo sube la presión portal.",
+    },
+  ],
   about: {
     child: "Un hígado está hecho de ocho piezas. Puedes quitar algunas y el resto vuelve a crecer hasta que el hígado es bastante grande otra vez.",
     adult: "Un hígado está construido de ocho piezas, cada una con su propio aporte de sangre. Un cirujano puede cerrar una o quitarla, y lo que queda vuelve a crecer en días.",

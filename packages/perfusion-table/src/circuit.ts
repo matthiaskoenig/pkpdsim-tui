@@ -61,10 +61,10 @@ export function createCircuit(parent: SVGSVGElement, voice: Voice): Circuit {
     return element;
   };
   label(copy.parts.reservoir, 16, 93);
-  label(copy.parts.pump, 16, 62);
+  label(copy.parts.pump, 6, 49, "circuit-label--left");
   label(copy.parts.oxygenator, 42, 8);
   label(copy.parts.liver, 69, 14);
-  label(copy.parts.bile, 92, 48);
+  label(copy.parts.bile, 97, 44);
 
   // The organ: the chain of zones from the inflow to the outflow.
   const zones = Array.from({length: 4}, (_unused, index) => {

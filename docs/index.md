@@ -9,7 +9,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 ## One application, five tables
 
-Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a man and a woman, with the tables arranged around them and a line from each card to the organ its table is about. Touching a card, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and so does the table switch beside it. One build, one address, one port.
+Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, with the tables arranged around them and a line from each card to the organ its table is about. Every card carries the pictogram of its table, a heading which says what it shows and one line of what a visitor does there. Touching a card, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |

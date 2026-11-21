@@ -946,3 +946,260 @@ body {
   color: var(--panel-ink-dim);
   font-size: 0.72rem;
 }
+
+/* ---------------------------------------------------------------------------------------- */
+/* The quiz: a button in the near corner, and the card of one question at a time behind it. */
+
+.quiz {
+  position: absolute;
+  /* Under the panel, which is the corner no table draws into, and beside what it explains. */
+  left: 1.5rem;
+  bottom: 1.5rem;
+  /* The open card stands over the panel it grows past, under the notes, which answer both. */
+  z-index: 10;
+  /* The card grows upwards out of the button, so that it never leaves the table. */
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.7rem;
+  pointer-events: auto;
+}
+
+.quiz-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.6rem 1.1rem 0.6rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(13, 140, 134, 0.3);
+}
+
+.quiz-mark {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.quiz-button:hover,
+.quiz-button[data-arming="true"] {
+  background: #0b7a75;
+}
+
+.quiz[data-open="true"] .quiz-button {
+  background: var(--panel);
+  box-shadow: 0 10px 26px rgba(15, 29, 40, 0.22);
+}
+
+.quiz-card {
+  --ink: var(--panel-ink);
+  --ink-dim: var(--panel-ink-dim);
+  width: min(32rem, calc(100vw - 3rem));
+  padding: 1.2rem 1.3rem 1.1rem;
+  /* The line keeps it a card of its own where it grows over the panel below it. */
+  border: 1px solid rgba(243, 248, 251, 0.16);
+  border-radius: 1rem;
+  background: var(--panel);
+  box-shadow: 0 18px 44px rgba(15, 29, 40, 0.24);
+  color: var(--panel-ink);
+}
+
+.quiz-card[hidden] {
+  display: none;
+}
+
+.quiz-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.quiz-step {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+/* One dot per question: where the visitor is, and how far there is to go. */
+.quiz-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid var(--panel-ink-dim);
+  border-radius: 50%;
+}
+
+.quiz-dot[data-state="past"] {
+  border-color: var(--accent-bright);
+  background: var(--accent-bright);
+}
+
+.quiz-dot[data-state="now"] {
+  border-color: var(--accent-bright);
+}
+
+.quiz-head-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The reader of the quiz is the reader of the panel, in the head of the card. */
+.quiz-speak {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.quiz-close {
+  padding: 0.3rem 0.8rem;
+  border: 1.5px solid rgba(243, 248, 251, 0.24);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--panel-ink-dim);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quiz-close:hover,
+.quiz-close[data-arming="true"] {
+  color: var(--panel-ink);
+  border-color: var(--accent-bright);
+}
+
+.quiz-ask {
+  margin: 0 0 0.9rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.quiz-choices {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* An answer is a whole line a hand can land on, not a word in a sentence. */
+.quiz-choice {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid rgba(243, 248, 251, 0.22);
+  border-radius: 0.8rem;
+  background: transparent;
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms linear, border-color 120ms linear;
+}
+
+.quiz-choice:hover,
+.quiz-choice[data-arming="true"] {
+  border-color: var(--accent-bright);
+  background: rgba(39, 179, 172, 0.14);
+}
+
+/* Once it is answered the card says which one was right, and which one was pressed. */
+.quiz-card[data-state="answered"] .quiz-choice {
+  cursor: default;
+}
+
+.quiz-choice[data-right="true"] {
+  border-color: var(--accent-bright);
+  background: rgba(39, 179, 172, 0.22);
+}
+
+/* The one that was right carries the tick, whether or not it was the one pressed. */
+.quiz-choice[data-right="true"]::after {
+  content: " ✓";
+  color: var(--accent-bright);
+  font-weight: 800;
+}
+
+.quiz-choice[data-picked="true"][data-right="false"] {
+  border-color: #eca53f;
+  background: rgba(236, 165, 63, 0.18);
+}
+
+.quiz-choice[data-picked="true"][data-right="false"]::after {
+  content: " ✕";
+  color: #eca53f;
+  font-weight: 800;
+}
+
+.quiz-choice--again {
+  border-color: var(--accent-bright);
+  text-align: center;
+}
+
+.quiz-answer {
+  margin-top: 0.9rem;
+}
+
+.quiz-answer[hidden] {
+  display: none;
+}
+
+.quiz-verdict {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent-bright);
+}
+
+.quiz-card[data-correct="false"] .quiz-verdict {
+  color: #eca53f;
+}
+
+.quiz-because {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.quiz-try {
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-bright);
+}
+
+.quiz-try[hidden] {
+  display: none;
+}
+
+.quiz-next {
+  margin-top: 0.9rem;
+  padding: 0.6rem 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quiz-next:hover,
+.quiz-next[data-arming="true"] {
+  background: #0b7a75;
+}
+
+/* A table for a six year old says the question in larger type. */
+:root[data-level="child"] .quiz-ask {
+  font-size: 1.5rem;
+}

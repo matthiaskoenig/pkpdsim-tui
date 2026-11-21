@@ -5,7 +5,8 @@
   "type": "module",
   "description": "The glimepiride table: the dose, the genotype and the organs of one individual as objects",
   "exports": {
-    ".": "./src/app.ts"
+    ".": "./src/app.ts",
+    "./text": "./src/text.ts"
   },
   "dependencies": {
     "@pkpdsim-tui/core-runtime": "*",

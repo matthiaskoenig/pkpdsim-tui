@@ -24,7 +24,7 @@ import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  chooseQuery, createChrome, createInfo, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createQuiz, createInfo, createReadout, createTokenLayer, driveHint,
   formatFactor, formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -117,6 +117,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

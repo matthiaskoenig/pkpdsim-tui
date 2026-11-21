@@ -1,6 +1,6 @@
 /** What the glimepiride table says, in the three languages and at the three levels. */
 
-import type {Locale, Phrase} from "@pkpdsim-tui/tui-kit";
+import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 export interface Named {
   readonly label: Phrase;
@@ -25,6 +25,8 @@ export interface GlimepirideFacts {
 export interface GlimepirideCopy {
   readonly about: Phrase;
   readonly tries: readonly Phrase[];
+  /** The three questions of the quiz, which send a visitor back to the objects. */
+  readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "now" | "cmax" | "tmax" | "halflife" | "auc" | "urine", Named>>;
   readonly roles: Readonly<Record<
@@ -52,6 +54,47 @@ export interface GlimepirideCopy {
 }
 
 const EN: GlimepirideCopy = {
+  quiz: [
+    {
+      id: "liver",
+      ask: "What does the liver do with the tablet?",
+      choices: [
+        {id: "break", label: "It takes it apart"},
+        {id: "store", label: "It keeps it for later"},
+        {id: "back", label: "It sends it back to the stomach"},
+      ],
+      answer: "break",
+      because: "The liver takes glimepiride apart with an enzyme called CYP2C9. What is left of it"
+        + " is carried out of the blood by the kidneys.",
+      tryIt: "Try it: turn object 2 down and watch the curve climb.",
+    },
+    {
+      id: "slow",
+      ask: "Two people take the same tablet. Who ends up with more of the drug in their blood?",
+      choices: [
+        {id: "slow", label: "The one whose liver works slowly"},
+        {id: "heavy", label: "The one who weighs more"},
+        {id: "same", label: "Both the same"},
+      ],
+      answer: "slow",
+      because: "A slow liver takes less apart every hour, so more of it stays. Weight spreads the"
+        + " drug through more body, which lowers the level rather than raising it.",
+      tryIt: "Try it: turn object 2 to the left and read the peak.",
+    },
+    {
+      id: "kidneys",
+      ask: "What are the kidneys for here?",
+      choices: [
+        {id: "urine", label: "They carry it out of the blood into the urine"},
+        {id: "bigger", label: "They make the tablet bigger"},
+        {id: "pump", label: "They pump the blood"},
+      ],
+      answer: "urine",
+      because: "The kidneys filter the blood, and what they take out of it is in the urine. When"
+        + " they work less well, more of the drug stays in the body.",
+      tryIt: "Try it: turn object 4 down and watch the number under the urine.",
+    },
+  ],
   about: {
     child: "This tablet helps people whose blood has too much sugar. It goes into the gut, the liver takes it apart, and the kidneys wash the pieces out.",
     adult: "Glimepiride lowers blood sugar in type 2 diabetes. The liver takes it apart into M1 and M2, and the kidneys wash those out. Set who the person is, and the same tablet does something else.",
@@ -210,6 +253,47 @@ const EN: GlimepirideCopy = {
 };
 
 const DE: GlimepirideCopy = {
+  quiz: [
+    {
+      id: "liver",
+      ask: "Was macht die Leber mit der Tablette?",
+      choices: [
+        {id: "break", label: "Sie baut sie ab"},
+        {id: "store", label: "Sie hebt sie für später auf"},
+        {id: "back", label: "Sie schickt sie zurück in den Magen"},
+      ],
+      answer: "break",
+      because: "Die Leber baut Glimepirid mit dem Enzym CYP2C9 ab. Was davon übrig bleibt, holen"
+        + " die Nieren aus dem Blut.",
+      tryIt: "Probier es: Dreh Objekt 2 herunter und sieh zu, wie die Kurve steigt.",
+    },
+    {
+      id: "slow",
+      ask: "Zwei Menschen nehmen dieselbe Tablette. Bei wem bleibt mehr davon im Blut?",
+      choices: [
+        {id: "slow", label: "Bei dem, dessen Leber langsam arbeitet"},
+        {id: "heavy", label: "Bei dem, der mehr wiegt"},
+        {id: "same", label: "Bei beiden gleich viel"},
+      ],
+      answer: "slow",
+      because: "Eine langsame Leber baut pro Stunde weniger ab, also bleibt mehr übrig. Gewicht"
+        + " verteilt den Stoff auf mehr Körper und senkt den Spiegel eher, als dass es ihn hebt.",
+      tryIt: "Probier es: Dreh Objekt 2 nach links und lies den Spitzenwert ab.",
+    },
+    {
+      id: "kidneys",
+      ask: "Wozu sind die Nieren hier da?",
+      choices: [
+        {id: "urine", label: "Sie holen den Stoff aus dem Blut in den Urin"},
+        {id: "bigger", label: "Sie machen die Tablette größer"},
+        {id: "pump", label: "Sie pumpen das Blut"},
+      ],
+      answer: "urine",
+      because: "Die Nieren filtern das Blut, und was sie herausholen, steht im Urin. Arbeiten sie"
+        + " schlechter, bleibt mehr davon im Körper.",
+      tryIt: "Probier es: Dreh Objekt 4 herunter und sieh dir die Zahl beim Urin an.",
+    },
+  ],
   about: {
     child: "Diese Tablette hilft Menschen, die zu viel Zucker im Blut haben. Sie geht in den Darm, die Leber zerlegt sie, und die Nieren spülen die Teile hinaus.",
     adult: "Glimepirid senkt den Blutzucker bei Typ-2-Diabetes. Die Leber zerlegt es zu M1 und M2, und die Nieren spülen diese hinaus. Stellen Sie ein, wer die Person ist, und dieselbe Tablette tut etwas anderes.",
@@ -368,6 +452,47 @@ const DE: GlimepirideCopy = {
 };
 
 const ES: GlimepirideCopy = {
+  quiz: [
+    {
+      id: "liver",
+      ask: "¿Qué hace el hígado con la pastilla?",
+      choices: [
+        {id: "break", label: "La descompone"},
+        {id: "store", label: "La guarda para después"},
+        {id: "back", label: "La devuelve al estómago"},
+      ],
+      answer: "break",
+      because: "El hígado descompone la glimepirida con una enzima que se llama CYP2C9. Lo que"
+        + " queda lo sacan los riñones de la sangre.",
+      tryIt: "Pruébalo: baja el objeto 2 y mira cómo sube la curva.",
+    },
+    {
+      id: "slow",
+      ask: "Dos personas toman la misma pastilla. ¿A quién le queda más en la sangre?",
+      choices: [
+        {id: "slow", label: "A quien tiene un hígado lento"},
+        {id: "heavy", label: "A quien pesa más"},
+        {id: "same", label: "A las dos igual"},
+      ],
+      answer: "slow",
+      because: "Un hígado lento descompone menos cada hora, así que queda más. El peso reparte el"
+        + " fármaco por más cuerpo y baja el nivel en vez de subirlo.",
+      tryIt: "Pruébalo: gira el objeto 2 a la izquierda y lee el pico.",
+    },
+    {
+      id: "kidneys",
+      ask: "¿Para qué están aquí los riñones?",
+      choices: [
+        {id: "urine", label: "Sacan el fármaco de la sangre a la orina"},
+        {id: "bigger", label: "Hacen la pastilla más grande"},
+        {id: "pump", label: "Bombean la sangre"},
+      ],
+      answer: "urine",
+      because: "Los riñones filtran la sangre, y lo que sacan de ella está en la orina. Si"
+        + " trabajan peor, queda más fármaco en el cuerpo.",
+      tryIt: "Pruébalo: baja el objeto 4 y mira el número de la orina.",
+    },
+  ],
   about: {
     child: "Esta pastilla ayuda a las personas que tienen demasiado azúcar en la sangre. Va al intestino, el hígado la desarma y los riñones lavan los trozos.",
     adult: "La glimepirida baja el azúcar en sangre en la diabetes tipo 2. El hígado la desarma en M1 y M2, y los riñones los eliminan. Ajuste quién es la persona, y la misma pastilla hace otra cosa.",

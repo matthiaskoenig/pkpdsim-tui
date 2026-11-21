@@ -16,7 +16,7 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -95,6 +95,8 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

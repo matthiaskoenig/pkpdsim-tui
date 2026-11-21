@@ -32,7 +32,20 @@ A table has no click, so everything which is pressed rather than turned is press
 
 The landing page carries no panel: a heading, two lines of what the table is for, the two reference bodies and the five tables around them. Touching a body is what every table is then solved for. What a card is, and what a body is, waits behind it as a note.
 
-The language and the level are chosen the same way: two rows of pills in the corner of the landing page, two switches in the panel of a table. Both hold while a visitor walks from one table to another, and both travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
+Everything about the table itself, rather than about what is on it, waits behind the **gear in the far corner**: which table is open, the language and the level. They are three rows of either-or switches with a tick on the one which is on, drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The address of the tracker is in that card too, where it belongs to whoever set the booth up, rather than on the glass in front of the audience; the dot on the gear is green while the table is connected and amber while it is not. The choices hold while a visitor walks from one table to another and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
+
+## Two surfaces
+
+A table has exactly two kinds of surface, and a visitor can tell what they are looking at from across the room.
+
+- **The white canvas** is what is being shown: the body, the lobule, the segments, the machine, the course of a curve. It carries the heading of the table in the far corner of the panel, large enough to be read while walking up.
+- **The dark card** is what is being said: the panel, the note behind an element, the card beside an object, the quiz. Everything which speaks is a dark card on the white canvas, and nothing else is.
+
+## The quiz
+
+Every table carries three questions behind the **Quiz** button under its panel. A question has two or three answers, a visitor rests a finger on one, and the card says at once whether it was right, why it was right, and what to turn at the table to see it happen. Nothing is lost by being wrong: the reason is the part worth remembering, and it is shown either way. Three dots in the head of the card say which question this is. At the end the card says how many were right and offers the three again.
+
+The questions of a table are in its `text.ts`, beside everything else a visitor reads, in the three languages and in the same order, which a test insists on: a visitor who switches language in the middle of the quiz keeps their place.
 
 ## What a visitor is told
 

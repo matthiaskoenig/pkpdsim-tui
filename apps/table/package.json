@@ -13,7 +13,9 @@
     "@pkpdsim-tui/cardio-sim": "*",
     "@pkpdsim-tui/cardiovascular-table": "*",
     "@pkpdsim-tui/glimepiride-table": "*",
+    "@pkpdsim-tui/liver-table": "*",
     "@pkpdsim-tui/lobes-table": "*",
+    "@pkpdsim-tui/perfusion-table": "*",
     "@pkpdsim-tui/tui-kit": "*",
     "@pkpdsim-tui/tuio-input": "*"
   }

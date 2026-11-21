@@ -16,7 +16,7 @@ import {
 } from "@pkpdsim-tui/perfusion-sim";
 import type {PerfusionSettings} from "@pkpdsim-tui/perfusion-sim";
 import {
-  createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint, formatNumber,
+  createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint, formatNumber,
   pointerPoints, tokenPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
@@ -79,6 +79,8 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   const readout = createReadout<PerfusionReadout>(
     root, visibleStats(perfusionStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

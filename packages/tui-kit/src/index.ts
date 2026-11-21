@@ -16,6 +16,8 @@ export {createInfo, pointerPoints, tokenPoints} from "./info.ts";
 export type {InfoLayer, InfoPoint} from "./info.ts";
 export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";
+export {createQuiz} from "./quiz.ts";
+export type {Quiz, QuizChoice, QuizOptions, QuizQuestion} from "./quiz.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";
 export {createReadout, visibleStats} from "./readout.ts";
 export {createSettings, pictogram, reportStatus} from "./settings.ts";

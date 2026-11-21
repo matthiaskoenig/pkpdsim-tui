@@ -93,9 +93,18 @@
   cursor: help;
 }
 
+.circuit-label--left {
+  text-anchor: end;
+}
+
 .circuit-label {
   font-size: 2.8px;
   font-weight: 600;
   fill: var(--ink-dim);
   text-anchor: middle;
+  /* The labels sit on the tubes and on the organ, so they carry the colour of the table. */
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 1.1px;
+  stroke-linejoin: round;
 }
