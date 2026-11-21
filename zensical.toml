@@ -1,0 +1,54 @@
+[project]
+site_name = "pkpdsim-tui"
+site_url = "https://matthiaskoenig.github.io/pkpdsim-tui/"
+site_description = "Tangible table applications of the PBPK/PD models of pkpdsim: physical objects on a multitouch table with object recognition, driven by TUIO."
+site_author = "Matthias König"
+
+copyright = 'Copyright &copy; 2026 <a href="https://livermetabolism.com">Matthias König</a>'
+
+repo_url = "https://github.com/matthiaskoenig/pkpdsim-tui"
+repo_name = "matthiaskoenig/pkpdsim-tui"
+edit_uri = "edit/develop/docs/"
+
+nav = [
+  { "Home" = "index.md" },
+  { "What TUIO is" = "tuio.md" },
+  { "Run the simulator" = "simulator.md" },
+  { "Run on a table" = "table.md" },
+  { "Applications" = [
+    { "Cardiovascular circulation" = "apps/cardiovascular.md" },
+  ] },
+  { "Development" = "development.md" },
+]
+
+[project.theme]
+name = "material"
+language = "en"
+features = [
+  "navigation.instant",
+  "navigation.tracking",
+  "navigation.top",
+  "content.code.copy",
+  "search.highlight",
+  "search.suggest",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "teal"
+accent = "teal"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "teal"
+accent = "teal"
+
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+"pymdownx.details" = {}
+"pymdownx.superfences" = {}
