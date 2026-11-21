@@ -35,7 +35,7 @@ npm run dev
 
 | Address | What it is |
 | --- | --- |
-| `http://localhost:5173/` | The two bodies, from which every table is opened |
+| `http://localhost:5173/` | The body with the five tables around it, from which every table is opened |
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
@@ -82,7 +82,7 @@ Everything that is not needed at a glance waits behind the element it belongs to
 
 The table is made for a visitor who has a minute, not for a reader. What that costs the design:
 
-- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, the two bodies, and the five tables around them. No panel, no legend, no status: those belong to a table which is already open.
+- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, one body in the middle, and the five tables on a ring around it, each joined to the organ it is about. The woman and the man are one press apart, the settings stand open at the right, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status: those belong to a table which is already open.
 - **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
 - **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
 - **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.
