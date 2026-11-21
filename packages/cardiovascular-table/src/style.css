@@ -202,3 +202,98 @@
 .pulse-key--base {
   fill: var(--ink-dim);
 }
+
+/* The monitor of the liver, under the beats: the blood through it and the pressures around it
+   over the last minute, so that a hand on an object draws its own curve. */
+.hepatic-frame {
+  fill: #eef3f7;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.hepatic-title {
+  fill: var(--ink-dim);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hepatic-number {
+  fill: var(--ink);
+  font-size: 25px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hepatic-number--gradient {
+  fill: var(--portal);
+}
+
+.hepatic-unit {
+  fill: var(--ink-dim);
+  font-size: 12px;
+}
+
+.hepatic-axis {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.hepatic-trace {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hepatic-trace--total {
+  stroke: var(--venous);
+}
+
+.hepatic-trace--portal {
+  stroke: var(--portal);
+}
+
+.hepatic-trace--artery {
+  stroke: var(--arterial);
+}
+
+.hepatic-trace--liver {
+  stroke: var(--ink-dim);
+}
+
+/* The gradient is the gap between the two pressures, so it is shown as that gap. */
+.hepatic-gap {
+  fill: var(--portal);
+  fill-opacity: 0.14;
+  stroke: none;
+}
+
+.hepatic-tick {
+  fill: var(--ink-dim);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hepatic-key {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hepatic-key--total {
+  fill: var(--venous);
+}
+
+.hepatic-key--portal {
+  fill: var(--portal);
+}
+
+.hepatic-key--artery {
+  fill: var(--arterial);
+}
+
+.hepatic-key--liver {
+  fill: var(--ink-dim);
+}

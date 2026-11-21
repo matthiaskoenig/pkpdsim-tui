@@ -42,6 +42,18 @@ export interface CardioCopy {
     /** What the dashed curve behind the beats is: the heart before anything was turned. */
     readonly baseline: string;
   };
+  /** The monitor of the liver: the blood through it and the pressures around it, over a minute. */
+  readonly hepatic: {
+    readonly title: string;
+    readonly flowTitle: string;
+    readonly gradient: string;
+    readonly total: string;
+    readonly portal: string;
+    readonly artery: string;
+    readonly portalPressure: string;
+    readonly liverPressure: string;
+    readonly window: (seconds: number) => string;
+  };
   readonly organNote: (name: string, flow: string, share: string, portal: boolean) => string;
   readonly lungNote: (flow: string) => string;
   readonly reading: (facts: CardioFacts) => string;
@@ -218,6 +230,14 @@ const EN: CardioCopy = {
   },
   pulse: {title: "The beat of the heart", aorta: "aorta", ventricle: "ventricle",
     baseline: "at rest"},
+  hepatic: {
+    title: "The liver, over the last minute",
+    flowTitle: "blood through the liver",
+    gradient: "pressure across it",
+    total: "liver", portal: "portal vein", artery: "artery",
+    portalPressure: "in front of the liver", liverPressure: "inside it",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} litres a minute, ${share} out of `
     + `every 100 the heart moves`
     + (portal ? ". Its blood goes on through the portal vein to the liver before it returns." : "."),
@@ -418,6 +438,14 @@ const DE: CardioCopy = {
   },
   pulse: {title: "Der Herzschlag", aorta: "Aorta", ventricle: "Kammer",
     baseline: "in Ruhe"},
+  hepatic: {
+    title: "Die Leber, letzte Minute",
+    flowTitle: "Blut durch die Leber",
+    gradient: "Druckunterschied",
+    total: "Leber", portal: "Pfortader", artery: "Arterie",
+    portalPressure: "vor der Leber", liverPressure: "in der Leber",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} Liter pro Minute, ${share} von je `
     + "100, die das Herz bewegt"
     + (portal ? ". Sein Blut fließt durch die Pfortader weiter zur Leber, bevor es zurückkommt." : "."),
@@ -618,6 +646,14 @@ const ES: CardioCopy = {
   },
   pulse: {title: "El latido del corazón", aorta: "aorta", ventricle: "ventrículo",
     baseline: "en reposo"},
+  hepatic: {
+    title: "El hígado, último minuto",
+    flowTitle: "sangre por el hígado",
+    gradient: "diferencia de presión",
+    total: "hígado", portal: "vena porta", artery: "arteria",
+    portalPressure: "antes del hígado", liverPressure: "dentro de él",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} litros por minuto, ${share} de `
     + "cada 100 que mueve el corazón"
     + (portal ? ". Su sangre sigue por la vena porta hasta el hígado antes de volver." : "."),

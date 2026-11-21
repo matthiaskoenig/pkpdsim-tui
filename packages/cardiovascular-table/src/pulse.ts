@@ -18,7 +18,7 @@ import type {CardioCopy} from "./text.ts";
 import type {BeatCycle, BeatFrame} from "./beat.ts";
 
 /** The size of a panel and the air around its curves, in the pixels of the surface. */
-const PANEL = {width: 368, height: 250, margin: 380} as const;
+const PANEL = {width: 420, height: 280, margin: 24} as const;
 /**
  * The window the beats are drawn in, in seconds: three beats of a heart at rest. It is a time
  * and not a number of beats, so a faster heart puts more beats into the same window, which is
@@ -156,9 +156,10 @@ export function createPulse(parent: SVGSVGElement, voice: Voice): Pulse {
 
   return {
     resize(viewport: Viewport): void {
-      // The beats stand in the far corner, where no part of the circulation is drawn.
+      // The beats stand at the head of the column at the far side of the body from the panel,
+      // with the liver under them: the heart first, because it drives the rest.
       box = {
-        x: viewport.width - PANEL.width - 24, y: viewport.height - PANEL.height - 24,
+        x: viewport.width - PANEL.width - PANEL.margin, y: 128,
         width: PANEL.width, height: PANEL.height,
       };
       panels[0]?.group.setAttribute("transform", `translate(${box.x} ${box.y})`);

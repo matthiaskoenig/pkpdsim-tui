@@ -46,13 +46,29 @@ The six numbers of the band, all of them read off the beating heart over its las
 
 The small number under each one is the change against the reference heart of the same body, which is the case pkpdsim exported for it.
 
-A panel in the corner draws **2.4 seconds** of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking through them in real time at the rate on the table. The window is a time and not a number of beats, so it holds three beats of a heart at rest and five of a fast one, and a visitor sees the beats crowd together as the rate goes up. Behind them, dashed, is the first heart that was solved on this table, which is the heart of this body before anything was turned: every later run is read against it. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
+The body is drawn as large as the surface allows, between the panel at one edge and the two plots at the other, and the vessels are wide: the width of a vessel is what a change is read off from across a room, so it is given the room it needs.
+
+A panel at the head of that column draws **2.4 seconds** of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking through them in real time at the rate on the table. The window is a time and not a number of beats, so it holds three beats of a heart at rest and five of a fast one, and a visitor sees the beats crowd together as the rate goes up. Behind them, dashed, is the first heart that was solved on this table, which is the heart of this body before anything was turned: every later run is read against it. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
 
 While a run of the heart is in flight the beat and the panel step back a little, and the anatomy keeps answering, because the steady network is solved on every frame. One run takes about two seconds.
 
 On the body the circulation is drawn as the circuit the blood runs: out of the heart, down the arterial trunk on one side, through the organs, up the venous trunk on the other, back to the heart and through the lungs before it starts again. The gut, the spleen and the pancreas drain into the portal vein instead, which carries their blood through the liver first. Every vessel carries an arrow saying which way the blood in it runs and is as wide as the flow it carries, with the arterial side in red, the venous side in blue and the portal system in purple. Each organ is a disc as large as its flow and coloured by the share of its reference flow it still receives: grey at the reference, blue when it has lost half, amber when it has gained half.
 
 The organs of the abdomen sit on each other, so their names are read in two columns clear of the body, each joined to its organ by a thin line: the organs which drain into the vena cava down the left, the portal ones down the right, and the liver under them, which is where their blood goes. Under each name is the flow that organ is getting right now.
+
+## The liver over the last minute
+
+Under the beats is the monitor of the liver, which is the one organ three of the five tables are about. The table answers within a frame, so a visitor who turns an object sees the number move and has nothing to compare it with; this panel holds the **last sixty seconds** of it, sampled ten times a second, so a hand on an object draws its own curve.
+
+| The curve | What it is |
+| --- | --- |
+| Liver | The whole blood flow through the liver, in l/min: the portal vein and the hepatic artery together |
+| Portal vein | What the gut, the spleen and the pancreas send through the liver |
+| Artery | What the hepatic artery brings, which takes over part of the supply when the portal vein obstructs |
+| In front of the liver | The portal pressure, in mmHg |
+| Inside it | The pressure in the liver, and the shaded gap between the two curves is the gradient portal hypertension is measured by |
+
+Both scales start at zero and grow with what the table has done, never under a floor of 2.5 l/min and 16 mmHg, so a quiet minute is a flat line and not a mountain range. Turning object 4 up draws the whole of portal hypertension in one picture: the flows step down, both pressures climb, and the gap between them stays where it was.
 
 ## Things to try
 

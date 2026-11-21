@@ -29,6 +29,7 @@ import {
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
+import {createHepatic} from "./hepatic.ts";
 import {createPulse} from "./pulse.ts";
 import type {BeatCycle} from "./beat.ts";
 import {cardioReading} from "./audience.ts";
@@ -114,6 +115,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const scene = createScene(root, body, reference, voice);
   const readout = createReadout<CardioReadout>(root, stats);
   const pulse = createPulse(root, voice);
+  // What the liver is getting, over the last minute: the monitor beside the body.
+  const hepatic = createHepatic(root, voice);
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
@@ -257,6 +260,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       dirty = false;
       update();
     }
+    // The steady network is solved on every frame, so the monitor of the liver is drawn from
+    // the state the table is in right now rather than from the last run of the heart.
+    hepatic.update(steady, now);
     if (cycle !== undefined) {
       phase = (phase + elapsed * (cycle.heartRate / 60)) % 1;
       const frame = sampleBeat(cycle, phase);
@@ -275,6 +281,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     scene.resize(viewport);
     readout.resize(viewport);
     pulse.resize(viewport);
+    hepatic.resize(viewport);
     schedule();
   };
 
