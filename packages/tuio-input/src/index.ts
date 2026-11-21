@@ -15,8 +15,10 @@ export {
   applyTuioObject, DEFAULT_SENSOR, emptySnapshot, removeTuioObject, sensorFromDim, withSensor,
 } from "./snapshot.ts";
 export type {TuioObjectLike, TuioPointerLike, TuioSession, TuioTokenLike} from "./snapshot.ts";
-export {createTuioTableInput} from "./tuio.ts";
-export type {TuioTableInputOptions} from "./tuio.ts";
+export {createTuioTableInput, DEFAULT_TUIO_VERSION, TUIO_VERSIONS} from "./tuio.ts";
+export type {TuioTableInputOptions, TuioVersion} from "./tuio.ts";
+export {trackerOptions} from "./options.ts";
+export type {TrackerOptions} from "./options.ts";
 export type {
   SensorSize, TableInput, TableInputState, TableListener, TablePointer, TableSnapshot, TableStatus,
   TableToken,

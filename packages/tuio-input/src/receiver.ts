@@ -9,7 +9,7 @@ import {TuioReceiver} from "tuio-client";
 export interface WebsocketTuioReceiverOptions {
   /** The host of the tracker: the table, or the machine that runs the simulator. */
   readonly host?: string;
-  /** The WebSocket port of the tracker. 3333 is the UDP port of TUIO and is not this one. */
+  /** The port of the tracker. 3333 is the port of TUIO, over UDP and over WebSocket alike. */
   readonly port?: number;
   readonly secure?: boolean;
   readonly onOpen?: () => void;
@@ -18,7 +18,7 @@ export interface WebsocketTuioReceiverOptions {
 }
 
 export const DEFAULT_TUIO_HOST = "localhost";
-export const DEFAULT_TUIO_PORT = 3343;
+export const DEFAULT_TUIO_PORT = 3333;
 
 export class WebsocketTuioReceiver extends TuioReceiver {
   readonly host: string;

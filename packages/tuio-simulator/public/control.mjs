@@ -1,10 +1,14 @@
 /**
- * The control surface of the TUIO 2.0 simulator.
+ * The control surface of the TUIO simulator.
  *
  * The page owns the gestures and nothing else: it holds the tokens and touches of one surface
  * and sends the whole state to the simulator, which turns it into the bundles of a tracker. The
  * gestures are the ones of the Unity simulator of Interactive Scape, so that what is learned
  * here is worth something at a real tracker.
+ *
+ * It also says what the tracker speaks and where, and it can put the application that listens
+ * under the surface: the page embeds it at the size of the sensor and scales it to the surface
+ * on screen, so the objects sit on the picture they drive, as they do on the glass of a table.
  *
  * The angle and the packing of the sensor come from the modules of the simulator itself, served
  * under `/shared/`, so that the page and the frames it causes agree on both.
@@ -12,6 +16,7 @@
 
 import {degreesOf, radiansOf, wrapAngle} from "/shared/angle.mjs";
 import {clampSensor, DEFAULT_SENSOR} from "/shared/sensor.mjs";
+import {DEFAULT_SETTINGS, normalizeSettings} from "/shared/protocol.mjs";
 
 /** How far the wheel turns a token, in degrees, and the finer step of the shift key. */
 const COARSE_STEP = 5;
@@ -20,9 +25,21 @@ const FINE_STEP = 1;
 /** The radius of a touch, as the fraction of the sensor height TUIO 2.0 asks for. */
 const POINTER_RADIUS = 0.02;
 
+/** The object ids the picker of the right double click offers. */
+const PICKER_IDS = 16;
+
+/** How close in time and in pixels two right clicks are one right double click. */
+const DOUBLE_MS = 500;
+const DOUBLE_PX = 16;
+
+/** Where the page keeps what was typed into it, so a reload is not a fresh start. */
+const STORE_KEY = "pkpdsim-tui-simulator";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const stage = document.getElementById("stage");
+const surfaceBox = document.getElementById("surface");
+const frame = document.getElementById("frame");
 const table = document.getElementById("table");
 const tokenLayer = document.getElementById("tokens");
 const pointerLayer = document.getElementById("pointers");
@@ -32,14 +49,21 @@ const counts = document.getElementById("counts");
 const markerField = document.getElementById("marker");
 const widthField = document.getElementById("width");
 const heightField = document.getElementById("height");
+const versionField = document.getElementById("version");
+const transportField = document.getElementById("transport");
+const portField = document.getElementById("port");
+const appField = document.getElementById("app");
+const picker = document.getElementById("picker");
+const pickerGrid = document.getElementById("picker-grid");
 
 const sensor = {...DEFAULT_SENSOR};
 const tokens = new Map();
 const pointers = new Map();
 const rendered = new Map();
 
+let settings = {...DEFAULT_SETTINGS};
 let sessions = new Map();
-let tracker = {source: "", trackers: 0, frameId: 0, rate: 0};
+let tracker = {source: "", description: "", trackers: null, frameId: 0, rate: 0, trouble: ""};
 let named = 0;
 let drag = null;
 let box = {width: 1, height: 1};
@@ -47,6 +71,8 @@ let available = {width: 1, height: 1};
 let pending = 0;
 let socket = null;
 let retry = null;
+let lastContext = {at: 0, x: 0, y: 0};
+let appUrl = "";
 
 function element(name, attributes = {}) {
   const node = document.createElementNS(SVG_NS, name);
@@ -63,7 +89,7 @@ function tokenRadius() {
   return clamp(box.width * 0.028, 22, 44);
 }
 
-/** The position of an event on the surface, as the fractions of the sensor TUIO 2.0 sends. */
+/** The position of an event on the surface, as the fractions of the sensor TUIO sends. */
 function positionOf(event) {
   const bounds = table.getBoundingClientRect();
   return {
@@ -75,6 +101,35 @@ function positionOf(event) {
 function markerOf() {
   const value = Number.parseInt(markerField.value, 10);
   return Number.isInteger(value) && value >= 0 ? value : 0;
+}
+
+/** The id the next object gets, which counts up as objects are placed. */
+function setMarker(value) {
+  markerField.value = String(Math.max(0, Math.min(999, value)));
+}
+
+/* What the page keeps between reloads: what was typed, never what is on the surface. */
+
+function remember() {
+  try {
+    window.localStorage.setItem(STORE_KEY, JSON.stringify({settings, app: appUrl, sensor}));
+  } catch {
+    // A page in private mode keeps nothing, which costs it nothing.
+  }
+}
+
+function recall() {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(STORE_KEY) ?? "null");
+    if (stored === null) return;
+    settings = normalizeSettings(stored.settings, DEFAULT_SETTINGS);
+    appUrl = typeof stored.app === "string" ? stored.app : "";
+    const size = clampSensor(stored.sensor ?? DEFAULT_SENSOR);
+    sensor.width = size.width;
+    sensor.height = size.height;
+  } catch {
+    // Anything unreadable is the default, which is always a working simulator.
+  }
 }
 
 /* The state and what it causes: one render and one message per animation frame, however many
@@ -99,10 +154,26 @@ function send() {
   }));
 }
 
-function addToken(position) {
+/** What the tracker should speak and where, which only the simulator can really answer. */
+function sendSettings() {
+  settings = normalizeSettings({
+    version: versionField.value,
+    transport: transportField.value,
+    port: Number.parseInt(portField.value, 10),
+    host: settings.host,
+  }, settings);
+  portField.value = String(settings.port);
+  remember();
+  if (socket === null || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({type: "settings", settings}));
+}
+
+function addToken(position, marker = markerOf()) {
   named += 1;
   const key = `token-${named}`;
-  tokens.set(key, {key, marker: markerOf(), x: position.x, y: position.y, angle: 0});
+  tokens.set(key, {key, marker, x: position.x, y: position.y, angle: 0});
+  // The field names the next object, so placing one counts it up, as the Unity simulator does.
+  setMarker(marker + 1);
   publish();
 }
 
@@ -119,6 +190,54 @@ function turnToken(key, degrees) {
   if (token === undefined) return;
   token.angle = wrapAngle(token.angle + radiansOf(degrees));
   publish();
+}
+
+/* The application under the surface. */
+
+/**
+ * The address the embedded application is opened at: the one that was typed, pointed at this
+ * tracker. Over UDP it is opened as it is, because a browser cannot receive a datagram and the
+ * application drives itself with the mouse instead.
+ */
+function appAddress(raw) {
+  const url = new URL(raw, window.location.href);
+  if (settings.transport === "websocket") {
+    url.searchParams.set("tuio", `${window.location.hostname}:${settings.port}`);
+    if (settings.version === "2.0") url.searchParams.delete("tuio-version");
+    else url.searchParams.set("tuio-version", settings.version);
+    // A colon is legal in a query and is what a person reads, so the address stays readable.
+    url.search = url.searchParams.toString().replaceAll("%3A", ":");
+  }
+  return url.href;
+}
+
+function showApp(raw) {
+  const address = raw.trim();
+  if (address === "") {
+    hideApp();
+    return;
+  }
+  let href = "";
+  try {
+    href = appAddress(address);
+  } catch {
+    setStatus("error", `"${address}" is not an address.`);
+    return;
+  }
+  appUrl = address;
+  appField.value = address;
+  frame.src = href;
+  frame.hidden = false;
+  surfaceBox.classList.add("has-app");
+  remember();
+}
+
+function hideApp() {
+  appUrl = "";
+  frame.removeAttribute("src");
+  frame.hidden = true;
+  surfaceBox.classList.remove("has-app");
+  remember();
 }
 
 /* The surface itself. */
@@ -178,10 +297,10 @@ function render() {
     const below = token.y * box.height + radius + 20 < box.height;
     node.readout.setAttribute("y", String(below ? radius + 16 : -radius - 8));
     node.readout.textContent = `${degrees.toFixed(0)}° · `
-      + `${token.x.toFixed(3)}, ${token.y.toFixed(3)}`
+      + `<${token.x.toFixed(3)}, ${token.y.toFixed(3)}>`
       + (session === undefined ? "" : ` · s${session}`);
     // The surface is a picture, so every token says what it is.
-    node.group.setAttribute("aria-label", `Token of marker ${token.marker}, ${node.readout.textContent}`);
+    node.group.setAttribute("aria-label", `Object ${token.marker}, ${node.readout.textContent}`);
   }
   for (const pointer of pointers.values()) {
     let node = rendered.get(pointer.key);
@@ -197,13 +316,15 @@ function render() {
     node.core.setAttribute("r", String(clamp(radius * 0.18, 4, 9)));
   }
   const touches = pointers.size === 1 ? "1 touch" : `${pointers.size} touches`;
-  const objects = tokens.size === 1 ? "1 token" : `${tokens.size} tokens`;
+  const objects = tokens.size === 1 ? "1 object" : `${tokens.size} objects`;
   counts.textContent = `${objects} · ${touches} · frame ${tracker.frameId} · ${tracker.rate} Hz`;
 }
 
 /**
  * The surface on screen, which keeps the aspect ratio of the sensor: a position on the page is
- * then the position a table application draws, and a token is not an ellipse.
+ * then the position a table application draws, and a token is not an ellipse. The application
+ * under it is laid out at the size of the sensor and scaled to the same box, so what is on
+ * screen is the table, shrunk.
  */
 function fit() {
   const aspect = sensor.width / sensor.height;
@@ -214,9 +335,12 @@ function fit() {
     width = height * aspect;
   }
   box = {width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(height))};
-  table.style.width = `${box.width}px`;
-  table.style.height = `${box.height}px`;
+  surfaceBox.style.width = `${box.width}px`;
+  surfaceBox.style.height = `${box.height}px`;
   table.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+  frame.style.width = `${sensor.width}px`;
+  frame.style.height = `${sensor.height}px`;
+  frame.style.transform = `scale(${box.width / sensor.width})`;
   render();
 }
 
@@ -229,6 +353,37 @@ function resize() {
   heightField.value = String(sensor.height);
   fit();
   publish();
+  remember();
+}
+
+/* The picker of the right double click, which places an object that is not the next one. */
+
+function openPicker(event, position) {
+  pickerGrid.replaceChildren();
+  for (let id = 0; id < PICKER_IDS; id += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = String(id);
+    if (id === markerOf()) button.classList.add("next");
+    button.addEventListener("click", () => {
+      closePicker();
+      addToken(position, id);
+    });
+    pickerGrid.append(button);
+  }
+  const bounds = stage.getBoundingClientRect();
+  picker.hidden = false;
+  const width = picker.offsetWidth;
+  const height = picker.offsetHeight;
+  const x = clamp(event.clientX - bounds.left + 8, 8, Math.max(8, bounds.width - width - 8));
+  const y = clamp(event.clientY - bounds.top + 8, 8, Math.max(8, bounds.height - height - 8));
+  picker.style.left = `${x}px`;
+  picker.style.top = `${y}px`;
+  pickerGrid.firstElementChild?.focus();
+}
+
+function closePicker() {
+  picker.hidden = true;
 }
 
 /* The gestures. */
@@ -240,6 +395,7 @@ function tokenKeyOf(target) {
 
 table.addEventListener("pointerdown", event => {
   if (!event.isPrimary && event.pointerType === "mouse") return;
+  closePicker();
   const key = tokenKeyOf(event.target);
   if (event.button === 1) {
     // The middle button lifts a token off the table, as it does in the Unity simulator.
@@ -307,11 +463,34 @@ table.addEventListener("wheel", event => {
   turnToken(key, event.deltaY < 0 ? step : -step);
 }, {passive: false});
 
-table.addEventListener("contextmenu", event => event.preventDefault());
+/**
+ * The right button opens the picker on the second click, because the first one is how a context
+ * menu is asked for and the menu is in the way of a surface. A right double click on a token is
+ * not a second token on top of it, as a left one is not.
+ */
+table.addEventListener("contextmenu", event => {
+  event.preventDefault();
+  const at = event.timeStamp;
+  const near = Math.abs(event.clientX - lastContext.x) < DOUBLE_PX
+    && Math.abs(event.clientY - lastContext.y) < DOUBLE_PX;
+  const double = at - lastContext.at < DOUBLE_MS && near;
+  lastContext = {at: double ? 0 : at, x: event.clientX, y: event.clientY};
+  if (!double || tokenKeyOf(event.target) !== null) return;
+  openPicker(event, positionOf(event));
+});
+
 table.addEventListener("auxclick", event => event.preventDefault());
 
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closePicker();
+});
+
+document.addEventListener("pointerdown", event => {
+  if (!picker.hidden && !picker.contains(event.target)) closePicker();
+}, true);
+
 markerField.addEventListener("change", () => {
-  markerField.value = String(markerOf());
+  setMarker(markerOf());
 });
 
 for (const field of [widthField, heightField]) {
@@ -321,6 +500,18 @@ for (const field of [widthField, heightField]) {
     resize();
   });
 }
+
+for (const field of [versionField, transportField, portField]) {
+  field.addEventListener("change", () => {
+    sendSettings();
+    // The embedded application connects itself, so a tracker it cannot reach is a reload.
+    if (appUrl !== "") showApp(appUrl);
+  });
+}
+
+document.getElementById("load").addEventListener("click", () => showApp(appField.value));
+document.getElementById("unload").addEventListener("click", hideApp);
+appField.addEventListener("change", () => showApp(appField.value));
 
 document.getElementById("clear").addEventListener("click", () => {
   tokens.clear();
@@ -345,12 +536,21 @@ function setStatus(state, text) {
 }
 
 function announce() {
+  if (tracker.trouble !== "") {
+    setStatus("error", tracker.trouble);
+    return;
+  }
+  if (tracker.trackers === null) {
+    // Nothing connects to a sender, so a UDP tracker cannot say who is there.
+    setStatus("ready", `${tracker.description} · sending, whoever listens`);
+    return;
+  }
   if (tracker.trackers === 0) {
-    setStatus("waiting", `${tracker.source} · no application is listening`);
+    setStatus("waiting", `${tracker.description} · no application is listening`);
     return;
   }
   const applications = tracker.trackers === 1 ? "1 application" : `${tracker.trackers} applications`;
-  setStatus("ready", `${tracker.source} · ${applications}`);
+  setStatus("ready", `${tracker.description} · ${applications}`);
 }
 
 function connect() {
@@ -359,15 +559,20 @@ function connect() {
   socket = new WebSocket(url);
   socket.addEventListener("open", () => {
     setStatus("connecting", "Waiting for the first frame...");
+    sendSettings();
     send();
   });
   socket.addEventListener("message", event => {
     const message = JSON.parse(event.data);
     if (message.type !== "status") return;
     tracker = {
-      source: message.source, trackers: message.trackers, frameId: message.frameId,
-      rate: message.rate,
+      source: message.source, description: message.description, trackers: message.trackers,
+      frameId: message.frameId, rate: message.rate, trouble: message.trouble ?? "",
     };
+    settings = normalizeSettings(message.settings, settings);
+    versionField.value = settings.version;
+    transportField.value = settings.transport;
+    if (document.activeElement !== portField) portField.value = String(settings.port);
     sessions = new Map(message.sessions);
     announce();
     render();
@@ -389,8 +594,15 @@ function connect() {
   });
 }
 
+recall();
+versionField.value = settings.version;
+transportField.value = settings.transport;
+portField.value = String(settings.port);
+appField.value = appUrl;
+setMarker(0);
 resize();
+if (appUrl !== "") showApp(appUrl);
 connect();
 
 // The page is a tool, so what it knows is reachable from the console.
-window.simulator = {tokens, pointers, sensor, addToken, addPointer, turnToken, publish};
+window.simulator = {tokens, pointers, sensor, settings, addToken, addPointer, turnToken, publish, showApp};

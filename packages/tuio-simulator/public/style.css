@@ -42,15 +42,22 @@ body {
   user-select: none;
 }
 
-/* The chrome at the top: what the tracker is doing and what the next token will be. */
+/* The chrome at the top: what the tracker speaks, where it speaks it, and what the next object
+   will be. */
 .bar {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.55rem;
   padding: 0.7rem 1.1rem;
   border-bottom: 1px solid var(--panel-line);
   background: var(--panel);
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: wrap;
 }
 
 .bar h1 {
@@ -98,7 +105,10 @@ body {
   display: flex;
   align-items: center;
   gap: 1.1rem;
-  margin-left: auto;
+}
+
+.fields .grow {
+  flex: 1 1 18rem;
 }
 
 .fields label {
@@ -111,7 +121,8 @@ body {
   color: var(--ink-dim);
 }
 
-.fields input {
+.fields input,
+.fields select {
   width: 4.6rem;
   padding: 0.3rem 0.45rem;
   border: 1px solid var(--panel-line);
@@ -124,7 +135,20 @@ body {
   text-align: right;
 }
 
-.fields input:focus-visible {
+.fields select {
+  width: auto;
+  text-align: left;
+}
+
+.fields input[type="url"] {
+  flex: 1 1 auto;
+  width: auto;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.fields input:focus-visible,
+.fields select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -150,24 +174,101 @@ button:hover {
   background: rgba(39, 179, 172, 0.22);
 }
 
+button.ghost {
+  background: rgba(126, 160, 196, 0.08);
+}
+
 /* The surface. It keeps the aspect ratio of the sensor, so a position on it is the position a
    table application draws. */
 .stage {
+  position: relative;
   display: grid;
   place-items: center;
   min-height: 0;
   padding: 1.1rem;
 }
 
-.table {
-  display: block;
+/* The surface is the box the sensor fits in. The application is laid out at the size of the
+   sensor inside it and scaled down to that box, so the objects sit where they sit on the glass. */
+.surface {
+  position: relative;
   border: 1px solid var(--table-line);
   border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.table {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   background:
     radial-gradient(circle at 50% 42%, rgba(39, 179, 172, 0.09), transparent 62%),
     var(--table);
   cursor: crosshair;
   touch-action: none;
+}
+
+/* With an application under it the surface is the glass: the objects and nothing else. */
+.surface.has-app .table {
+  background: transparent;
+}
+
+.surface.has-app .token-readout {
+  paint-order: stroke;
+  stroke: rgba(7, 11, 16, 0.85);
+  stroke-width: 3;
+}
+
+/* The picker of the right double click: which object to place, where it was asked for. */
+.picker {
+  position: absolute;
+  z-index: 2;
+  padding: 0.55rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.5rem;
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0.6rem 1.4rem rgba(0, 0, 0, 0.45);
+}
+
+.picker[hidden] {
+  display: none;
+}
+
+.picker-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 2.2rem);
+  gap: 0.3rem;
+}
+
+.picker-grid button {
+  padding: 0.3rem 0;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.picker-grid button.next {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .token-body {

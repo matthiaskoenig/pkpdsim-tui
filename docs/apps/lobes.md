@@ -64,6 +64,7 @@ npm run dev:lobes
 | Address | What it does |
 | --- | --- |
 | `http://localhost:5174/` | On the mouse: keys 1 to 4 place an object, dragging moves it, the wheel turns the dial, backspace lifts it, escape clears the table |
-| `http://localhost:5174/?tuio` | On a tracker at `ws://localhost:3343`, which is the [simulator](../simulator.md) |
+| `http://localhost:5174/?tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
+| `http://localhost:5174/?tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
 | `http://localhost:5174/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
 | `http://localhost:5174/?species=rat` | The rat liver, with its five lobes, instead of the human one; `?species=mouse` for the mouse |

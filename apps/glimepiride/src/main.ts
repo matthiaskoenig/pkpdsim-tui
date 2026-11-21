@@ -4,8 +4,9 @@
  * metabolites answers while a hand is still on them.
  *
  * Query parameters:
- *   ?tuio             a tracker on ws://localhost:3343
+ *   ?tuio             a tracker on ws://localhost:3333
  *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
+ *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  */
 
 import {
@@ -22,10 +23,12 @@ import {
 } from "@pkpdsim-tui/tui-kit";
 import type {Box} from "@pkpdsim-tui/tui-kit";
 import {
-  createMockTableInput, createTuioTableInput, DEFAULT_TUIO_HOST, DEFAULT_TUIO_PORT,
+  createMockTableInput, createTuioTableInput, trackerOptions,
   unassignedMarkers, valuesFromTokens,
 } from "@pkpdsim-tui/tuio-input";
-import type {TableInput, TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
+import type {
+  TableInput, TableSnapshot, TableStatus, TrackerOptions,
+} from "@pkpdsim-tui/tuio-input";
 import {
   cardFor, categoryOf, formatValue, GLIMEPIRIDE_STATS, GLIMEPIRIDE_TRACES, MICROMOLAR,
 } from "./cards.ts";
@@ -46,23 +49,12 @@ function element<T extends Element>(id: string): T {
   return found as unknown as T;
 }
 
-function parseTracker(value: string | null): {host: string; port: number} {
-  if (value === null || value === "" || value === "true") {
-    return {host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT};
-  }
-  const [host, port] = value.split(":");
-  const parsed = Number.parseInt(port ?? "", 10);
-  return {
-    host: host === undefined || host === "" ? DEFAULT_TUIO_HOST : host,
-    port: Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TUIO_PORT,
-  };
-}
 
-function hintFor(usesTracker: boolean, port: number, state: TableStatus["state"]): string {
-  if (!usesTracker) return MOUSE_HINT;
+function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
+  if (!tracker.tracker) return MOUSE_HINT;
   if (state === "connected") return TABLE_HINT;
-  return `Start the tracker on port ${port}, or drop "?tuio" from the address to drive the table `
-    + "with the mouse.";
+  return `Start a TUIO ${tracker.version} tracker on port ${tracker.port}, or drop "?tuio" from `
+    + "the address to drive the table with the mouse.";
 }
 
 function pathwayBox(viewport: {width: number; height: number}): Box {
@@ -105,8 +97,8 @@ async function start(): Promise<void> {
   const tokenLayer = createTokenLayer(root);
   const chrome = createChrome(element<HTMLElement>("chrome"));
 
-  const usesTracker = parameters.has("tuio");
-  const tracker = parseTracker(parameters.get("tuio"));
+  const tracker = trackerOptions(parameters);
+  const usesTracker = tracker.tracker;
   const input: TableInput = usesTracker
     ? createTuioTableInput(tracker)
     : createMockTableInput({
@@ -229,7 +221,7 @@ async function start(): Promise<void> {
       },
       live: new Set(values.keys()),
       unassigned: unassignedMarkers(roles, snapshot.tokens),
-      hint: hintFor(usesTracker, tracker.port, status.state),
+      hint: hintFor(tracker, status.state),
       credit: `${formatNumber(individual.weight, 0)} kg, ${formatNumber(individual.dose, 1)} mg `
         + `glimepiride, ${categoryOf("cyp2c9", individual.cyp2c9)}`,
     });

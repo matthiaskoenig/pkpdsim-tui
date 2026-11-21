@@ -10,7 +10,7 @@
 | `packages/cardio-sim` | The steady pressure network of the cardiovascular model and the loaders of the exported data |
 | `packages/lobes-sim` | The lobed liver: the states of a segment, the parameters they change and the request that solves them |
 | `packages/glimepiride-sim` | The glimepiride individual, the request that solves them and the pharmacokinetics of the result |
-| `packages/tuio-simulator` | The TUIO 2.0 simulator: a control page and the tracker that serves it, on plain `node` |
+| `packages/tuio-simulator` | The TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
 | `apps/cardiovascular` | The cardiovascular table application |
 | `apps/lobes` | The lobed liver table application |
 | `apps/glimepiride` | The glimepiride table application |
@@ -29,7 +29,7 @@ npm run export:glimepiride  # compiles the glimepiride model of its own reposito
 npm run dev           # the cardiovascular application, on http://localhost:5173
 npm run dev:lobes     # the lobed liver, on http://localhost:5174
 npm run dev:glimepiride     # glimepiride, on http://localhost:5175
-npm run simulator     # the TUIO 2.0 simulator: a tracker on 3343, its control page on 3344
+npm run simulator     # the TUIO simulator: a tracker on 3333, its control page on 3344
 npm test              # vitest
 npm run typecheck     # tsc
 npm run build         # the production bundle
@@ -41,7 +41,7 @@ npm run docs:build    # this site, strict
 
 A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one or at the path in `GLIMEPIRIDE_MODEL`. The script knows nothing about a model, so the next one is another line in `package.json`.
 
-An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3343`. Nothing but the checkout is needed for it, and the tokens are placed and turned on the page it serves on `http://localhost:3344`.
+An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3333`. Nothing but the checkout is needed for it, and the objects are placed and turned on the page it serves on `http://localhost:3344`, which also shows the application under its own surface.
 
 ## The input layer
 

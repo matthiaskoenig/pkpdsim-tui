@@ -32,7 +32,7 @@ To drive it from objects instead, start the simulator this repository carries, i
 npm run simulator
 ```
 
-It is a TUIO 2.0 tracker on `ws://localhost:3343` and a control page on `http://localhost:3344`, where tokens are placed with a double click and turned with the wheel. Open the application at `http://localhost:5173/?tuio=localhost:3343` and it follows them. The [simulator page](simulator.md) covers the gestures and the Unity simulator of Interactive Scape, the [table page](table.md) covers a real surface.
+It is a TUIO tracker on `ws://localhost:3333` and a control page on `http://localhost:3344`, where objects are placed with a double click and turned with the wheel, and which shows the application under its own surface. Open the application at `http://localhost:5173/?tuio=localhost:3333` and it follows them. The [simulator page](simulator.md) covers the gestures and the Unity simulator of Interactive Scape, the [table page](table.md) covers a real surface.
 
 ## The idea
 

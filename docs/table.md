@@ -24,7 +24,7 @@ A table has no keyboard and no browser chrome. Start Chrome in kiosk mode on the
 
 ```bash
 google-chrome --kiosk --noerrdialogs --disable-pinch --overscroll-history-navigation=0 \
-  --app="http://localhost:4173/?tuio=localhost:3343"
+  --app="http://localhost:4173/?tuio=localhost:3333"
 ```
 
 Serve the built application rather than the development server:
