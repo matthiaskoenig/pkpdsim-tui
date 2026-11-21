@@ -80,6 +80,12 @@ export interface SettingsOptions {
   /** The groups, in the order they are shown. Every option carries its picture. */
   readonly groups: readonly ChoiceGroup[];
   readonly onChoose: (group: string, option: string) => void;
+  /**
+   * Shown open, as a column of the page rather than behind the button. The landing page does
+   * this, so that a visitor sees what can be changed before they walk to the next table, where
+   * the same switches wait behind the button in the corner.
+   */
+  readonly pinned?: boolean;
 }
 
 function escapeHtml(value: string): string {
@@ -117,19 +123,20 @@ export function reportStatus(status: TableStatus): void {
 
 export function createSettings(container: HTMLElement, options: SettingsOptions): Settings {
   const copy = words(options.voice);
+  const pinned = options.pinned === true;
   const root = document.createElement("div");
-  root.className = "settings";
+  root.className = pinned ? "settings settings--pinned" : "settings";
   root.innerHTML = `
     <button class="settings-button" type="button" data-dwell="settings"
       aria-expanded="false" aria-label="${escapeHtml(copy.settings)}"
-      data-info="${escapeHtml(options.voice.say(copy.settingsInfo))}">
+      title="${escapeHtml(copy.settings)}">
       <svg viewBox="-26 -26 52 52" aria-hidden="true">
         <path class="pick-path" d="M -4 -24 h 8 l 1.4 7.2 a 18 18 0 0 1 5 2.9 l 6.9 -2.4 l 4 6.9 l -5.5 4.8 a 18 18 0 0 1 0 5.8 l 5.5 4.8 l -4 6.9 l -6.9 -2.4 a 18 18 0 0 1 -5 2.9 L 4 24 h -8 l -1.4 -7.2 a 18 18 0 0 1 -5 -2.9 l -6.9 2.4 l -4 -6.9 l 5.5 -4.8 a 18 18 0 0 1 0 -5.8 l -5.5 -4.8 l 4 -6.9 l 6.9 2.4 a 18 18 0 0 1 5 -2.9 z"></path>
         <circle class="settings-eye" cx="0" cy="0" r="6.5"></circle>
       </svg>
       <span class="settings-dot" data-state="idle"></span>
     </button>
-    <div class="settings-card" hidden>
+    <div class="settings-card"${pinned ? "" : " hidden"}>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
       <div class="settings-groups"></div>
       <p class="settings-tracker"><span class="dot"></span><span class="settings-source"></span></p>
@@ -144,6 +151,7 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   groups.innerHTML = options.groups.map(groupHtml).join("");
 
   const show = (open: boolean): void => {
+    if (pinned) return;
     card.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     root.dataset["open"] = String(open);
@@ -165,7 +173,7 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   // A press anywhere else closes the menu, so that the table is never left behind a card.
   document.addEventListener("pointerdown", event => {
     const target = event.target;
-    if (card.hidden) return;
+    if (pinned || card.hidden) return;
     if (target instanceof Node && root.contains(target)) return;
     show(false);
   });
@@ -176,7 +184,7 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
       tracker.dataset["state"] = state.state;
       source.textContent = state.source;
       const detail = state.detail === "" ? state.source : state.detail;
-      button.dataset["info"] = `${copy.settingsInfo} ${detail}`;
+      button.title = `${copy.settings}: ${detail}`;
     },
   };
   current = settings;

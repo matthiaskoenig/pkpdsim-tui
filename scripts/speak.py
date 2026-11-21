@@ -43,11 +43,12 @@ AUDIO = ROOT / "apps" / "table" / "public" / "audio"
 TEXTS = AUDIO / "texts.json"
 CACHE = ROOT / ".cache" / "piper"
 
-#: The voice of each language. A piper voice is `<language>-<name>-<quality>`.
+#: One voice for all three languages: a woman who sounds friendly and sure of what she says,
+#: which is the voice a table in a museum is listened to in.
 PIPER_VOICES = {
-    "en": "en_GB-alba-medium",
-    "de": "de_DE-thorsten-medium",
-    "es": "es_ES-davefx-medium",
+    "en": "en_GB-cori-high",
+    "de": "de_DE-kerstin-medium",
+    "es": "es_MX-claude-high",
 }
 
 #: What espeak-ng calls each language.

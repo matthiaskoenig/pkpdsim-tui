@@ -11,6 +11,9 @@ import type {EntryCopy} from "./text.ts";
 /** The body itself, which is what the application shows when no table is named. */
 export const OVERVIEW = "overview";
 
+/** The page about the models, the software, the licences and the laboratory. */
+export const ABOUT = "about";
+
 /** The picture of the body, which is the table every other one is opened from. */
 export const OVERVIEW_PICTURE: Pictogram = "body";
 

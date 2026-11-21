@@ -39,6 +39,8 @@ export interface CardioCopy {
     readonly title: string;
     readonly aorta: string;
     readonly ventricle: string;
+    /** What the dashed curve behind the beats is: the heart before anything was turned. */
+    readonly baseline: string;
   };
   readonly organNote: (name: string, flow: string, share: string, portal: boolean) => string;
   readonly lungNote: (flow: string) => string;
@@ -60,7 +62,7 @@ const EN: CardioCopy = {
       answer: "more",
       because: "Every beat pushes out about the same amount, so more beats move more blood."
         + " That is the cardiac output, and every organ is served out of it.",
-      tryIt: "Try it: turn the rate up and watch the flow through the liver.",
+      tryIt: "Try it: turn object 1 up and watch the flow through the liver.",
     },
     {
       id: "resistance",
@@ -96,14 +98,14 @@ const EN: CardioCopy = {
   },
   tries: [
     {
-      child: "Turn object 1: the blood cannot get out of the liver, and it piles up in front of it.",
-      adult: "Turn 1 up: the blood cannot leave the liver, and the pressure in front of it rises.",
-      expert: "Turn 1 up: hepatic outflow obstruction raises the portal pressure and the gradient over the liver.",
+      child: "Turn object 1: the heart beats faster, and you can see it in the picture.",
+      adult: "Turn 1 up: the heart beats faster, and the ventricle empties and fills with it.",
+      expert: "Turn 1 up: the rate rises, the filling time falls, and the stroke volume follows the compiled heart.",
     },
     {
-      child: "Turn object 5: the heart beats faster, and you can see it in the picture.",
-      adult: "Turn 5 up: the heart beats faster, and the ventricle empties and fills with it.",
-      expert: "Turn 5 up: the rate rises, the filling time falls, and the stroke volume follows the compiled heart.",
+      child: "Turn object 4: the blood cannot get out of the liver, and it piles up in front of it.",
+      adult: "Turn 4 up: the blood cannot leave the liver, and the pressure in front of it rises.",
+      expert: "Turn 4 up: hepatic outflow obstruction raises the portal pressure and the gradient over the liver.",
     },
   ],
   stats: {
@@ -214,7 +216,8 @@ const EN: CardioCopy = {
     heartRate: value => `cardiac output ${value} l/min`,
     contractility: value => `stroke volume ${value} ml`,
   },
-  pulse: {title: "One beat of the heart", aorta: "aorta", ventricle: "ventricle"},
+  pulse: {title: "The beat of the heart", aorta: "aorta", ventricle: "ventricle",
+    baseline: "at rest"},
   organNote: (name, flow, share, portal) => `${name}: ${flow} litres a minute, ${share} out of `
     + `every 100 the heart moves`
     + (portal ? ". Its blood goes on through the portal vein to the liver before it returns." : "."),
@@ -259,7 +262,7 @@ const DE: CardioCopy = {
       answer: "more",
       because: "Jeder Schlag pumpt ungefähr gleich viel heraus, also fließt bei mehr Schlägen mehr"
         + " Blut. Das ist das Herzzeitvolumen, und daraus werden alle Organe versorgt.",
-      tryIt: "Probier es: Dreh die Herzfrequenz hoch und sieh dir den Fluss durch die Leber an.",
+      tryIt: "Probier es: Dreh Objekt 1 hoch und sieh dir den Fluss durch die Leber an.",
     },
     {
       id: "resistance",
@@ -295,14 +298,14 @@ const DE: CardioCopy = {
   },
   tries: [
     {
-      child: "Dreh Objekt 1: das Blut kommt nicht aus der Leber heraus und staut sich davor.",
-      adult: "Drehen Sie 1 hoch: das Blut kann die Leber nicht verlassen, und der Druck davor steigt.",
-      expert: "Drehen Sie 1 hoch: eine Abflussbehinderung der Lebervenen hebt Pfortaderdruck und Gradienten über die Leber.",
+      child: "Dreh Objekt 1: das Herz schlägt schneller, und du siehst es im Bild.",
+      adult: "Drehen Sie 1 hoch: das Herz schlägt schneller, und die Kammer leert und füllt sich im selben Takt.",
+      expert: "Drehen Sie 1 hoch: die Frequenz steigt, die Füllungszeit sinkt, und das Schlagvolumen folgt dem kompilierten Herzen.",
     },
     {
-      child: "Dreh Objekt 5: das Herz schlägt schneller, und du siehst es im Bild.",
-      adult: "Drehen Sie 5 hoch: das Herz schlägt schneller, und die Kammer leert und füllt sich im selben Takt.",
-      expert: "Drehen Sie 5 hoch: die Frequenz steigt, die Füllungszeit sinkt, und das Schlagvolumen folgt dem kompilierten Herzen.",
+      child: "Dreh Objekt 4: das Blut kommt nicht aus der Leber heraus und staut sich davor.",
+      adult: "Drehen Sie 4 hoch: das Blut kann die Leber nicht verlassen, und der Druck davor steigt.",
+      expert: "Drehen Sie 4 hoch: eine Abflussbehinderung der Lebervenen hebt Pfortaderdruck und Gradienten über die Leber.",
     },
   ],
   stats: {
@@ -413,7 +416,8 @@ const DE: CardioCopy = {
     heartRate: value => `Herzzeitvolumen ${value} l/min`,
     contractility: value => `Schlagvolumen ${value} ml`,
   },
-  pulse: {title: "Ein Herzschlag", aorta: "Aorta", ventricle: "Kammer"},
+  pulse: {title: "Der Herzschlag", aorta: "Aorta", ventricle: "Kammer",
+    baseline: "in Ruhe"},
   organNote: (name, flow, share, portal) => `${name}: ${flow} Liter pro Minute, ${share} von je `
     + "100, die das Herz bewegt"
     + (portal ? ". Sein Blut fließt durch die Pfortader weiter zur Leber, bevor es zurückkommt." : "."),
@@ -458,7 +462,7 @@ const ES: CardioCopy = {
       answer: "more",
       because: "Cada latido expulsa más o menos lo mismo, así que con más latidos circula más"
         + " sangre. Eso es el gasto cardíaco, y de ahí se sirven todos los órganos.",
-      tryIt: "Pruébalo: sube la frecuencia y mira el flujo por el hígado.",
+      tryIt: "Pruébalo: sube el objeto 1 y mira el flujo por el hígado.",
     },
     {
       id: "resistance",
@@ -494,14 +498,14 @@ const ES: CardioCopy = {
   },
   tries: [
     {
-      child: "Gira el objeto 1: la sangre no puede salir del hígado y se acumula delante.",
-      adult: "Gire el 1 hacia arriba: la sangre no puede salir del hígado y la presión delante de él sube.",
-      expert: "Gire el 1 hacia arriba: la obstrucción del flujo de salida hepático eleva la presión portal y el gradiente.",
+      child: "Gira el objeto 1: el corazón late más rápido y se ve en el dibujo.",
+      adult: "Gire el 1 hacia arriba: el corazón late más rápido, y el ventrículo se vacía y se llena a ese ritmo.",
+      expert: "Gire el 1 hacia arriba: la frecuencia sube, el tiempo de llenado baja, y el volumen sistólico sigue al corazón compilado.",
     },
     {
-      child: "Gira el objeto 5: el corazón late más rápido y se ve en el dibujo.",
-      adult: "Gire el 5 hacia arriba: el corazón late más rápido, y el ventrículo se vacía y se llena a ese ritmo.",
-      expert: "Gire el 5 hacia arriba: la frecuencia sube, el tiempo de llenado baja, y el volumen sistólico sigue al corazón compilado.",
+      child: "Gira el objeto 4: la sangre no puede salir del hígado y se acumula delante.",
+      adult: "Gire el 4 hacia arriba: la sangre no puede salir del hígado y la presión delante de él sube.",
+      expert: "Gire el 4 hacia arriba: la obstrucción del flujo de salida hepático eleva la presión portal y el gradiente.",
     },
   ],
   stats: {
@@ -612,7 +616,8 @@ const ES: CardioCopy = {
     heartRate: value => `gasto cardíaco ${value} l/min`,
     contractility: value => `volumen sistólico ${value} ml`,
   },
-  pulse: {title: "Un latido del corazón", aorta: "aorta", ventricle: "ventrículo"},
+  pulse: {title: "El latido del corazón", aorta: "aorta", ventricle: "ventrículo",
+    baseline: "en reposo"},
   organNote: (name, flow, share, portal) => `${name}: ${flow} litros por minuto, ${share} de `
     + "cada 100 que mueve el corazón"
     + (portal ? ". Su sangre sigue por la vena porta hasta el hígado antes de volver." : "."),
