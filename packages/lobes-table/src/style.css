@@ -26,8 +26,9 @@
 .segment-value,
 .segment-note {
   text-anchor: middle;
+  /* Read over the segment itself, so the letters carry the white of the table around them. */
   paint-order: stroke;
-  stroke: rgba(7, 11, 16, 0.75);
+  stroke: rgba(255, 255, 255, 0.85);
   stroke-width: 3;
 }
 

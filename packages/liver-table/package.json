@@ -5,7 +5,8 @@
   "type": "module",
   "description": "The liver table: the two blood supplies of the liver, one lobule, and the way into the tables which follow it",
   "exports": {
-    ".": "./src/app.ts"
+    ".": "./src/app.ts",
+    "./text": "./src/text.ts"
   },
   "dependencies": {
     "@pkpdsim-tui/cardio-sim": "*",

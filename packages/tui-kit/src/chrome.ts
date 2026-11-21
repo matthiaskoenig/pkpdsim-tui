@@ -6,6 +6,8 @@
  */
 
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
+import type {Pictogram} from "./settings.ts";
+import {reportStatus} from "./settings.ts";
 import {speechFor} from "./speech.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
@@ -16,6 +18,11 @@ export interface ChoiceOption {
   readonly label: string;
   /** Why it cannot be picked, empty when it can. A choice the export cannot serve says so. */
   readonly unavailable?: string;
+  /**
+   * The picture of this option, for a switch which is read rather than spelled: the object of a
+   * table, the flag of a language, the audience of a level.
+   */
+  readonly picture?: Pictogram;
 }
 
 /**
@@ -121,7 +128,6 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     ? ""
     : `<p class="hint">${escapeHtml(copy.unknownMarkers(state.unassigned, reads))}</p>`;
   const notice = state.notice === "" ? "" : `<p class="hint">${escapeHtml(state.notice)}</p>`;
-  const detail = state.status.detail === "" ? state.hint : state.status.detail;
   // The body of the application has no objects of its own, so it carries no legend either.
   const objects = state.roles.length === 0
     ? ""
@@ -145,11 +151,6 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     ${objects}
     ${unassigned}
     ${notice}
-    <div class="status" data-state="${state.status.state}" data-info="${escapeHtml(detail)}">
-      <span class="dot"></span>
-      <span>${escapeHtml(state.status.source)}</span>
-      <i class="info-dot" aria-hidden="true">i</i>
-    </div>
     <p class="hint">${escapeHtml(state.hint)}</p>
     ${state.credit === "" ? "" : `<p class="hint credit">${escapeHtml(state.credit)}</p>`}
   `;
@@ -198,6 +199,8 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
   let previous = "";
   return {
     update(state: ChromeUpdate): void {
+      // What drives the surface belongs to the settings of the table and not to its words.
+      reportStatus(state.status);
       spoken = [state.title, state.about, state.reading, ...state.tries];
       const html = panelHtml(state, options.voice);
       if (html === previous) return;

@@ -23,6 +23,7 @@
 | `scripts/export_model.py` | Compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
 | `scripts/speech.mjs` | Collects every sentence of the copy, in three languages and at three levels, for the clips the table reads aloud |
 | `scripts/speak.py` | Records those sentences into `apps/table/public/audio/<locale>/` |
+| `scripts/qr.mjs` | Writes `apps/table/src/qr.ts`, the QR code of the laboratory in the footer of the landing page, as one SVG path |
 | `docs/` | This site |
 
 The repository is an npm workspace. The packages ship TypeScript source and are consumed as source, so there is one type check and one build for the whole tree. There is one application: `apps/table` is the page, and a table of `packages/*-table` is a module it loads when `?app` names it, with the assets of that table under `assets/<table>/`. A table is left by opening another one, which reloads the page, so no table has to take itself down and a worker, a solver and a socket go with the page they belong to.
@@ -83,6 +84,8 @@ flat = build(definition, Path("models"))  # models/rat_liver_nmp_flat.xml
 PERFUSION_MODEL=../pkpdsim/models/rat_liver_nmp_flat.xml npm run export:perfusion
 ```
 
+`node scripts/qr.mjs` regenerates the QR code of the landing page footer. It is generated once and committed as a module of paths, so the page carries no QR library and works with no network; `node scripts/qr.mjs --print` draws it in the terminal to check it, and the address it encodes is `LAB_URL` at the top of the script.
+
 `npm run speech` writes the clips a table reads aloud. `scripts/speech.mjs` imports the copy modules straight into `node`, which reads TypeScript of its own, so there is one copy of the text and no build step between it and the clips. [Languages and the voice](languages.md) covers the engines and what is recorded.
 
 A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface which drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`. The flags of `scripts/dev.mjs` move the ports (`--port`, `--page-port`, `--tuio-port`), leave the simulator out (`--no-simulator`) or serve the build (`--preview`).
@@ -105,7 +108,8 @@ Everything that carries logic is a pure function and is tested without a socket:
 6. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
 7. Anything a visitor presses rather than turns carries `data-dwell="<name>"` and a click handler. The note layer of `createInfo` watches the fingers of the tracker, fires the click when one has rested on it for a moment, and marks the element with `data-arming` while it does, which is what the element fills from. The name and not the element is the identity of a target, because a panel is redrawn under a finger which is resting on it.
 8. Write its words in `packages/<name>-table/src/text.ts`: one module with English, German and Spanish side by side, where every explanatory sentence is a `Phrase` of a child, an adult and an expert text. Nothing a visitor reads is written into the code of a scene, a card or a role, and a test walks every locale and every level to insist that nothing was forgotten. See [Languages and the voice](languages.md).
-9. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
+9. Write its three quiz questions into the same module as `quiz`, in the three languages, with the same ids in the same order: what is asked, two or three answers, which one is right, the one sentence why, and what to turn at the table to see it. `createQuiz(host.chrome, {voice, questions: copy.quiz})` is the whole of what a table does with them. See [Run on a table](table.md).
+10. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
 
 ## Conventions
 

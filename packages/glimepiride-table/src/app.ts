@@ -17,7 +17,7 @@ import {
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -85,6 +85,8 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     root, visibleStats(glimepirideStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -216,7 +218,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       reading: glimepirideReading(
         voice, individual, sex, current, reference_readout, reference),
       back: true,
-      choices: [...host.choices, ...bodies],
+      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.id === "hour") return `${formatNumber(hour, 1)} h`;

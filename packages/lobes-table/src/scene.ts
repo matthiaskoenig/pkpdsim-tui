@@ -106,7 +106,7 @@ const STATE_FILL: Readonly<Record<LobeState, string>> = {
   intact: PERFUSION_NEUTRAL,
   portal: "#a06cd5",
   arterial: "#e2574c",
-  resected: "#1b2430",
+  resected: "#e4eaef",
 };
 
 export function createLiverScene(

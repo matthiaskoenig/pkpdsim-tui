@@ -1,6 +1,6 @@
 /** What the circulation table says, in the three languages and at the three levels. */
 
-import type {Locale, Phrase} from "@pkpdsim-tui/tui-kit";
+import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 export interface Named {
   readonly label: Phrase;
@@ -26,6 +26,8 @@ export type CardioDone =
 export interface CardioCopy {
   readonly about: Phrase;
   readonly tries: readonly Phrase[];
+  /** The three questions of the quiz, which send a visitor back to the objects. */
+  readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "systolic" | "diastolic" | "co" | "stroke" | "ppo" | "gradient", Named>>;
   readonly roles: Readonly<Record<
@@ -46,6 +48,47 @@ export interface CardioCopy {
 }
 
 const EN: CardioCopy = {
+  quiz: [
+    {
+      id: "pump",
+      ask: "The heart beats faster. What happens to the blood in the body?",
+      choices: [
+        {id: "more", label: "More of it moves every minute"},
+        {id: "less", label: "Less of it moves every minute"},
+        {id: "same", label: "Nothing changes"},
+      ],
+      answer: "more",
+      because: "Every beat pushes out about the same amount, so more beats move more blood."
+        + " That is the cardiac output, and every organ is served out of it.",
+      tryIt: "Try it: turn the rate up and watch the flow through the liver.",
+    },
+    {
+      id: "resistance",
+      ask: "A vessel to an organ gets narrower. What does that organ get?",
+      choices: [
+        {id: "less", label: "Less blood"},
+        {id: "more", label: "More blood"},
+        {id: "same", label: "The same, it just takes longer"},
+      ],
+      answer: "less",
+      because: "A narrow vessel is a high resistance, and blood takes the easier way. The organ"
+        + " behind it gets less, and the pressure in front of it goes up.",
+      tryIt: "Try it: turn one of the resistances up and watch its organ go blue.",
+    },
+    {
+      id: "portal",
+      ask: "Where does the blood in the portal vein come from?",
+      choices: [
+        {id: "gut", label: "From the gut"},
+        {id: "lungs", label: "From the lungs"},
+        {id: "kidneys", label: "From the kidneys"},
+      ],
+      answer: "gut",
+      because: "The portal vein carries the blood of the gut to the liver, so everything that was"
+        + " eaten passes the liver before it reaches the rest of the body.",
+      tryIt: "Try it: turn the portal resistance and watch what the liver still gets.",
+    },
+  ],
   about: {
     child: "Your heart pushes blood around your body all day. Make a vessel narrow or the heart beat faster, and watch what the body does.",
     adult: "The heart pushes five to six litres of blood through the body every minute. Narrow a vessel or change the beat, and the pressures and the flows of the whole body settle somewhere new within a few beats.",
@@ -204,6 +247,47 @@ const EN: CardioCopy = {
 };
 
 const DE: CardioCopy = {
+  quiz: [
+    {
+      id: "pump",
+      ask: "Das Herz schlägt schneller. Was passiert mit dem Blut im Körper?",
+      choices: [
+        {id: "more", label: "Es fließt mehr pro Minute"},
+        {id: "less", label: "Es fließt weniger pro Minute"},
+        {id: "same", label: "Es ändert sich nichts"},
+      ],
+      answer: "more",
+      because: "Jeder Schlag pumpt ungefähr gleich viel heraus, also fließt bei mehr Schlägen mehr"
+        + " Blut. Das ist das Herzzeitvolumen, und daraus werden alle Organe versorgt.",
+      tryIt: "Probier es: Dreh die Herzfrequenz hoch und sieh dir den Fluss durch die Leber an.",
+    },
+    {
+      id: "resistance",
+      ask: "Ein Gefäß zu einem Organ wird enger. Was bekommt dieses Organ?",
+      choices: [
+        {id: "less", label: "Weniger Blut"},
+        {id: "more", label: "Mehr Blut"},
+        {id: "same", label: "Gleich viel, es dauert nur länger"},
+      ],
+      answer: "less",
+      because: "Ein enges Gefäß ist ein hoher Widerstand, und Blut nimmt den leichteren Weg. Das"
+        + " Organ dahinter bekommt weniger, und der Druck davor steigt.",
+      tryIt: "Probier es: Dreh einen Widerstand hoch und sieh zu, wie sein Organ blau wird.",
+    },
+    {
+      id: "portal",
+      ask: "Woher kommt das Blut in der Pfortader?",
+      choices: [
+        {id: "gut", label: "Aus dem Darm"},
+        {id: "lungs", label: "Aus der Lunge"},
+        {id: "kidneys", label: "Aus den Nieren"},
+      ],
+      answer: "gut",
+      because: "Die Pfortader bringt das Blut des Darms zur Leber. Alles, was gegessen wurde,"
+        + " kommt also an der Leber vorbei, bevor es in den Rest des Körpers geht.",
+      tryIt: "Probier es: Dreh den Pfortader-Widerstand und sieh, was die Leber noch bekommt.",
+    },
+  ],
   about: {
     child: "Dein Herz pumpt den ganzen Tag Blut durch deinen Körper. Mach ein Gefäß enger oder das Herz schneller und schau, was der Körper macht.",
     adult: "Das Herz pumpt fünf bis sechs Liter Blut pro Minute durch den Körper. Verengen Sie ein Gefäß oder ändern Sie den Herzschlag, und Drücke und Flüsse des ganzen Körpers stellen sich innerhalb weniger Schläge neu ein.",
@@ -362,6 +446,47 @@ const DE: CardioCopy = {
 };
 
 const ES: CardioCopy = {
+  quiz: [
+    {
+      id: "pump",
+      ask: "El corazón late más rápido. ¿Qué pasa con la sangre del cuerpo?",
+      choices: [
+        {id: "more", label: "Circula más cada minuto"},
+        {id: "less", label: "Circula menos cada minuto"},
+        {id: "same", label: "No cambia nada"},
+      ],
+      answer: "more",
+      because: "Cada latido expulsa más o menos lo mismo, así que con más latidos circula más"
+        + " sangre. Eso es el gasto cardíaco, y de ahí se sirven todos los órganos.",
+      tryIt: "Pruébalo: sube la frecuencia y mira el flujo por el hígado.",
+    },
+    {
+      id: "resistance",
+      ask: "Un vaso que lleva a un órgano se estrecha. ¿Qué recibe ese órgano?",
+      choices: [
+        {id: "less", label: "Menos sangre"},
+        {id: "more", label: "Más sangre"},
+        {id: "same", label: "Lo mismo, solo que más lento"},
+      ],
+      answer: "less",
+      because: "Un vaso estrecho es una resistencia alta, y la sangre toma el camino más fácil. El"
+        + " órgano de detrás recibe menos y la presión delante sube.",
+      tryIt: "Pruébalo: sube una de las resistencias y mira cómo su órgano se vuelve azul.",
+    },
+    {
+      id: "portal",
+      ask: "¿De dónde viene la sangre de la vena porta?",
+      choices: [
+        {id: "gut", label: "Del intestino"},
+        {id: "lungs", label: "De los pulmones"},
+        {id: "kidneys", label: "De los riñones"},
+      ],
+      answer: "gut",
+      because: "La vena porta lleva la sangre del intestino al hígado, así que todo lo que se come"
+        + " pasa por el hígado antes de llegar al resto del cuerpo.",
+      tryIt: "Pruébalo: gira la resistencia portal y mira qué le queda al hígado.",
+    },
+  ],
   about: {
     child: "Tu corazón empuja sangre por todo tu cuerpo todo el día. Estrecha un vaso o haz que lata más rápido y mira qué hace el cuerpo.",
     adult: "El corazón empuja de cinco a seis litros de sangre por el cuerpo cada minuto. Estreche un vaso o cambie el latido, y las presiones y los flujos de todo el cuerpo se asientan en otro punto en pocos latidos.",

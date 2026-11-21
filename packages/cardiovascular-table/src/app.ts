@@ -24,7 +24,7 @@ import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  chooseQuery, createChrome, createInfo, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createQuiz, createInfo, createReadout, createTokenLayer, driveHint,
   formatFactor, formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -91,7 +91,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   if (body === undefined) throw new Error("The anatomy holds no body.");
   const bodies: readonly ChoiceGroup[] = [{
     id: "sex", label: kit.bodySwitch, selected: sex,
-    options: [{id: "male", label: kit.male}, {id: "female", label: kit.female}],
+    options: [{id: "female", label: kit.female}, {id: "male", label: kit.male}],
   }];
 
   const reference = data.pressure;
@@ -117,6 +117,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -225,7 +227,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: cardioReading(voice, heartControls, sex, summary, referenceSummary),
       back: true,
-      choices: [...host.choices, ...bodies],
+      choices: bodies,
       status, roles: roles, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];

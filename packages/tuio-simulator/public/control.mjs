@@ -130,12 +130,14 @@ function positionOf(event) {
 
 function markerOf() {
   const value = Number.parseInt(markerField.value, 10);
-  return Number.isInteger(value) && value >= 0 ? value : 0;
+  return Number.isInteger(value) && value >= 1 ? value : 1;
 }
 
 /** The id the next object gets, which counts up as objects are placed. */
 function setMarker(value) {
-  markerField.value = String(Math.max(0, Math.min(999, value)));
+  // The objects of a table are numbered from one: the first puck a visitor puts down is 1, and
+  // every table of this repository reads 1 and upwards.
+  markerField.value = String(Math.max(1, Math.min(999, value)));
 }
 
 /* What the page keeps between reloads: what was typed, never what is on the surface. */
@@ -531,7 +533,7 @@ function resize() {
 
 function openPicker(event, position) {
   pickerGrid.replaceChildren();
-  for (let id = 0; id < PICKER_IDS; id += 1) {
+  for (let id = 1; id <= PICKER_IDS; id += 1) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = String(id);
@@ -880,7 +882,7 @@ portField.value = String(settings.port);
 const asked = wantedApp();
 if (asked !== "") appUrl = asked;
 appField.value = appUrl;
-setMarker(0);
+setMarker(1);
 resize();
 if (appUrl !== "") showApp(appUrl);
 connect();

@@ -9,13 +9,13 @@ Two switches carry it, and both are on every page:
 - **The language.** English, Deutsch, Español.
 - **The level.** Kids, Adults, Experts: *explain it like I am six*, *explain it to an adult who knows nothing about this*, and *tell me what it really is*.
 
-On the landing page they are two rows of pills in the corner, with the button which reads the page aloud above them. In a table they are two switches in the panel, beside the table switch and the body. Both are pressed the way everything on a table is pressed, by resting a finger on them, and both travel in the address:
+Both are behind the gear in the far corner of every page, as either-or switches with a tick on the one which is on: the level as three pictograms of a child, an adult and an expert, the language as the three flags. A visitor who cannot read the language of the table can still find the language switch, which is the whole reason it is a flag. They are pressed the way everything on a table is pressed, by resting a finger on them, and they travel in the address:
 
 ```
 http://localhost:5173/?app=glimepiride&lang=de&level=child
 ```
 
-A page which is given neither takes the language of the browser when it is one of the three, and the adult level, which is what a visitor who says nothing gets.
+A page which is given neither opens in German, for a child, which is what the booth it was built for needs; `?lang=auto` takes the language of the browser instead when it is one of the three. The level a visitor chooses holds for every table until it is changed.
 
 ## What changes with the level
 

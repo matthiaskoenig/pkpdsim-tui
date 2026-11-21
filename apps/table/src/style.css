@@ -55,13 +55,16 @@
 }
 
 /* The card of a table, around the bodies. */
+/* A card on the landing page is the dark card the table speaks from, over its white. */
 .hub-card {
+  --ink: var(--panel-ink);
+  --ink-dim: var(--panel-ink-dim);
   cursor: pointer;
 }
 
 .hub-card-plate {
   fill: var(--panel);
-  stroke: var(--panel-line);
+  stroke: var(--panel);
   stroke-width: 1.5;
   transition: fill 120ms linear, stroke 120ms linear;
 }
@@ -81,15 +84,15 @@
   fill: var(--accent);
 }
 
-.hub-card-number {
-  font-size: 19px;
-  font-weight: 650;
-  fill: #04201f;
+.hub-card-icon {
+  fill: #ffffff;
+  /* An icon of several paths is one shape: the inner ones cut the outer one open. */
+  fill-rule: evenodd;
 }
 
 .hub-card-title {
-  font-size: 20px;
-  font-weight: 650;
+  font-size: 24px;
+  font-weight: 700;
   fill: var(--ink);
 }
 
@@ -209,7 +212,7 @@
 
 .hub-pill-plate {
   fill: var(--panel);
-  stroke: var(--panel-line);
+  stroke: var(--panel);
   stroke-width: 1.5;
   transition: fill 120ms linear, stroke 120ms linear;
 }
@@ -260,4 +263,38 @@
 
 .hub-pill[data-speaking="true"] .hub-pill-icon {
   fill: var(--ink);
+}
+
+
+/* The laboratory at the foot of the page: the square a phone reads, and who this is. */
+.hub-lab {
+  cursor: help;
+}
+
+.hub-qr-plate {
+  fill: #ffffff;
+}
+
+.hub-qr-code {
+  fill: #0f1d28;
+  /* Every module is its own square, so the path has to be filled as one shape. */
+  fill-rule: nonzero;
+  shape-rendering: crispEdges;
+}
+
+.hub-lab-name {
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+
+.hub-lab-line {
+  font-size: 13px;
+  fill: var(--ink-dim);
+}
+
+.hub-lab-link {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--accent);
 }

@@ -9,7 +9,7 @@
 import {defaultControls, loadCardiovascularData, solvePressure} from "@pkpdsim-tui/cardio-sim";
 import type {PressureControls, PressureReference, PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {
-  createChrome, createInfo, createReadout, createTokenLayer, driveHint, pointerPoints,
+  createChrome, createQuiz, createInfo, createReadout, createTokenLayer, driveHint, pointerPoints,
   tokenPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
@@ -66,6 +66,8 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   const chapters = createChapters(root, voice);
   const readout = createReadout<PressureSolution>(root, stats);
   const tokenLayer = createTokenLayer(root, host);
+  // Three questions about this table, behind the button in the near corner.
+  createQuiz(host.chrome, {voice, questions: copy.quiz});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -111,7 +113,6 @@ export async function startLiverTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: liverReading(voice, solution, baseline),
       back: true,
-      choices: [...host.choices],
       status, roles, notice: "",
       value: role => `${(values.get(role.id) ?? role.reference).toFixed(2)}x`,
       live: new Set(values.keys()),

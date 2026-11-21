@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
   "license": "MIT",
-  "author": "Matthias K\u00f6nig",
+  "author": "Matthias König",
   "repository": {
     "type": "git",
     "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "jsdom": "^31.0.1",
+    "qrcode-generator": "^2.0.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.1"

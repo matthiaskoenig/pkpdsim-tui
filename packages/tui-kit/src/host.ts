@@ -4,7 +4,6 @@
  * what lets the body, the circulation, the liver and the drug be one deployment and one port.
  */
 
-import type {ChoiceGroup} from "./chrome.ts";
 import type {Voice} from "./voice.ts";
 
 export interface TableHost {
@@ -28,9 +27,7 @@ export interface TableHost {
   readonly assets: URL;
   /** What the starting table says it is doing, which the boot screen shows. */
   progress(message: string): void;
-  /** The switches of the application, which a table shows in its panels beside its own. */
-  readonly choices: readonly ChoiceGroup[];
-  /** What a touch on one of `choices` does, which the application and not the table knows. */
+  /** What a touch on a switch of the panel does, which the application and not the table knows. */
   choose(group: string, option: string): void;
   /** Leave this table for the body, which is where every table is opened from. */
   back(): void;

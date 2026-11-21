@@ -1,6 +1,6 @@
 /** What the machine perfusion table says, in the three languages and at the three levels. */
 
-import type {Locale, Phrase} from "@pkpdsim-tui/tui-kit";
+import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 export interface Named {
   readonly label: Phrase;
@@ -21,6 +21,8 @@ export interface PerfusionFacts {
 export interface PerfusionCopy {
   readonly about: Phrase;
   readonly tries: readonly Phrase[];
+  /** The three questions of the quiz, which send a visitor back to the objects. */
+  readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "taken" | "outflow" | "bile" | "alive" | "alt" | "lactate", Named>>;
   readonly roles: Readonly<Record<"flow" | "oxygen" | "temperature" | "hour", Named>>;
@@ -47,6 +49,47 @@ export interface PerfusionCopy {
 }
 
 const EN: PerfusionCopy = {
+  quiz: [
+    {
+      id: "why",
+      ask: "Why is a liver put on a machine at all?",
+      choices: [
+        {id: "alive", label: "To keep it alive until somebody needs it"},
+        {id: "clean", label: "To wash it"},
+        {id: "cool", label: "To freeze it"},
+      ],
+      answer: "alive",
+      because: "A liver out of a body has no blood. The machine pumps a warm, oxygen rich fluid"
+        + " through it, so it keeps working and can be looked at before it is transplanted.",
+      tryIt: "Try it: turn the pump down and watch what the organ does.",
+    },
+    {
+      id: "oxygen",
+      ask: "The oxygen in the fluid is turned down. What does the liver do?",
+      choices: [
+        {id: "suffers", label: "Its cells start to take damage"},
+        {id: "faster", label: "It works faster"},
+        {id: "nothing", label: "Nothing, it does not need oxygen"},
+      ],
+      answer: "suffers",
+      because: "Liver cells burn oxygen all the time. Without enough of it they stop making bile"
+        + " and start leaking the enzyme ALT, which is what the machine measures.",
+      tryIt: "Try it: turn the oxygen down and watch ALT climb.",
+    },
+    {
+      id: "cold",
+      ask: "The machine is run cold instead of warm. What changes?",
+      choices: [
+        {id: "slower", label: "Everything in the liver runs slower"},
+        {id: "stops", label: "The liver stops at once"},
+        {id: "same", label: "Nothing, temperature does not matter"},
+      ],
+      answer: "slower",
+      because: "Cold slows every process down, so the liver needs less oxygen and keeps longer."
+        + " Warm is how you see whether it still works; cold is how you carry it.",
+      tryIt: "Try it: turn the temperature down and read the bile.",
+    },
+  ],
   about: {
     child: "A liver can live outside the body if a machine keeps feeding it: warm liquid with oxygen, pumped through it without stopping.",
     adult: "A liver taken out of a body stays alive if it is perfused: warm fluid, full of oxygen, pumped through it without stopping. It is how a donor organ is carried and tested, and how a liver is studied on its own.",
@@ -214,6 +257,47 @@ const EN: PerfusionCopy = {
 };
 
 const DE: PerfusionCopy = {
+  quiz: [
+    {
+      id: "why",
+      ask: "Warum legt man eine Leber überhaupt an eine Maschine?",
+      choices: [
+        {id: "alive", label: "Um sie am Leben zu halten, bis jemand sie braucht"},
+        {id: "clean", label: "Um sie zu waschen"},
+        {id: "cool", label: "Um sie einzufrieren"},
+      ],
+      answer: "alive",
+      because: "Eine Leber außerhalb des Körpers bekommt kein Blut. Die Maschine pumpt eine warme,"
+        + " sauerstoffreiche Flüssigkeit hindurch, damit sie weiterarbeitet und geprüft werden kann.",
+      tryIt: "Probier es: Dreh die Pumpe herunter und sieh zu, was das Organ macht.",
+    },
+    {
+      id: "oxygen",
+      ask: "Der Sauerstoff in der Flüssigkeit wird heruntergedreht. Was macht die Leber?",
+      choices: [
+        {id: "suffers", label: "Ihre Zellen nehmen Schaden"},
+        {id: "faster", label: "Sie arbeitet schneller"},
+        {id: "nothing", label: "Nichts, sie braucht keinen Sauerstoff"},
+      ],
+      answer: "suffers",
+      because: "Leberzellen verbrauchen ständig Sauerstoff. Ohne genug davon machen sie keine"
+        + " Galle mehr und lassen das Enzym ALT ins Blut, und genau das misst die Maschine.",
+      tryIt: "Probier es: Dreh den Sauerstoff herunter und sieh zu, wie ALT steigt.",
+    },
+    {
+      id: "cold",
+      ask: "Die Maschine läuft kalt statt warm. Was ändert sich?",
+      choices: [
+        {id: "slower", label: "Alles in der Leber läuft langsamer"},
+        {id: "stops", label: "Die Leber hört sofort auf"},
+        {id: "same", label: "Nichts, die Temperatur ist egal"},
+      ],
+      answer: "slower",
+      because: "Kälte bremst jeden Vorgang, also braucht die Leber weniger Sauerstoff und hält"
+        + " länger. Warm prüft man, ob sie noch arbeitet; kalt transportiert man sie.",
+      tryIt: "Probier es: Dreh die Temperatur herunter und lies die Galle ab.",
+    },
+  ],
   about: {
     child: "Eine Leber kann außerhalb des Körpers leben, wenn eine Maschine sie weiter versorgt: warme Flüssigkeit mit Sauerstoff, ohne Pause hindurchgepumpt.",
     adult: "Eine Leber, die aus dem Körper genommen wurde, bleibt am Leben, wenn sie perfundiert wird: warme, sauerstoffreiche Flüssigkeit, ohne Unterbrechung hindurchgepumpt. So wird ein Spenderorgan transportiert und geprüft, und so wird eine Leber für sich untersucht.",
@@ -384,6 +468,47 @@ const DE: PerfusionCopy = {
 };
 
 const ES: PerfusionCopy = {
+  quiz: [
+    {
+      id: "why",
+      ask: "¿Para qué se pone un hígado en una máquina?",
+      choices: [
+        {id: "alive", label: "Para mantenerlo vivo hasta que alguien lo necesite"},
+        {id: "clean", label: "Para lavarlo"},
+        {id: "cool", label: "Para congelarlo"},
+      ],
+      answer: "alive",
+      because: "Un hígado fuera del cuerpo no recibe sangre. La máquina bombea un líquido templado"
+        + " y rico en oxígeno para que siga trabajando y se pueda comprobar antes del trasplante.",
+      tryIt: "Pruébalo: baja la bomba y mira qué hace el órgano.",
+    },
+    {
+      id: "oxygen",
+      ask: "Se baja el oxígeno del líquido. ¿Qué hace el hígado?",
+      choices: [
+        {id: "suffers", label: "Sus células empiezan a dañarse"},
+        {id: "faster", label: "Trabaja más rápido"},
+        {id: "nothing", label: "Nada, no necesita oxígeno"},
+      ],
+      answer: "suffers",
+      because: "Las células del hígado queman oxígeno todo el tiempo. Sin suficiente dejan de"
+        + " hacer bilis y sueltan la enzima ALT, que es lo que mide la máquina.",
+      tryIt: "Pruébalo: baja el oxígeno y mira cómo sube la ALT.",
+    },
+    {
+      id: "cold",
+      ask: "La máquina funciona en frío en vez de templada. ¿Qué cambia?",
+      choices: [
+        {id: "slower", label: "Todo en el hígado va más lento"},
+        {id: "stops", label: "El hígado se para de golpe"},
+        {id: "same", label: "Nada, la temperatura da igual"},
+      ],
+      answer: "slower",
+      because: "El frío frena todos los procesos, así que el hígado necesita menos oxígeno y"
+        + " aguanta más. En caliente se comprueba si funciona; en frío se transporta.",
+      tryIt: "Pruébalo: baja la temperatura y lee la bilis.",
+    },
+  ],
   about: {
     child: "Un hígado puede vivir fuera del cuerpo si una máquina lo sigue alimentando: líquido caliente con oxígeno, bombeado sin parar.",
     adult: "Un hígado sacado del cuerpo sigue vivo si se perfunde: líquido caliente, lleno de oxígeno, bombeado por él sin parar. Así se transporta y se evalúa un órgano donado, y así se estudia un hígado por separado.",

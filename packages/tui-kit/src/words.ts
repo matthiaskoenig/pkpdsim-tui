@@ -15,6 +15,21 @@ export interface KitCopy {
   /** The heading over the legend of the objects. */
   readonly objects: string;
   /** The label of the switch which picks the table, the language and the level. */
+  /** What the quiz of a table says around its questions. */
+  readonly quiz: {
+    readonly title: string;
+    readonly info: string;
+    readonly close: string;
+    readonly next: string;
+    readonly last: string;
+    readonly again: string;
+    readonly right: string;
+    readonly wrong: string;
+    readonly score: (right: number, of: number) => string;
+  };
+  /** The button in the corner which everything about the table itself waits behind. */
+  readonly settings: string;
+  readonly settingsInfo: Phrase;
   readonly tableSwitch: string;
   readonly languageSwitch: string;
   readonly levelSwitch: string;
@@ -59,6 +74,21 @@ const EN: KitCopy = {
     adult: "Leave this table. The body is where every table is opened from.",
   },
   objects: "Objects",
+  quiz: {
+    title: "Quiz",
+    info: "Three questions about this table. Nothing is lost by being wrong.",
+    close: "Close",
+    next: "Next question",
+    last: "See how it went",
+    again: "Play again",
+    right: "Right!",
+    wrong: "Not this one.",
+    score: (right, of) => right === of
+      ? `All ${of} right. You know this table.`
+      : `${right} of ${of} right.`,
+  },
+  settings: "Settings",
+  settingsInfo: "Which table this is, which language it speaks, and how much it says.",
   tableSwitch: "Table",
   languageSwitch: "Language",
   levelSwitch: "For",
@@ -114,6 +144,21 @@ const DE: KitCopy = {
     adult: "Diesen Tisch verlassen. Vom Körper aus wird jeder Tisch geöffnet.",
   },
   objects: "Objekte",
+  quiz: {
+    title: "Quiz",
+    info: "Drei Fragen zu diesem Tisch. Falsch raten kostet nichts.",
+    close: "Schließen",
+    next: "Nächste Frage",
+    last: "Ergebnis ansehen",
+    again: "Noch einmal",
+    right: "Richtig!",
+    wrong: "Das ist es nicht.",
+    score: (right, of) => right === of
+      ? `Alle ${of} richtig. Du kennst diesen Tisch.`
+      : `${right} von ${of} richtig.`,
+  },
+  settings: "Einstellungen",
+  settingsInfo: "Welcher Tisch das ist, welche Sprache er spricht und wie viel er sagt.",
   tableSwitch: "Tisch",
   languageSwitch: "Sprache",
   levelSwitch: "Für",
@@ -170,6 +215,21 @@ const ES: KitCopy = {
     adult: "Salir de esta mesa. Todas las mesas se abren desde el cuerpo.",
   },
   objects: "Objetos",
+  quiz: {
+    title: "Quiz",
+    info: "Tres preguntas sobre esta mesa. Equivocarse no cuesta nada.",
+    close: "Cerrar",
+    next: "Siguiente pregunta",
+    last: "Ver el resultado",
+    again: "Otra vez",
+    right: "¡Correcto!",
+    wrong: "Esta no es.",
+    score: (right, of) => right === of
+      ? `Las ${of} correctas. Conoces esta mesa.`
+      : `${right} de ${of} correctas.`,
+  },
+  settings: "Ajustes",
+  settingsInfo: "Qué mesa es esta, en qué idioma habla y cuánto cuenta.",
   tableSwitch: "Mesa",
   languageSwitch: "Idioma",
   levelSwitch: "Para",

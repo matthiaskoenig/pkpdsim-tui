@@ -5,7 +5,8 @@
   "type": "module",
   "description": "The lobed liver table: clamps and a scalpel on the Couinaud segments, and the days after the operation on a dial",
   "exports": {
-    ".": "./src/app.ts"
+    ".": "./src/app.ts",
+    "./text": "./src/text.ts"
   },
   "dependencies": {
     "@pkpdsim-tui/core-runtime": "*",

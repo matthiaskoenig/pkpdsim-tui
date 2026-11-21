@@ -71,19 +71,27 @@ export function createVoice(locale: Locale, level: Level): Voice {
   };
 }
 
+/** What a table opens on when nothing says otherwise: the youngest visitor, in German. */
+export const DEFAULT_LOCALE: Locale = "de";
+export const DEFAULT_LEVEL: Level = "child";
+
 /**
- * The voice of a page: `?lang` and `?level`, which every link of the application carries along,
- * and otherwise the language of the browser, so that a visitor who opens the page on their own
- * phone is answered in their own language without touching anything.
+ * The voice of a page: `?lang` and `?level`, which every link of the application carries along.
+ *
+ * A table in a room opens on the language of that room and on the simplest words it has, and a
+ * visitor changes both in two presses, so the first thing anybody meets is a sentence a child
+ * can read. The language of the browser is asked for with `?lang=auto`, which is for a page
+ * somebody opened on their own machine rather than for the table in the room: a kiosk browser
+ * reports whatever it was installed as, which is nothing about the people in front of it.
  */
 export function voiceOf(parameters: URLSearchParams, languages: readonly string[] = []): Voice {
   const asked = parameters.get("lang") ?? "";
   const level = parameters.get("level") ?? "";
   const preferred = languages.map(tag => tag.slice(0, 2).toLowerCase()).find(isLocale);
-  return createVoice(
-    isLocale(asked) ? asked : preferred ?? "en",
-    isLevel(level) ? level : "adult",
-  );
+  const locale = isLocale(asked)
+    ? asked
+    : asked === "auto" ? preferred ?? DEFAULT_LOCALE : DEFAULT_LOCALE;
+  return createVoice(locale, isLevel(level) ? level : DEFAULT_LEVEL);
 }
 
 /** The levels a table tells `level` apart by, from the fewest words to the most. */

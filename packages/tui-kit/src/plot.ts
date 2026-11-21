@@ -192,8 +192,11 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
         const left = xOf(times[row] ?? 0) < box.x + box.width * 0.6;
         // Two courses that sit at the same height would write over each other, so the labels
         // of the courses are stacked in the order they were declared in.
+        // A course which runs along the top of the plot would write its label over the time of
+        // the cursor, which stands above the box, so the labels stay inside the box.
+        const label = Math.max(box.y + 14, yOf(value) - 12 - order * 19);
         attributes(visual.value, {
-          x: xOf(times[row] ?? 0) + (left ? 12 : -12), y: yOf(value) - 12 - order * 19,
+          x: xOf(times[row] ?? 0) + (left ? 12 : -12), y: label,
           "text-anchor": left ? "start" : "end",
         });
         visual.value.textContent = `${trace.label} ${formatNumber(value, trace.digits ?? 2)} ${trace.unit}`;
