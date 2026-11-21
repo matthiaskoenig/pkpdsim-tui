@@ -24,12 +24,12 @@ const HEART_ROLES = CARDIOVASCULAR_ROLES.slice(0, 2);
 const RESISTANCE_ROLES = CARDIOVASCULAR_ROLES.slice(2);
 
 describe("the objects of the circulation", () => {
-  it("covers the two of the heart and the four resistances, on six markers", () => {
-    // The heart is picked up first, because it is what drives everything else.
+  it("covers the two of the heart and the two resistances, on four markers", () => {
+    // The heart is picked up first, because it is what drives everything else. The two
+    // resistances of the liver were taken off the table: four objects is what a visitor holds.
     expect(HEART_ROLES.map(role => role.id)).toEqual(["heartRate", "contractility"]);
-    expect(RESISTANCE_ROLES.map(role => role.id))
-      .toEqual(["systemic", "hepatic", "renal", "portal"]);
-    expect(CARDIOVASCULAR_ROLES.flatMap(role => [...role.markers])).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(RESISTANCE_ROLES.map(role => role.id)).toEqual(["systemic", "renal"]);
+    expect(CARDIOVASCULAR_ROLES.flatMap(role => [...role.markers])).toEqual([1, 2, 3, 4]);
   });
 
   it("keeps the reference of every role at the value the model runs at without it", () => {
@@ -81,25 +81,31 @@ describe("controlsFromTokens", () => {
 
   it("takes the value of the angle of a token", () => {
     const role = roleForMarker(RESISTANCE_ROLES, 4);
-    expect(role?.id).toBe("hepatic");
+    expect(role?.id).toBe("renal");
     const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(5, 4, 1.2)), pressure);
-    expect(controls.hepatic).toBeCloseTo(valueFromAngle(role!, 1.2), 12);
+    expect(controls.renal).toBeCloseTo(valueFromAngle(role!, 1.2), 12);
     expect(controls.systemic).toBe(1);
   });
 
   it("ignores a token whose marker no role claims", () => {
     const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(5, 99, 1.2)), pressure);
-    expect(controls.hepatic).toBe(1);
+    expect(controls.renal).toBe(1);
     expect(controls.systemic).toBe(1);
+  });
+
+  it("leaves the two resistances of the liver at the reference, whatever is on the surface", () => {
+    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(5, 4, 1.2)), pressure);
+    expect(controls.hepatic).toBe(1);
+    expect(controls.portal).toBe(1);
   });
 
   it("lets the token that arrived last win when two carry one role", () => {
     const first = token(5, 4, 0.4);
     const second = token(9, 4, -0.4 + Math.PI * 2);
     const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(first, second), pressure);
-    const hepatic = roleForMarker(RESISTANCE_ROLES, 4)!;
-    expect(controls.hepatic).toBeCloseTo(valueFromAngle(hepatic, second.angle), 12);
-    expect(controls.hepatic).toBeLessThan(1.0001);
+    const renal = roleForMarker(RESISTANCE_ROLES, 4)!;
+    expect(controls.renal).toBeCloseTo(valueFromAngle(renal, second.angle), 12);
+    expect(controls.renal).toBeLessThan(1.0001);
   });
 
   it("measures a relative role from the turn it was put down at", () => {

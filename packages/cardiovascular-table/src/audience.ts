@@ -30,23 +30,16 @@ export function cardioReading(
   reference: HeartSummary,
 ): string {
   const done: CardioDone[] = [];
-  if (controls.hepatic > 1.05) done.push("hepaticUp");
-  if (controls.hepatic < 0.95) done.push("hepaticDown");
-  if (controls.portal > 1.05) done.push("portalUp");
   if (controls.systemic > 1.05) done.push("systemicUp");
   if (controls.systemic < 0.95) done.push("systemicDown");
   if (controls.renal > 1.05) done.push("renalUp");
   if (Math.abs(controls.heartRate - DEFAULT_HEART_CONTROLS.heartRate) > 1) done.push("rate");
   if (controls.contractility < 0.95) done.push("weak");
   if (controls.contractility > 1.05) done.push("strong");
-  const portal = summary.mean_portal_pressure;
   return voice.pick(CARDIO_TEXT).reading({
     sex, done,
     pressure: bloodPressure(summary),
     output: formatNumber(summary.mean_cardiac_output, 1),
     rate: formatNumber(controls.heartRate, 0),
-    portal: done.length > 0 && portal > reference.mean_portal_pressure + 4
-      ? formatNumber(portal, 0)
-      : undefined,
   });
 }

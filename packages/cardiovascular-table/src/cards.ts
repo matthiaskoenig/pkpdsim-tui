@@ -52,11 +52,6 @@ export function cardiovascularStats(voice: Voice): readonly StatDefinition<Cardi
 export function noteFor(voice: Voice, roleId: string, value: CardioReadout): string {
   const copy = voice.pick(CARDIO_TEXT).notes;
   switch (roleId) {
-    case "hepatic":
-      return copy.hepatic(formatNumber(
-        value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure));
-    case "portal":
-      return copy.portal(formatNumber(value.heart.mean_portal_flow));
     case "systemic":
       return copy.systemic(`${formatNumber(value.heart.arterial_systolic, 0)}/`
         + `${formatNumber(value.heart.arterial_diastolic, 0)} mmHg`);

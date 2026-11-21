@@ -13,19 +13,20 @@
 
 import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {attributes, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import type {Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {COLUMN, placePanel} from "./layout.ts";
 import {CARDIO_TEXT} from "./text.ts";
 import type {CardioCopy} from "./text.ts";
 
 /** The size of the panel, in the pixels of the surface. */
-const PANEL = {width: 420, height: 312} as const;
+const PANEL = {width: COLUMN.width, height: COLUMN.height.hepatic} as const;
 /** How much of the table's past the panel holds, in seconds. */
 const WINDOW = 60;
 /** How often a sample is kept, in milliseconds: a curve of a minute, not of every frame. */
 const EVERY = 120;
 /** The two plots inside the panel. */
-const FLOW = {top: 96, height: 76} as const;
-const PRESSURE = {top: 212, height: 76} as const;
+const FLOW = {top: 92, height: 70} as const;
+const PRESSURE = {top: 200, height: 70} as const;
 const PAD = {left: 56, right: 18} as const;
 /** The floors of the two scales, so that a quiet table does not draw noise as mountains. */
 const FLOOR = {flow: 2.5, pressure: 16} as const;
@@ -114,8 +115,11 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
     "text-anchor": "end",
   }, plots);
   pressureFoot.textContent = "0";
+  // How far back the curves go, written over the flows so that the longer names of the
+  // pressures have the whole width of the panel to themselves.
   const span = svg("text", {
-    class: "hepatic-tick", x: PANEL.width - PAD.right, y: PANEL.height - 8, "text-anchor": "end",
+    class: "hepatic-tick", x: PANEL.width - PAD.right, y: FLOW.top + FLOW.height + 20,
+    "text-anchor": "end",
   }, plots);
   span.textContent = copy.window(WINDOW);
 
@@ -144,7 +148,6 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
 
   const history: Sample[] = [];
   let kept = 0;
-  let box: Box = {x: 0, y: 0, width: PANEL.width, height: PANEL.height};
 
   /** Where a moment sits across a plot: now at the right, a minute ago at the left. */
   const across = (at: number, now: number): number => {
@@ -168,12 +171,8 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
 
   return {
     resize(viewport: Viewport): void {
-      // Under the beats, in the column at the far side of the body from the panel.
-      box = {
-        x: viewport.width - PANEL.width - 24, y: viewport.height - PANEL.height - 24,
-        width: PANEL.width, height: PANEL.height,
-      };
-      group.setAttribute("transform", `translate(${box.x} ${box.y})`);
+      // At the foot of the column of plots, under the two of the heart.
+      group.setAttribute("transform", placePanel(viewport, "hepatic"));
     },
 
     update(solution: PressureSolution, now: number): void {

@@ -26,21 +26,20 @@ export function cardiovascularRoles(voice: Voice): readonly TokenRole[] {
     id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
     unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
   });
-  // The heart first, because it is what drives everything else, then the vessels of the body,
-  // then the three organs the other tables are about.
+  // The heart first, because it is what drives everything else, then the vessels of the body
+  // and the kidneys. Four objects is what a visitor can hold in their head at once: the two
+  // resistances of the liver were the two nobody turned without being told to.
   return [
     dial("heartRate", [1], "/min", HEART_RATE_RANGE.min, HEART_RATE_RANGE.max,
       DEFAULT_HEART_CONTROLS.heartRate, "linear"),
     dial("contractility", [2], "x", 0.4, 1.6, DEFAULT_HEART_CONTROLS.contractility, "log"),
     dial("systemic", [3], "x", 0.5, 2, 1, "log"),
-    dial("hepatic", [4], "x", 0.5, 8, 1, "log"),
-    dial("renal", [5], "x", 0.5, 3, 1, "log"),
-    dial("portal", [6], "x", 0.5, 6, 1, "log"),
+    dial("renal", [4], "x", 0.5, 3, 1, "log"),
   ];
 }
 
 /** The markers this table reads, which the input layer needs before a word is said. */
-export const CARDIOVASCULAR_MARKERS: readonly number[] = [1, 2, 3, 4, 5, 6];
+export const CARDIOVASCULAR_MARKERS: readonly number[] = [1, 2, 3, 4];
 
 /**
  * The controls the beating heart is solved with. A role without an object keeps the reference,
@@ -53,9 +52,9 @@ export function heartControlsFromTokens(
 ): HeartControls {
   const values = valuesFromTokens(roles, tokens, origins);
   return {
-    hepatic: values.get("hepatic") ?? DEFAULT_HEART_CONTROLS.hepatic,
+    hepatic: DEFAULT_HEART_CONTROLS.hepatic,
     systemic: values.get("systemic") ?? DEFAULT_HEART_CONTROLS.systemic,
-    portal: values.get("portal") ?? DEFAULT_HEART_CONTROLS.portal,
+    portal: DEFAULT_HEART_CONTROLS.portal,
     renal: values.get("renal") ?? DEFAULT_HEART_CONTROLS.renal,
     heartRate: values.get("heartRate") ?? DEFAULT_HEART_CONTROLS.heartRate,
     contractility: values.get("contractility") ?? DEFAULT_HEART_CONTROLS.contractility,
@@ -76,9 +75,9 @@ export function controlsFromTokens(
   const base = defaultControls(reference);
   const values = valuesFromTokens(roles, tokens, origins);
   return {
-    hepatic: values.get("hepatic") ?? base.hepatic,
+    hepatic: base.hepatic,
     systemic: values.get("systemic") ?? base.systemic,
-    portal: values.get("portal") ?? base.portal,
+    portal: base.portal,
     renal: values.get("renal") ?? base.renal,
     arterial: base.arterial,
     venous: base.venous,
