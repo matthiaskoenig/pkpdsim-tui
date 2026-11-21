@@ -4,6 +4,14 @@ The liver divided into its segments, and three instruments that act on whatever 
 
 The model is the lobed liver of the pkpdsim PBPK library: each segment has its own portal branch, its own hepatic artery, its own volume and its own share of the drug that passes through. Closing a branch is a portal vein ligation, taking a segment away is a resection, and the days that follow are the regeneration of what is left. The table solves five days of that with SUNDIALS IDA on the compiled SBML, in a Web Worker, every time the instruments on it change.
 
+## Background
+
+A liver is not one organ but eight pieces. Each Couinaud segment has its own branch of the portal vein, its own branch of the hepatic artery and its own way out into the hepatic veins, which is why a surgeon can take one away and leave the rest working. That is what makes a liver tumour operable: the piece that carries it is cut out, and the liver that is left grows until it can do the work of the whole again. In a healthy person it recovers most of its mass within weeks, and the first days are the steep part of that curve.
+
+The limit of such an operation is how much liver is left. A remnant that is too small cannot keep up with what the body asks of it, and the blood that the whole liver used to take now has to pass through a fraction of it, which raises the pressure in the portal vein. Surgeons therefore make the future remnant grow before they operate: they close the portal branch of the side that will be removed, which sends its blood to the other side and makes that side grow, and only then do they resect. That is a portal vein ligation, and it is one object on this table.
+
+Why a pharmacokinetic model cares: the liver is where most drugs are broken down, and the capacity that is left after an operation is the capacity that metabolizes them. The same model carries both, the mass of each piece and the drug that passes through it.
+
 ## The objects
 
 | Marker | Object | What it does |
@@ -12,6 +20,8 @@ The model is the lobed liver of the pkpdsim PBPK library: each segment has its o
 | 6 | Arterial clamp | Closes the hepatic artery of the segment under it |
 | 7 | Scalpel | Takes the segment under it away, which is a resection |
 | 8 | Day after the operation | Winds the days of the course, from the end back to the operation |
+
+The panel also carries two switches a finger touches rather than an object: the body of the individual, male or female, and the species. The female export is the human liver only, so the female body cannot be chosen for the rat or the mouse.
 
 The three instruments carry their meaning in their **position**, not in their angle: the segment they lie on is the one they act on, and there is nothing to read off a dial. Two instruments on one segment combine, and a segment whose portal branch and artery are both closed has no inflow left at all, which the table treats as a resection. Lifting an instrument undoes what it did.
 
@@ -67,4 +77,5 @@ npm run dev:lobes
 | `http://localhost:5174/?tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
 | `http://localhost:5174/?tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
 | `http://localhost:5174/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
+| `http://localhost:5174/?sex=female` | The female reference body, for the human liver |
 | `http://localhost:5174/?species=rat` | The rat liver, with its five lobes, instead of the human one; `?species=mouse` for the mouse |

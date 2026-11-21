@@ -55,13 +55,16 @@ function clamp(value: number, low: number, high: number): number {
 export function valueAtOffset(role: TokenRole, offset: number): number {
   const t = clamp(offset, -1, 1);
   const {min, max, reference} = role;
-  if (role.scale === "log") {
-    if (min <= 0 || reference <= 0 || max <= 0) {
-      throw new RangeError(`Role ${role.id} is logarithmic, so its range has to be positive.`);
-    }
-    return t >= 0 ? reference * (max / reference) ** t : reference * (reference / min) ** t;
+  if (role.scale === "log" && (min <= 0 || reference <= 0 || max <= 0)) {
+    throw new RangeError(`Role ${role.id} is logarithmic, so its range has to be positive.`);
   }
-  return t >= 0 ? reference + (max - reference) * t : reference + (reference - min) * t;
+  const value = role.scale === "log"
+    ? (t >= 0 ? reference * (max / reference) ** t : reference * (reference / min) ** t)
+    : (t >= 0 ? reference + (max - reference) * t : reference + (reference - min) * t);
+  // An object turned to the stop carries the end of its range and not a hair beyond it: the
+  // arithmetic above lands on 0.22999999999999998 where the dial says 0.23, and a model which
+  // checks its own range would refuse that.
+  return clamp(value, min, max);
 }
 
 /** The inverse of `valueAtOffset`, for a dial that shows where the value sits. */

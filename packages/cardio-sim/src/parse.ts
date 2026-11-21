@@ -4,7 +4,10 @@
  * demonstration.
  */
 
-import type {Anatomy, Body, CardiovascularData, HeartCase, Organ, PressureReference, Series} from "./types.ts";
+import type {
+  Anatomy, Body, CardiovascularData, HeartCase, HeartSummaries, HeartSummary, Organ,
+  PressureReference, Series,
+} from "./types.ts";
 
 function record(value: unknown, what: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -73,6 +76,30 @@ function parseSeries(value: unknown, what: string): Series {
   return {columns, values};
 }
 
+const SUMMARY_NUMBERS = [
+  "arterial_systolic", "arterial_diastolic", "mean_arterial_pressure", "mean_portal_pressure",
+  "mean_hepatic_pressure", "mean_cardiac_output", "mean_lung_flow", "stroke_volume", "heart_rate",
+  "mean_hepatic_flow", "mean_portal_flow",
+] as const;
+
+function parseSummary(value: unknown, what: string): HeartSummary {
+  const source = record(value, what);
+  const numbers = Object.fromEntries(SUMMARY_NUMBERS.map(name => [name, numberAt(source, name, what)]));
+  const flows = record(source["mean_flows"] ?? {}, `${what} mean flows`);
+  return {...numbers, mean_flows: flows as Record<string, number>} as HeartSummary;
+}
+
+function parseSummaries(value: unknown, what: string): HeartSummaries {
+  const source = record(value, what);
+  return {
+    before: parseSummary(source["before"], `${what} before`),
+    after: parseSummary(source["after"], `${what} after`),
+    maximum_blood_volume_error: typeof source["maximum_blood_volume_error"] === "number"
+      ? source["maximum_blood_volume_error"]
+      : 0,
+  };
+}
+
 function parseCase(value: unknown, index: number): HeartCase {
   const what = `Heart case ${index}`;
   const source = record(value, what);
@@ -85,7 +112,7 @@ function parseCase(value: unknown, index: number): HeartCase {
     heart_rate: numberAt(source, "heart_rate", what),
     series: parseSeries(source["series"], `${what} series`),
     beats: parseSeries(source["beats"], `${what} beats`),
-    summary: record(source["summary"] ?? {}, `${what} summary`),
+    summary: parseSummaries(source["summary"], `${what} summary`),
   };
 }
 

@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The steady pressure network of the cardiovascular model of pkpdsim and the loaders of its exported reference data",
+  "description": "The cardiovascular model of pkpdsim: the steady pressure network, the beating heart and the loaders of its exported reference data",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/core-runtime": "*"
   }
 }

@@ -1,4 +1,9 @@
 # pkpdsim-tui
+[![ci](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml)
+[![documentation](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml)
+[![Documentation](https://img.shields.io/badge/docs-pkpdsim--tui-3f51b5.svg)](https://matthiaskoenig.github.io/pkpdsim-tui)
+[![TUIO](https://img.shields.io/badge/TUIO-1.1%20%7C%202.0-00897b.svg)](https://tuio.org/)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
 
 Tangible table applications of the physiologically based pharmacokinetic and pharmacodynamic (PBPK/PD) models of [pkpdsim](https://github.com/matthiaskoenig/pkpdsim), driven by physical objects on a multitouch table with object recognition.
 
@@ -10,7 +15,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 | Application | State | What the objects do |
 | --- | --- | --- |
-| `apps/cardiovascular` | prototype | Four resistance objects on an anatomy: hepatic, systemic, portal and renal. The angle of the object is the resistance factor, and the pressures, flows and perfusion follow. |
+| `apps/cardiovascular` | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
 | `apps/lobes` | prototype | A clamp on a segment of the liver is a portal vein ligation, the scalpel is a resection, and a dial winds the five days of the regeneration that follows. |
 | `apps/glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial, on the whole body model of glimepiride. |
 
@@ -19,9 +24,9 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 ```bash
 npm install
 npm run sync          # copies the exported models and reference data of a pkpdsim checkout
-npm run dev           # the cardiovascular application on http://localhost:5173
-npm run dev:lobes     # the lobed liver on http://localhost:5174
-npm run dev:glimepiride   # glimepiride on http://localhost:5175
+npm run dev:cardiovascular  # the circulation on http://localhost:5173
+npm run dev:lobes           # the lobed liver on http://localhost:5174
+npm run dev:glimepiride     # glimepiride on http://localhost:5175
 npm run simulator     # the TUIO simulator: a tracker on 3333, its control page on 3344
 ```
 

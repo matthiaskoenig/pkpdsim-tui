@@ -7,6 +7,7 @@
 import {linspace} from "@pkpdsim-tui/core-runtime";
 import type {SimulationRequest} from "@pkpdsim-tui/core-runtime";
 import {parametersOf} from "./individual.ts";
+import type {Sex} from "./individual.ts";
 import type {GlimepirideIndividual} from "./individual.ts";
 
 /** The columns the table reads: the plasma, what leaves in the urine and in the faeces. */
@@ -36,6 +37,7 @@ export const SOLVER_SETTINGS: Readonly<Record<string, unknown>> = {
 
 export function glimepirideRequest(
   individual: Partial<GlimepirideIndividual> = {},
+  sex: Sex = "male",
   columns: readonly string[] = GLIMEPIRIDE_COLUMNS,
 ): SimulationRequest {
   const {start, end, points} = GLIMEPIRIDE_SIMULATION;
@@ -44,7 +46,7 @@ export function glimepirideRequest(
     start,
     end,
     output: {times: linspace(start, end, points - 1)},
-    preinit: parametersOf(individual),
+    preinit: parametersOf(individual, sex),
     changes: [],
     steady_state: null,
     selections: columns,

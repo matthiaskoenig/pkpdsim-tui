@@ -26,8 +26,8 @@ The repository is an npm workspace. The packages ship TypeScript source and are 
 npm install
 npm run sync          # the exported models and data of a pkpdsim checkout
 npm run export:glimepiride  # compiles the glimepiride model of its own repository
-npm run dev           # the cardiovascular application, on http://localhost:5173
-npm run dev:lobes     # the lobed liver, on http://localhost:5174
+npm run dev:cardiovascular  # the circulation, on http://localhost:5173
+npm run dev:lobes           # the lobed liver, on http://localhost:5174
 npm run dev:glimepiride     # glimepiride, on http://localhost:5175
 npm run simulator     # the TUIO simulator: a tracker on 3333, its control page on 3344
 npm test              # vitest
@@ -41,7 +41,7 @@ npm run docs:build    # this site, strict
 
 A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one or at the path in `GLIMEPIRIDE_MODEL`. The script knows nothing about a model, so the next one is another line in `package.json`.
 
-An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3333`. Nothing but the checkout is needed for it, and the objects are placed and turned on the page it serves on `http://localhost:3344`, which also shows the application under its own surface.
+An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev:cardiovascular` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3333`. Nothing but the checkout is needed for it, and the objects are placed and turned on the page it serves on `http://localhost:3344`, which also shows the application under its own surface.
 
 ## The input layer
 
@@ -53,7 +53,7 @@ Everything that carries logic is a pure function and is tested without a socket:
 
 1. Add the folder under `apps/`, with its own `package.json`, `vite.config.ts` and `index.html`.
 2. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs.
-3. Add a `dev:<name>` script to the root `package.json`, on the next port after the applications that are there.
+3. Add the `dev:<name>` and `preview:<name>` scripts to the root `package.json`, on the next port after the applications that are there. Every application is named in its scripts; there is no unnamed default.
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
 6. Draw it with `packages/tui-kit`: the bands, the cards, the panels and the course are shared, and only the scene of the application is its own.

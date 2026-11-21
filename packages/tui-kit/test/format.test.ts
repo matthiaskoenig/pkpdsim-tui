@@ -36,6 +36,13 @@ describe("formatNumber", () => {
     expect(formatNumber(123.4)).toBe("123");
     expect(formatNumber(Number.NaN)).toBe("-");
   });
+
+  it("writes the decimals it was given, whatever the magnitude", () => {
+    expect(formatNumber(81.34, 0)).toBe("81");
+    expect(formatNumber(140.2, 0)).toBe("140");
+    expect(formatNumber(75, 0)).toBe("75");
+    expect(formatNumber(6.5, 3)).toBe("6.500");
+  });
 });
 
 describe("formatFactor and formatDelta", () => {

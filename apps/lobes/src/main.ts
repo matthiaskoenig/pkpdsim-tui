@@ -8,6 +8,7 @@
  *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
  *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?species=rat      a rat or a mouse liver instead of the human one
+ *   ?sex=female       the female body, for the human liver
  */
 
 import {createSolver, fetchSolverAssets, loadCoreHost, sampleAt, toSeries} from "@pkpdsim-tui/core-runtime";
@@ -18,8 +19,9 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
+  chooseQuery, createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
 } from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup} from "@pkpdsim-tui/tui-kit";
 import {
   createMockTableInput, createTuioTableInput, trackerOptions, valueFromAngle,
 } from "@pkpdsim-tui/tuio-input";
@@ -32,6 +34,7 @@ import {blockAt} from "./layout.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
 import {instrumentsOn, statesFrom} from "./plan.ts";
 import {DAY_MARKER, lobeRoles} from "./roles.ts";
+import {LOBE_ABOUT, LOBE_TITLE, LOBE_TRIES, lobeReading} from "./audience.ts";
 
 const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns the dial, backspace lifts it.";
 const TABLE_HINT = "Put a clamp or the scalpel on a segment. The dial winds the days.";
@@ -60,14 +63,35 @@ async function start(): Promise<void> {
   const runtime = new URL("runtime/", assets);
 
   message.textContent = "Loading the lobed liver...";
-  const data = await loadLobeData(new URL("lobes-data.json", assets));
   const wanted = parameters.get("species") ?? "human";
+  // The female liver is exported for the human only, so another species is the one body there is.
+  const sex = parameters.get("sex") === "female" && wanted === "human" ? "female" : "male";
+  const base = sex === "female" ? new URL("female/", assets) : assets;
+  const data = await loadLobeData(new URL("lobes-data.json", base));
   const species = data.species[wanted] === undefined ? Object.keys(data.species)[0] ?? "human" : wanted;
   const liver = data.species[species];
   if (liver === undefined) throw new Error(`The export holds no ${wanted} liver.`);
   const lobes: readonly Lobe[] = liver.lobes;
+  const bodies: readonly ChoiceGroup[] = [
+    {
+      id: "sex", label: "Body", selected: sex,
+      options: [
+        {id: "male", label: "Male"},
+        {
+          id: "female", label: "Female",
+          ...(species === "human" ? {} : {unavailable: "The export has the female liver of the human only."}),
+        },
+      ],
+    },
+    {
+      id: "species", label: "Species", selected: species,
+      options: Object.keys(data.species).length > 1
+        ? [{id: "human", label: "Human"}, {id: "rat", label: "Rat"}, {id: "mouse", label: "Mouse"}]
+        : [{id: species, label: species[0]?.toUpperCase() + species.slice(1)}],
+    },
+  ];
 
-  const solverBase = new URL(`solver_lobes/${species}/`, assets);
+  const solverBase = new URL(`solver_lobes/${species}/`, base);
   const config: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
   const days = config.end / (24 * 60);
   const roles = lobeRoles(days);
@@ -86,7 +110,12 @@ async function start(): Promise<void> {
   const plot = createPlot(root, LOBE_TRACES);
   const readout = createReadout<Sample>(root, LOBE_STATS);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"));
+  const chrome = createChrome(element<HTMLElement>("chrome"), {
+    onChoose: (group, option) => {
+      if (group === "sex") chooseQuery("sex", option, "male");
+      if (group === "species") chooseQuery("species", option, "human");
+    },
+  });
 
   const tracker = trackerOptions(parameters);
   const usesTracker = tracker.tracker;
@@ -181,6 +210,9 @@ async function start(): Promise<void> {
       }),
     });
     chrome.update({
+      title: LOBE_TITLE, about: LOBE_ABOUT, tries: LOBE_TRIES,
+      reading: lobeReading(lobes, states, day, sample, reference),
+      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.mode === "position") {
@@ -199,7 +231,9 @@ async function start(): Promise<void> {
         .filter(token => !roles.some(role => role.markers.includes(token.marker)))
         .map(token => token.marker))],
       hint: hintFor(tracker, status.state),
-      credit: `${describeStates(lobes, states)} - ${formatNumber(remnantFraction(lobes, states) * 100, 0)} % of the mass left`,
+      credit: `${describeStates(lobes, states)} - `
+        + `${formatNumber(remnantFraction(lobes, states) * 100, 0)} % of the mass left, `
+        + `${sex} ${species} liver`,
     });
   };
 
