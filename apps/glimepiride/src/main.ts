@@ -7,6 +7,7 @@
  *   ?tuio             a tracker on ws://localhost:3333
  *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
  *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
+ *   ?sex=female       the female reference body instead of the male one
  */
 
 import {
@@ -17,11 +18,11 @@ import {
   finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_SIMULATION, glimepirideRequest, pharmacokinetics,
   referenceIndividual,
 } from "@pkpdsim-tui/glimepiride-sim";
-import type {GlimepirideIndividual} from "@pkpdsim-tui/glimepiride-sim";
+import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {
-  createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
+  chooseQuery, createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
 } from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, ChoiceGroup} from "@pkpdsim-tui/tui-kit";
 import {
   createMockTableInput, createTuioTableInput, trackerOptions,
   unassignedMarkers, valuesFromTokens,
@@ -35,6 +36,9 @@ import {
 import type {GlimepirideReadout} from "./cards.ts";
 import {createPathway, PATHWAY_HEIGHT, stationNumber} from "./pathway.ts";
 import {glimepirideRoles} from "./roles.ts";
+import {
+  GLIMEPIRIDE_ABOUT, GLIMEPIRIDE_TITLE, GLIMEPIRIDE_TRIES, glimepirideReading,
+} from "./audience.ts";
 
 const MOUSE_HINT = "Keys 1 to 6 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
@@ -85,8 +89,13 @@ async function start(): Promise<void> {
   });
 
   const hours = GLIMEPIRIDE_SIMULATION.end / 60;
-  const roles = glimepirideRoles(hours);
-  const reference = referenceIndividual();
+  const sex: Sex = parameters.get("sex") === "female" ? "female" : "male";
+  const roles = glimepirideRoles(hours, sex);
+  const reference = referenceIndividual(sex);
+  const bodies: readonly ChoiceGroup[] = [{
+    id: "sex", label: "Body", selected: sex,
+    options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
+  }];
   const axis = {max: GLIMEPIRIDE_SIMULATION.end, tick: 600, scale: 1 / 60, unit: "h"};
 
   const surface = element<HTMLElement>("surface");
@@ -95,7 +104,11 @@ async function start(): Promise<void> {
   const plot = createPlot(root, GLIMEPIRIDE_TRACES);
   const readout = createReadout<GlimepirideReadout>(root, GLIMEPIRIDE_STATS);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"));
+  const chrome = createChrome(element<HTMLElement>("chrome"), {
+    onChoose: (group, option) => {
+      if (group === "sex") chooseQuery("sex", option, "male");
+    },
+  });
 
   const tracker = trackerOptions(parameters);
   const usesTracker = tracker.tracker;
@@ -133,7 +146,7 @@ async function start(): Promise<void> {
     schedule();
     try {
       const result = await solver.simulate(
-        glimepirideRequest(individual, GLIMEPIRIDE_COLUMNS), {signal: controller.signal});
+        glimepirideRequest(individual, sex, GLIMEPIRIDE_COLUMNS), {signal: controller.signal});
       series = toSeries(result);
       if (isReference) baseline = series;
       notice = "";
@@ -212,6 +225,9 @@ async function start(): Promise<void> {
       card: (token, role) => cardFor(token, role, {values, origins, hours, readout: current}),
     });
     chrome.update({
+      title: GLIMEPIRIDE_TITLE, about: GLIMEPIRIDE_ABOUT, tries: GLIMEPIRIDE_TRIES,
+      reading: glimepirideReading(individual, sex, current, reference_readout, reference),
+      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.id === "hour") return `${formatNumber(hour, 1)} h`;

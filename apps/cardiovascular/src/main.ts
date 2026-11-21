@@ -1,6 +1,11 @@
 /**
- * The cardiovascular table: the objects on the surface are the resistances of the circulation,
- * and the anatomy answers while a hand is still on them.
+ * The cardiovascular table: the objects on the surface are the resistances of the circulation
+ * and the beat of the heart, and the anatomy answers while a hand is still on them.
+ *
+ * Two models run side by side. The steady network is algebraic and is solved on every frame, so
+ * the organs and the vessels follow a hand without a wait. The compiled heart of pkpdsim is
+ * solved in a Web Worker for the objects as they came to rest, and it is what the numbers at the
+ * edges and the beat beside the heart are read from.
  *
  * Query parameters:
  *   ?tuio             a tracker on ws://localhost:3333
@@ -10,9 +15,14 @@
  */
 
 import {
-  defaultControls, loadAnatomy, loadCardiovascularData, solvePressure,
+  defaultControls, heartCase, heartRequest, loadAnatomy, loadCardiovascularData, loadHeartConfig,
+  solvePressure,
 } from "@pkpdsim-tui/cardio-sim";
-import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
+import type {
+  HeartConfig, HeartControls, HeartSummary, PressureSolution,
+} from "@pkpdsim-tui/cardio-sim";
+import {createSolver, fetchSolverAssets, loadCoreHost} from "@pkpdsim-tui/core-runtime";
+import type {Solver} from "@pkpdsim-tui/core-runtime";
 import {
   createMockTableInput, createTuioTableInput, trackerOptions,
 } from "@pkpdsim-tui/tuio-input";
@@ -20,20 +30,40 @@ import type {
   TableInput, TableSnapshot, TableStatus, TrackerOptions,
 } from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
-import {createChrome, createReadout, createTokenLayer, formatFactor} from "@pkpdsim-tui/tui-kit";
+import {
+  chooseQuery, createChrome, createReadout, createTokenLayer, formatFactor, formatNumber,
+} from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup} from "@pkpdsim-tui/tui-kit";
+import {beatCycle, sampleBeat} from "./beat.ts";
+import {createPulse} from "./pulse.ts";
+import type {BeatCycle} from "./beat.ts";
+import {CARDIO_ABOUT, CARDIO_TITLE, CARDIO_TRIES, cardioReading} from "./audience.ts";
 import {CARDIOVASCULAR_STATS, cardFor} from "./cards.ts";
-import {CARDIOVASCULAR_ROLES, controlsFromTokens} from "./roles.ts";
+import type {CardioReadout} from "./cards.ts";
+import {CARDIOVASCULAR_ROLES, controlsFromTokens, heartControlsFromTokens} from "./roles.ts";
 import {createScene} from "./scene.ts";
 
-const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
+const MOUSE_HINT = "Keys 1 to 6 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
+/** How long the table waits for the objects to come to rest before it solves the heart. */
+const SETTLE = 160;
+
+/**
+ * What the table reads out of a run: the two bands, the beat beside the heart and the panels at
+ * the edges, and the total blood volume, which is how the run checks itself. The export carries
+ * every flow of the body on top of these, and each one is another number per output row for the
+ * worker to hand back.
+ */
+const TABLE_COLUMNS = new Set([
+  "time", "CV_P_ar", "CV_P_po", "CV_P_li", "CV_P_lv", "CV_V_lv", "CO", "Qlu", "Qh", "Qpo",
+  "CV_V_blood_total",
+]);
 
 function element<T extends Element>(id: string): T {
   const found = document.getElementById(id);
   if (found === null) throw new Error(`The page has no element "${id}".`);
   return found as unknown as T;
 }
-
 
 /** What a person at the table should do next, which depends on how the page was started. */
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
@@ -54,24 +84,64 @@ function fail(message: string): void {
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
+  const message = element<HTMLElement>("boot-message");
   const assets = new URL("assets/", document.baseURI);
-  const [data, anatomy] = await Promise.all([
-    loadCardiovascularData(new URL("cardiovascular-data.json", assets)),
-    loadAnatomy(new URL("cardiovascular-anatomy.json", assets)),
-  ]);
   const sex = parameters.get("sex") === "female" ? "female" : "male";
+  // The anatomy holds both bodies; the reference circulation and the compiled heart are the
+  // export of one of them. The engine and the host of the runtime are shared.
+  const dataBase = sex === "female" ? new URL("female/", assets) : assets;
+  const runtime = new URL("solver/", assets);
+  const solverBase = sex === "female" ? new URL("female/solver/", assets) : runtime;
+
+  message.textContent = "Loading the circulation...";
+  const [data, anatomy, config] = await Promise.all([
+    loadCardiovascularData(new URL("cardiovascular-data.json", dataBase)),
+    loadAnatomy(new URL("cardiovascular-anatomy.json", assets)),
+    loadHeartConfig(new URL("config.json", solverBase)),
+  ]);
+  // What the table asks of a run. The published cases are read at 0.2 ms over the summarized
+  // beats and at 15000 points over the whole run, which is more than a table can wait for: it
+  // reads the same beats at 2 ms, which moves every number of the summary by less than a tenth
+  // of its unit, and the whole run only coarsely, because the table draws the beats and not it.
+  const table: HeartConfig = {
+    ...config,
+    columns: config.columns.filter(column => TABLE_COLUMNS.has(column)),
+    summary_step_seconds: Math.max(config.summary_step_seconds, 0.002),
+    course_points: 1200,
+  };
   const body = anatomy.bodies[sex] ?? Object.values(anatomy.bodies)[0];
   if (body === undefined) throw new Error("The anatomy holds no body.");
+  const bodies: readonly ChoiceGroup[] = [{
+    id: "sex", label: "Body", selected: sex,
+    options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
+  }];
 
   const reference = data.pressure;
-  const baseline = solvePressure(reference, defaultControls(reference));
+  const steadyBaseline = solvePressure(reference, defaultControls(reference));
+  // The reference heart of this body, as pkpdsim exported it. It is what the table shows until
+  // the first run of the live heart has come back, and what every number is compared with.
+  const exported = data.cases.find(solved => solved.id === "baseline") ?? data.cases[0];
+  if (exported === undefined) throw new Error("The export holds no case of the reference heart.");
+  const referenceSummary: HeartSummary = exported.summary.after;
+
+  message.textContent = "Starting the heart...";
+  const host = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
+  const solver: Solver = await createSolver({
+    host, key: `heart-${sex}`,
+    assets: await fetchSolverAssets(solverBase, {runtimeBase: runtime}),
+  });
 
   const surface = element<HTMLElement>("surface");
   const root = element<SVGSVGElement>("scene");
   const scene = createScene(root, body, reference);
-  const readout = createReadout(root, CARDIOVASCULAR_STATS);
+  const readout = createReadout<CardioReadout>(root, CARDIOVASCULAR_STATS);
+  const pulse = createPulse(root);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"));
+  const chrome = createChrome(element<HTMLElement>("chrome"), {
+    onChoose: (group, option) => {
+      if (group === "sex") chooseQuery("sex", option, "male");
+    },
+  });
 
   const tracker = trackerOptions(parameters);
   const usesTracker = tracker.tracker;
@@ -86,12 +156,56 @@ async function start(): Promise<void> {
   let viewport = {width: window.innerWidth, height: window.innerHeight};
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
-  let solution: PressureSolution = baseline;
+  let steady: PressureSolution = steadyBaseline;
+  let heartControls: HeartControls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, new Map());
+  let summary: HeartSummary = referenceSummary;
+  let cycle: BeatCycle | undefined;
+  /** Where the table stands in the beat, carried over when the rate changes. */
+  let phase = 0;
+  let clock = 0;
   let notice = "";
-  let frame = 0;
+  let solving = true;
+  let asked = "";
+  let settle = 0;
+  let pending: AbortController | null = null;
+  let dirty = true;
 
-  const render = (): void => {
-    frame = 0;
+  /** The next frame reads everything again. */
+  const schedule = (): void => {
+    dirty = true;
+  };
+
+  /** One run of the compiled heart for the objects as they now stand. */
+  const solve = async (controls: HeartControls): Promise<void> => {
+    pending?.abort();
+    const controller = new AbortController();
+    pending = controller;
+    solving = true;
+    // The table says that it is working on it while the heart is being solved.
+    schedule();
+    try {
+      const result = await solver.simulate(
+        heartRequest(controls, table), {signal: controller.signal});
+      const solved = heartCase(result, controls, table);
+      summary = solved.summary.after;
+      cycle = beatCycle(solved) ?? cycle;
+      notice = "";
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      notice = `The heart could not be solved: `
+        + `${error instanceof Error ? error.message : String(error)} The last beat stays on screen.`;
+    } finally {
+      if (pending === controller) {
+        pending = null;
+        solving = false;
+      }
+      // The run that came back is what the bands, the cards and the sentence are read from.
+      schedule();
+    }
+  };
+
+  /** The heavy part of a frame: the objects changed, so everything is read again. */
+  const update = (): void => {
     for (const [sessionId, token] of snapshot.tokens) {
       if (!origins.has(sessionId)) origins.set(sessionId, token.turn);
     }
@@ -99,23 +213,38 @@ async function start(): Promise<void> {
       if (!snapshot.tokens.has(sessionId)) origins.delete(sessionId);
     }
     const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, snapshot.tokens, reference, origins);
+    heartControls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, snapshot.tokens, origins);
     try {
-      solution = solvePressure(reference, controls);
+      steady = solvePressure(reference, controls);
       notice = "";
     } catch (error) {
       notice = `${error instanceof Error ? error.message : String(error)} The last circulation stays on screen.`;
     }
-    scene.update(solution, reference);
-    readout.update(solution, baseline);
+    const next = JSON.stringify(heartControls);
+    if (next !== asked) {
+      asked = next;
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => void solve(heartControls), SETTLE);
+    }
+
+    const value: CardioReadout = {heart: summary, steady};
+    const against: CardioReadout = {heart: referenceSummary, steady: steadyBaseline};
+    root.setAttribute("data-solving", String(solving));
+    scene.update(steady, reference);
+    readout.update(value, against);
     tokenLayer.update({
       snapshot, roles: CARDIOVASCULAR_ROLES, viewport,
-      card: (token, role) => cardFor(token, role, solution, origins),
+      card: (token, role) => cardFor(token, role, value, origins),
     });
     chrome.update({
+      title: CARDIO_TITLE, about: CARDIO_ABOUT, tries: CARDIO_TRIES,
+      reading: cardioReading(heartControls, sex, summary, referenceSummary),
+      choices: bodies,
       status, roles: CARDIOVASCULAR_ROLES, notice,
       value: role => {
-        const live = controls[role.id as keyof typeof controls];
-        return live === undefined ? "-" : formatFactor(live);
+        const live = heartControls[role.id as keyof HeartControls];
+        if (live === undefined) return "-";
+        return role.id === "heartRate" ? `${formatNumber(live, 0)} /min` : formatFactor(live);
       },
       live: new Set(winningTokens(CARDIOVASCULAR_ROLES, snapshot.tokens).keys()),
       unassigned: unassignedMarkers(CARDIOVASCULAR_ROLES, snapshot.tokens),
@@ -124,9 +253,27 @@ async function start(): Promise<void> {
     });
   };
 
-  const schedule = (): void => {
-    if (frame !== 0) return;
-    frame = window.requestAnimationFrame(render);
+  /**
+   * The beat, which runs on the clock of the table and not on the objects: the solved cycle is
+   * walked around once per period, so the ventricle beside the heart beats in real time.
+   */
+  const tick = (now: number): void => {
+    const elapsed = clock === 0 ? 0 : Math.min((now - clock) / 1000, 0.25);
+    clock = now;
+    if (dirty) {
+      dirty = false;
+      update();
+    }
+    if (cycle !== undefined) {
+      phase = (phase + elapsed * (cycle.heartRate / 60)) % 1;
+      const frame = sampleBeat(cycle, phase);
+      scene.beat({cycle, frame});
+      pulse.update({cycle, frame, summary});
+    } else {
+      scene.beat(undefined);
+      pulse.update(undefined);
+    }
+    window.requestAnimationFrame(tick);
   };
 
   const resize = (): void => {
@@ -134,6 +281,7 @@ async function start(): Promise<void> {
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     scene.resize(viewport);
     readout.resize(viewport);
+    pulse.resize(viewport);
     schedule();
   };
 
@@ -147,7 +295,11 @@ async function start(): Promise<void> {
   window.addEventListener("pagehide", () => input.disconnect());
   resize();
   input.connect();
-  render();
+  update();
+  // The first run of the heart is the reference one, so the table beats as soon as it is up.
+  await solve(heartControls);
+  schedule();
+  window.requestAnimationFrame(tick);
   element<HTMLElement>("boot").hidden = true;
 }
 

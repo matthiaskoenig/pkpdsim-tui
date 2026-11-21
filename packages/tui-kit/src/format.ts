@@ -28,11 +28,14 @@ export function clamp(value: number, low: number, high: number): number {
 }
 
 /** A value with as many digits as it needs and no more, for a number read at a distance. */
-export function formatNumber(value: number, digits = 2): string {
+export function formatNumber(value: number, digits?: number): string {
   if (!Number.isFinite(value)) return "-";
+  // A number the caller fixed the decimals of is written with those decimals: a blood pressure
+  // of 81 mmHg is not read to a tenth. Without them the decimals follow the magnitude, so that
+  // a flow of 0.46 l/min and one of 123 l/min are both read at a glance.
+  if (digits !== undefined) return value.toFixed(digits);
   const magnitude = Math.abs(value);
-  const decimals = magnitude >= 100 ? 0 : magnitude >= 10 ? 1 : digits;
-  return value.toFixed(decimals);
+  return value.toFixed(magnitude >= 100 ? 0 : magnitude >= 10 ? 1 : 2);
 }
 
 /** A resistance factor, as the table shows it on a card. */

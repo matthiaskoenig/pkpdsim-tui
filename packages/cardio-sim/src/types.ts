@@ -71,7 +71,38 @@ export interface Series {
   readonly values: readonly (readonly number[])[];
 }
 
-/** One exported heartbeat case, solved with SUNDIALS IDA on the compiled SBML. */
+/** One summarized stretch of beats: the pressures, the flows and the stroke volume of a heart. */
+export interface HeartSummary {
+  /** The highest arterial pressure of the stretch, in mmHg. */
+  readonly arterial_systolic: number;
+  /** The lowest, in mmHg. */
+  readonly arterial_diastolic: number;
+  readonly mean_arterial_pressure: number;
+  readonly mean_portal_pressure: number;
+  readonly mean_hepatic_pressure: number;
+  /** The cardiac output, in l/min. */
+  readonly mean_cardiac_output: number;
+  readonly mean_lung_flow: number;
+  /** What one beat ejects, in ml. */
+  readonly stroke_volume: number;
+  readonly heart_rate: number;
+  readonly mean_hepatic_flow: number;
+  readonly mean_portal_flow: number;
+  /** The mean of every flow of the model, by its id. */
+  readonly mean_flows: Readonly<Record<string, number>>;
+}
+
+/** The two stretches of beats a run is read by, and what the run itself says about its own error. */
+export interface HeartSummaries {
+  /** The beats before the intervention, which are the reference physiology. */
+  readonly before: HeartSummary;
+  /** The beats after it, which are what the objects on the table did. */
+  readonly after: HeartSummary;
+  /** How far the total blood volume drifted over the run, which is its conservation check. */
+  readonly maximum_blood_volume_error: number;
+}
+
+/** One heartbeat case, exported or solved at the table, with SUNDIALS IDA on the compiled SBML. */
 export interface HeartCase {
   readonly id: string;
   readonly label: string;
@@ -79,9 +110,11 @@ export interface HeartCase {
   /** The parameter values the case applies at the intervention. */
   readonly changes: Readonly<Record<string, number>>;
   readonly heart_rate: number;
+  /** The whole run, thinned, with the moment of the intervention kept. Seconds and millilitres. */
   readonly series: Series;
+  /** The last beats, at the resolution a waveform is drawn at. */
   readonly beats: Series;
-  readonly summary: Readonly<Record<string, unknown>>;
+  readonly summary: HeartSummaries;
 }
 
 export interface CardiovascularData {

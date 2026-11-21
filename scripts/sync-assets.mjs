@@ -29,7 +29,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const APPS = {
   cardiovascular: {
     target: "apps/cardiovascular/public/assets",
-    entries: ["cardiovascular-data.json", "cardiovascular-anatomy.json", "solver"],
+    // The female export is the female reference circulation and the heart compiled on it. Its
+    // runtime is the one of `solver`, which both bodies share.
+    entries: [
+      "cardiovascular-data.json", "cardiovascular-anatomy.json", "solver",
+      {from: "female/cardiovascular-data.json", to: "female/cardiovascular-data.json"},
+      {from: "female/solver", to: "female/solver"},
+    ],
     provenanceOf: "cardiovascular-data.json",
   },
   lobes: {
@@ -40,6 +46,9 @@ const APPS = {
       "lobes-data.json",
       "solver_lobes",
       {from: "solver", to: "runtime", files: ["engine.wasm", "mathlib.wasm", "sbmlsim-core.js", "LICENSE", "THIRD_PARTY.md"]},
+      // The female export of the lobed liver is the human one; the rat and the mouse have one body.
+      {from: "female/lobes-data.json", to: "female/lobes-data.json"},
+      {from: "female/solver_lobes", to: "female/solver_lobes"},
     ],
     provenanceOf: "lobes-data.json",
   },

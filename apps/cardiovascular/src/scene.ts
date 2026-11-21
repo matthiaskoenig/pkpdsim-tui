@@ -7,6 +7,7 @@
 
 import type {Body, PressureReference, PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {attributes, line, organRadius, perfusionColor, svg, vesselWidth} from "@pkpdsim-tui/tui-kit";
+import type {BeatCycle, BeatFrame} from "./beat.ts";
 
 export interface Viewport {
   readonly width: number;
@@ -22,6 +23,13 @@ const TRUNK_TOP = 12;
 const TRUNK_BOTTOM = 100;
 /** The share of the height of the surface the body takes. */
 const BODY_SHARE = 0.82;
+
+/**
+ * The ventricle on the anatomy, in the centimetres of the body: it empties and fills with the
+ * solved course, so the heart on the table beats. The course itself is drawn large at the two
+ * long edges, see `pulse.ts`.
+ */
+const VENTRICLE_RADIUS = 3.1;
 
 /** The side a name is written on, where 1 is to the left of the body as the table sees it. */
 const LABEL_SIDE: Readonly<Record<string, number>> = {
@@ -43,9 +51,20 @@ interface OrganVisual {
   readonly value: SVGTextElement;
 }
 
+/**
+ * What the beating heart is doing at this moment of the cycle. The rate and the pressures are
+ * written at the edges of the table, so the body itself carries no text of the beat.
+ */
+export interface BeatView {
+  readonly cycle: BeatCycle;
+  readonly frame: BeatFrame;
+}
+
 export interface Scene {
   resize(viewport: Viewport): void;
   update(solution: PressureSolution, reference: PressureReference): void;
+  /** The frame of the beat, or nothing while the heart has not been solved yet. */
+  beat(view: BeatView | undefined): void;
 }
 
 function anchorOf(body: Body, id: string): {x: number; y: number} | undefined {
@@ -143,6 +162,13 @@ export function createScene(parent: SVGSVGElement, body: Body, reference: Pressu
     organ.value.setAttribute("opacity", show ? "1" : "0");
   }
 
+  // The beating heart: the ventricle at the anchor of the heart. The ring is how full it is at
+  // its fullest, so the eye sees the disc empty towards it and fill again.
+  const beats = svg("g", {class: "layer layer--beat", opacity: 0}, root);
+  svg("circle", {class: "ventricle-ring", cx: heart.x, cy: heart.y, r: VENTRICLE_RADIUS}, beats);
+  const ventricle = svg("circle", {
+    class: "ventricle", cx: heart.x, cy: heart.y, r: VENTRICLE_RADIUS,
+  }, beats);
   return {
     resize(viewport: Viewport): void {
       const scale = (viewport.height * BODY_SHARE) / body.height;
@@ -181,6 +207,19 @@ export function createScene(parent: SVGSVGElement, body: Body, reference: Pressu
       const lungRadius = organRadius(solution.co, 1, 1.2, 4.4);
       lungValue.setAttribute("y", String(lungs.y - lungRadius - 1.2));
       lungLabel.setAttribute("y", String(lungs.y - lungRadius - 3.8));
+    },
+
+    beat(view: BeatView | undefined): void {
+      if (view === undefined) {
+        beats.setAttribute("opacity", "0");
+        return;
+      }
+      beats.setAttribute("opacity", "1");
+      const {cycle, frame} = view;
+      // The volume of a ventricle is a volume, so the radius follows its cube root: the disc
+      // then grows the way the blood in it does.
+      const filled = Math.max(0, Math.min(1, frame.volume / Math.max(cycle.maxVolume, 1e-9)));
+      attributes(ventricle, {r: VENTRICLE_RADIUS * Math.cbrt(filled)});
     },
   };
 }

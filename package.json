@@ -18,12 +18,13 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @pkpdsim-tui/cardiovascular",
     "dev:cardiovascular": "npm run dev --workspace @pkpdsim-tui/cardiovascular -- --port 5173 --strictPort",
     "dev:lobes": "npm run dev --workspace @pkpdsim-tui/lobes -- --port 5174 --strictPort",
     "dev:glimepiride": "npm run dev --workspace @pkpdsim-tui/glimepiride -- --port 5175 --strictPort",
     "build": "npm run build --workspaces --if-present",
-    "preview": "npm run preview --workspace @pkpdsim-tui/cardiovascular",
+    "preview:cardiovascular": "npm run preview --workspace @pkpdsim-tui/cardiovascular -- --port 4173 --strictPort",
+    "preview:lobes": "npm run preview --workspace @pkpdsim-tui/lobes -- --port 4174 --strictPort",
+    "preview:glimepiride": "npm run preview --workspace @pkpdsim-tui/glimepiride -- --port 4175 --strictPort",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -117,7 +117,7 @@ The marker is what an application reads to know what an object is, so set **Next
 ## Point an application at it
 
 ```bash
-npm run dev
+npm run dev:cardiovascular
 ```
 
 Then open `http://localhost:5173/?tuio=localhost:3333`.

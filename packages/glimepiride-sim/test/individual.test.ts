@@ -3,20 +3,29 @@ import {
   CIRRHOSIS_CLASSES, GENOTYPES, nearestCategory, RENAL_CLASSES,
 } from "../src/categories.ts";
 import {
-  GLIMEPIRIDE_CONTROLS, NORMAL_CRCL, normalizeIndividual, parametersOf, referenceIndividual,
+  GLIMEPIRIDE_CONTROLS, NORMAL_CRCL, normalizeIndividual, parametersOf, REFERENCE_BODIES,
+  referenceIndividual,
 } from "../src/individual.ts";
 import {GLIMEPIRIDE_SIMULATION, glimepirideRequest} from "../src/request.ts";
 
 describe("the reference individual", () => {
-  it("takes four milligrams and is otherwise the reference body of the model", () => {
-    expect(referenceIndividual()).toEqual({dose: 4, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 75});
+  it("takes four milligrams and is otherwise the reference adult of their sex", () => {
+    expect(referenceIndividual()).toEqual({dose: 4, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 73});
+    expect(referenceIndividual("female").weight).toBe(60);
+    expect(REFERENCE_BODIES.female).toEqual({weight: 60, height: 163});
   });
 
   it("leaves the parameters of the model at their own defaults, apart from the dose", () => {
     expect(parametersOf()).toEqual([
-      ["PODOSE_gli", 4], ["LI__f_cyp2c9", 1], ["f_cirrhosis", 0],
-      ["KI__f_renal_function", 1], ["BW", 75],
+      ["HEIGHT", 176], ["PODOSE_gli", 4], ["LI__f_cyp2c9", 1], ["f_cirrhosis", 0],
+      ["KI__f_renal_function", 1], ["BW", 73],
     ]);
+  });
+
+  it("is the female body in its height as well as in its weight", () => {
+    const parameters = new Map(parametersOf(referenceIndividual("female"), "female"));
+    expect(parameters.get("HEIGHT")).toBe(163);
+    expect(parameters.get("BW")).toBe(60);
   });
 });
 

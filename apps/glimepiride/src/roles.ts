@@ -8,8 +8,8 @@
  * the table draws only that half.
  */
 
-import {GLIMEPIRIDE_CONTROLS} from "@pkpdsim-tui/glimepiride-sim";
-import type {GlimepirideControl} from "@pkpdsim-tui/glimepiride-sim";
+import {GLIMEPIRIDE_CONTROLS, REFERENCE_BODIES} from "@pkpdsim-tui/glimepiride-sim";
+import type {GlimepirideControl, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 
 /** The marker of the dial of the hours, which is the only object that is not a property. */
@@ -23,7 +23,14 @@ function dial(control: GlimepirideControl, marker: number, description: string):
   };
 }
 
-export const INDIVIDUAL_ROLES: readonly TokenRole[] = [
+/** The dials of the individual. The body of the reference moves the detent of the weight dial. */
+export function individualRoles(sex: Sex = "male"): readonly TokenRole[] {
+  return INDIVIDUAL_ROLES.map(role => (role.id === GLIMEPIRIDE_CONTROLS.weight.id
+    ? {...role, reference: REFERENCE_BODIES[sex].weight}
+    : role));
+}
+
+const INDIVIDUAL_ROLES: readonly TokenRole[] = [
   dial(GLIMEPIRIDE_CONTROLS.dose, 1,
     "The tablet the individual takes. The table gives the reference dose while the object is off the surface."),
   dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 2,
@@ -48,6 +55,6 @@ export function hourRole(hours: number): TokenRole {
   };
 }
 
-export function glimepirideRoles(hours: number): readonly TokenRole[] {
-  return [...INDIVIDUAL_ROLES, hourRole(hours)];
+export function glimepirideRoles(hours: number, sex: Sex = "male"): readonly TokenRole[] {
+  return [...individualRoles(sex), hourRole(hours)];
 }

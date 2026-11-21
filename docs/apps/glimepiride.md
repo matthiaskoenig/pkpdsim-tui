@@ -4,6 +4,16 @@ One individual on the table, and six objects that say who they are.
 
 The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiride-model), a whole body PBPK model of the sulfonylurea glimepiride and of its two metabolites M1 and M2. A tablet is swallowed, the liver turns glimepiride into M1 with CYP2C9, M1 becomes M2, and the kidneys clear both into the urine. Every dial on this table is one of the things that make two people respond differently to the same tablet.
 
+## Background
+
+Glimepiride is taken for type 2 diabetes: it makes the pancreas release insulin, which lowers the blood sugar. Too much of it in the blood lowers the blood sugar too far, and a hypoglycaemia in an elderly patient is a fall, a confusion or a hospital admission. So the question the table asks is the question of the prescription: the same tablet, in two different people, leaves how much drug in the blood?
+
+What the body does with the tablet happens in three places. The gut dissolves it and lets it through. The liver takes it apart with the enzyme CYP2C9, into M1, which is itself active, and then into M2, which is not. The kidneys wash M1 and M2 out in the urine. Each of these can be slower in one person than in another, and the model carries all three.
+
+CYP2C9 is the interesting one. The gene comes in variants: about one person in eight carries a slow allele, and somebody with two of them breaks glimepiride down at roughly a quarter of the usual rate. They get a multiple of the exposure from the same tablet, and the guidance for them is a lower dose. A cirrhotic liver has less working tissue and less enzyme in it, so it acts in the same direction, and failing kidneys hold the metabolites back instead. The three dials of this table are those three, and the fourth, the body weight, is the one that is measured at every visit.
+
+This is what a physiologically based model is for. It does not fit a curve to a population; it carries the organs, their blood flows and the enzyme in the liver, so that each of these can be turned on its own and the answer follows from the physiology.
+
 ## The objects
 
 | Marker | Object | What it changes | Range | Reference |
@@ -12,12 +22,14 @@ The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiri
 | 2 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
 | 3 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
 | 4 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
-| 5 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 75 kg |
+| 5 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 73 kg, or 60 kg for the female body |
 | 8 | Hours after the dose | Winds the fifty hours of the course, from the end back to the tablet | 0 to 50 h | the end |
 
 Every object of the individual is a dial, and its angle is the value: pointing away from the person is the reference individual, turning it to the right raises the value and to the left lowers it. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half. Lifting an object puts that property back to the reference.
 
 Three of the dials say in words what they are set to, because that is how a clinician reads them: the CYP2C9 dial names the genotype it is nearest to (`*1/*1`, `*1/*2`, `*2/*2`, `*1/*3`, `*2/*3`, `*3/*3`, from the allele activities of the marimo application of the model), the cirrhosis dial names the Child-Pugh class, and the kidney dial names the stage of impairment.
+
+The panel also carries a switch a finger touches rather than an object: the body of the individual. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it. The switch sets both, so the organs, their blood flows and the dose per kilogram all follow, and the detent of the weight dial moves with it.
 
 The hours object is relative, like the day dial of the [lobed liver](lobes.md): it starts at the end of the course wherever it is put down, and winding it back walks towards the moment of the dose. It solves nothing, it only moves the moment the table is read at.
 
@@ -71,3 +83,4 @@ npm run dev:glimepiride
 | `http://localhost:5175/?tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
 | `http://localhost:5175/?tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
 | `http://localhost:5175/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
+| `http://localhost:5175/?sex=female` | The female reference body of 60 kg and 163 cm |

@@ -3,8 +3,8 @@
  * and how the objects on the surface become the controls of the model.
  */
 
-import {defaultControls} from "@pkpdsim-tui/cardio-sim";
-import type {PressureControls, PressureReference} from "@pkpdsim-tui/cardio-sim";
+import {DEFAULT_HEART_CONTROLS, defaultControls, HEART_RATE_RANGE} from "@pkpdsim-tui/cardio-sim";
+import type {HeartControls, PressureControls, PressureReference} from "@pkpdsim-tui/cardio-sim";
 import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
@@ -14,7 +14,7 @@ import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
  * right obstructs, turning it to the left dilates. The scale is logarithmic, because a resistance
  * factor is a ratio.
  */
-export const CARDIOVASCULAR_ROLES: readonly TokenRole[] = [
+export const RESISTANCE_ROLES: readonly TokenRole[] = [
   {
     id: "hepatic", label: "Hepatic outflow", unit: "x", markers: [1],
     description: "Resistance of the hepatic veins. Obstruction raises the portal pressure, which is portal hypertension.",
@@ -36,6 +36,51 @@ export const CARDIOVASCULAR_ROLES: readonly TokenRole[] = [
     min: 0.5, max: 3, reference: 1, mode: "absolute", scale: "log", turns: 1,
   },
 ];
+
+/**
+ * The heart itself, on markers 5 and 6. These two are what the beating heart is solved with: the
+ * rate it beats at and how hard the ventricles squeeze. The rate is linear, because a rate is
+ * read off a scale in beats per minute and not as a ratio.
+ */
+export const HEART_ROLES: readonly TokenRole[] = [
+  {
+    id: "heartRate", label: "Heart rate", unit: "/min", markers: [5],
+    description: "How often the heart beats. The beat on the table is the one the compiled heart "
+      + "is solved with, so the numbers belong to that rate.",
+    min: HEART_RATE_RANGE.min, max: HEART_RATE_RANGE.max,
+    reference: DEFAULT_HEART_CONTROLS.heartRate, mode: "absolute", scale: "linear", turns: 1,
+  },
+  {
+    id: "contractility", label: "Contractility", unit: "x", markers: [6],
+    description: "How hard the ventricles squeeze. Turning it down is a heart which is failing: "
+      + "it moves less blood with every beat.",
+    min: 0.4, max: 1.6, reference: DEFAULT_HEART_CONTROLS.contractility,
+    mode: "absolute", scale: "log", turns: 1,
+  },
+];
+
+/** Every object of this table: the four resistances and the two of the heart. */
+export const CARDIOVASCULAR_ROLES: readonly TokenRole[] = [...RESISTANCE_ROLES, ...HEART_ROLES];
+
+/**
+ * The controls the beating heart is solved with. A role without an object keeps the reference,
+ * which is the heart of the individual at rest.
+ */
+export function heartControlsFromTokens(
+  roles: readonly TokenRole[],
+  tokens: ReadonlyMap<number, TableToken>,
+  origins: ReadonlyMap<number, number> = new Map(),
+): HeartControls {
+  const values = valuesFromTokens(roles, tokens, origins);
+  return {
+    hepatic: values.get("hepatic") ?? DEFAULT_HEART_CONTROLS.hepatic,
+    systemic: values.get("systemic") ?? DEFAULT_HEART_CONTROLS.systemic,
+    portal: values.get("portal") ?? DEFAULT_HEART_CONTROLS.portal,
+    renal: values.get("renal") ?? DEFAULT_HEART_CONTROLS.renal,
+    heartRate: values.get("heartRate") ?? DEFAULT_HEART_CONTROLS.heartRate,
+    contractility: values.get("contractility") ?? DEFAULT_HEART_CONTROLS.contractility,
+  };
+}
 
 /**
  * The controls of the model under the objects on the surface. A role without an object keeps the

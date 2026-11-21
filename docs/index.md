@@ -1,4 +1,5 @@
 # pkpdsim-tui
+[![ci](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml) [![documentation](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml) [![Documentation](https://img.shields.io/badge/docs-pkpdsim--tui-3f51b5.svg)](https://matthiaskoenig.github.io/pkpdsim-tui) [![TUIO](https://img.shields.io/badge/TUIO-1.1%20%7C%202.0-00897b.svg)](https://tuio.org/) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
 
 Tangible table applications of the physiologically based pharmacokinetic and pharmacodynamic (PBPK/PD) models of [pkpdsim](https://github.com/matthiaskoenig/pkpdsim).
 
@@ -10,7 +11,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 | Application | State | What the objects do |
 | --- | --- | --- |
-| [Cardiovascular circulation](apps/cardiovascular.md) | prototype | Four resistance objects on an anatomy: hepatic, systemic, portal and renal. |
+| [Cardiovascular circulation](apps/cardiovascular.md) | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself, which beats on the table while they are moved. |
 | [Lobed liver](apps/lobes.md) | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
 | [Glimepiride](apps/glimepiride.md) | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
 
@@ -21,10 +22,10 @@ git clone https://github.com/matthiaskoenig/pkpdsim-tui.git
 cd pkpdsim-tui
 npm install
 npm run sync      # copies the exported models and reference data of a pkpdsim checkout
-npm run dev
+npm run dev:cardiovascular
 ```
 
-The cardiovascular application opens on `http://localhost:5173`; `npm run dev:lobes` and `npm run dev:glimepiride` open the other two on 5174 and 5175. Without a table they run on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
+The circulation opens on `http://localhost:5173`; `npm run dev:lobes` and `npm run dev:glimepiride` open the other two on 5174 and 5175. Without a table they run on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
 
 To drive it from objects instead, start the simulator this repository carries, in a second terminal:
 
@@ -43,7 +44,9 @@ The vocabulary is the same in every application, so a visitor who learned one ha
 - Its position says **what it acts on**, where a role needs a target: the vessel, organ or lobe under it.
 - Lifting the object **undoes** it. Nothing on this table is permanent.
 
-Touches stay for what touches are good at: moving a panel, scrubbing a time course, switching a mode.
+Touches stay for what touches are good at: moving a panel, scrubbing a time course, switching a mode. The one switch every application carries is the body of the individual, male or female, because that is not a value a dial holds but a different export of the model.
+
+Each table also says in words what it is and what it is showing. A panel at each of two opposite corners carries the title, a sentence a visitor who is not a clinician understands, two or three things worth trying, and a reading of the state the objects have put the body in, which changes as they are moved. The numbers at the edges are for whoever wants them; the sentence is for everybody else.
 
 ## What runs the model
 
