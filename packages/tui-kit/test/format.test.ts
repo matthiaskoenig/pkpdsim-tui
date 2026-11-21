@@ -3,7 +3,7 @@ import {
   describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "../src/format.ts";
-import {markerSpan} from "../src/chrome.ts";
+import {markerSpan} from "../src/words.ts";
 import {trackSpan} from "../src/tokens.ts";
 import {ABSOLUTE_SPAN} from "@pkpdsim-tui/tuio-input";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";

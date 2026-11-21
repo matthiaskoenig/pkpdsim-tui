@@ -9,8 +9,9 @@
  */
 
 import type {HeartSummary, PressureSolution} from "@pkpdsim-tui/cardio-sim";
-import {clamp, formatFactor, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatFactor, formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {StatDefinition, TokenCard, TokenGlyph, Voice} from "@pkpdsim-tui/tui-kit";
+import {CARDIO_TEXT} from "./text.ts";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
@@ -20,62 +21,53 @@ export interface CardioReadout {
   readonly steady: PressureSolution;
 }
 
-export const CARDIOVASCULAR_STATS: readonly StatDefinition<CardioReadout>[] = [
-  {
-    id: "systolic", label: "Systolic", unit: "mmHg", digits: 0,
-    of: value => value.heart.arterial_systolic,
-    info: "The highest pressure in the arteries, while the heart is squeezing. It is the first "
-      + "of the two numbers a blood pressure cuff reads.",
-  },
-  {
-    id: "diastolic", label: "Diastolic", unit: "mmHg", digits: 0,
-    of: value => value.heart.arterial_diastolic,
-    info: "The pressure that is left between two beats, while the heart fills again.",
-  },
-  {
-    id: "co", label: "Cardiac output", unit: "l/min", digits: 2,
-    of: value => value.heart.mean_cardiac_output,
-    info: "The blood the heart moves in a minute: the rate times what one beat ejects. Five to "
-      + "six litres at rest, four to five times that in an athlete at full effort.",
-  },
-  {
-    id: "stroke", label: "Stroke volume", unit: "ml", digits: 0,
-    of: value => value.heart.stroke_volume,
-    info: "What one beat ejects. A failing heart moves less with every beat and makes it up "
-      + "with a faster rate.",
-  },
-  {
-    id: "ppo", label: "Portal pressure", unit: "mmHg", digits: 1,
-    of: value => value.heart.mean_portal_pressure,
-    info: "The pressure in the vein which carries the blood of the gut to the liver. When the "
-      + "liver obstructs it, the blood backs up here: that is portal hypertension.",
-  },
-  {
-    id: "gradient", label: "Portal gradient", unit: "mmHg", digits: 1,
-    of: value => value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure,
-    info: "The pressure the blood loses on its way through the liver. A clinician measures it "
-      + "to tell how far a cirrhosis has gone.",
-  },
-];
+/**
+ * The numbers of the band. A child reads the two of a blood pressure cuff and what the heart
+ * moves; an adult the stroke volume and the portal pressure as well; an expert the gradient
+ * which says how far a cirrhosis has gone.
+ */
+export function cardiovascularStats(voice: Voice): readonly StatDefinition<CardioReadout>[] {
+  const copy = voice.pick(CARDIO_TEXT).stats;
+  const stat = (
+    id: keyof typeof copy, unit: string, digits: number, of: (value: CardioReadout) => number,
+    from?: "adult" | "expert",
+  ): StatDefinition<CardioReadout> => ({
+    id, unit, digits, of,
+    label: voice.say(copy[id].label), info: voice.say(copy[id].info),
+    ...(from === undefined ? {} : {from}),
+  });
+  return [
+    stat("systolic", "mmHg", 0, value => value.heart.arterial_systolic),
+    stat("diastolic", "mmHg", 0, value => value.heart.arterial_diastolic),
+    stat("co", "l/min", 2, value => value.heart.mean_cardiac_output),
+    stat("stroke", "ml", 0, value => value.heart.stroke_volume, "adult"),
+    stat("ppo", "mmHg", 1, value => value.heart.mean_portal_pressure, "adult"),
+    stat(
+      "gradient", "mmHg", 1,
+      value => value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure, "expert"),
+  ];
+}
 
 /** The number a turn of this object changes, so the card says what it is doing. */
-export function noteFor(roleId: string, value: CardioReadout): string {
+export function noteFor(voice: Voice, roleId: string, value: CardioReadout): string {
+  const copy = voice.pick(CARDIO_TEXT).notes;
   switch (roleId) {
     case "hepatic":
-      return `portal gradient ${formatNumber(value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure)} mmHg`;
+      return copy.hepatic(formatNumber(
+        value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure));
     case "portal":
-      return `portal flow ${formatNumber(value.heart.mean_portal_flow)} l/min`;
+      return copy.portal(formatNumber(value.heart.mean_portal_flow));
     case "systemic":
-      return `blood pressure ${formatNumber(value.heart.arterial_systolic, 0)}/`
-        + `${formatNumber(value.heart.arterial_diastolic, 0)} mmHg`;
+      return copy.systemic(`${formatNumber(value.heart.arterial_systolic, 0)}/`
+        + `${formatNumber(value.heart.arterial_diastolic, 0)} mmHg`);
     case "renal": {
       const kidney = value.steady.flows.find(organ => organ.id === "ki");
-      return `renal flow ${formatNumber(kidney?.flow ?? 0)} l/min`;
+      return copy.renal(formatNumber(kidney?.flow ?? 0));
     }
     case "heartRate":
-      return `cardiac output ${formatNumber(value.heart.mean_cardiac_output)} l/min`;
+      return copy.heartRate(formatNumber(value.heart.mean_cardiac_output));
     case "contractility":
-      return `stroke volume ${formatNumber(value.heart.stroke_volume, 0)} ml`;
+      return copy.contractility(formatNumber(value.heart.stroke_volume, 0));
     default:
       return "";
   }
@@ -100,15 +92,17 @@ function glyphFor(role: TokenRole, dialled: number): TokenGlyph {
 }
 
 export function cardFor(
+  voice: Voice,
   token: TableToken,
   role: TokenRole | undefined,
   value: CardioReadout,
   origins: ReadonlyMap<number, number>,
 ): TokenCard {
   if (role === undefined) {
+    const kit = words(voice);
     return {
-      kind: "unassigned", title: `Marker ${token.marker}`, value: "no role",
-      note: "This table does not use this object",
+      kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+      note: voice.say(kit.noRoleNote),
     };
   }
   const angle = role.mode === "absolute" ? token.angle : token.turn;
@@ -117,7 +111,7 @@ export function cardFor(
     ? `${formatNumber(dialled, 0)} /min`
     : formatFactor(dialled);
   return {
-    kind: "dial", title: role.label, value: reading, note: noteFor(role.id, value),
+    kind: "dial", title: role.label, value: reading, note: noteFor(voice, role.id, value),
     glyph: glyphFor(role, dialled), info: role.description,
   };
 }

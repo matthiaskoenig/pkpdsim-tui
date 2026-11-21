@@ -21,26 +21,26 @@ import type {
 import {createSolver, fetchSolverAssets, loadCoreHost} from "@pkpdsim-tui/core-runtime";
 import type {Solver} from "@pkpdsim-tui/core-runtime";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
-import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
+import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  chooseQuery, createChrome, createInfo, createReadout, createTokenLayer, formatFactor,
-  formatNumber, pointerPoints,
+  chooseQuery, createChrome, createInfo, createReadout, createTokenLayer, driveHint,
+  formatFactor, formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
 import {createPulse} from "./pulse.ts";
 import type {BeatCycle} from "./beat.ts";
-import {CARDIO_ABOUT, CARDIO_TITLE, CARDIO_TRIES, cardioReading} from "./audience.ts";
-import {CARDIOVASCULAR_STATS, cardFor} from "./cards.ts";
+import {cardioReading} from "./audience.ts";
+import {cardiovascularStats, cardFor} from "./cards.ts";
+import {CARDIO_TEXT} from "./text.ts";
 import type {CardioReadout} from "./cards.ts";
-import {CARDIOVASCULAR_ROLES, controlsFromTokens, heartControlsFromTokens} from "./roles.ts";
+import {
+  cardiovascularRoles, CARDIOVASCULAR_MARKERS, controlsFromTokens, heartControlsFromTokens,
+} from "./roles.ts";
 import {createScene} from "./scene.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 6 put an object down, drag moves it, the wheel turns it.";
-const TABLE_HINT = "Put an object on the table and turn it.";
-const BOTH_HINT = "Put an object on the table and turn it, or press 1 to 6 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves the heart. */
 const SETTLE = 160;
 
@@ -55,16 +55,13 @@ const TABLE_COLUMNS = new Set([
   "CV_V_blood_total",
 ]);
 
-/** What a person at the table should do next, which depends on how the page was started. */
-function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
-  return `No tracker answers on ${tracker.address}. Start one, or drop "?tuio" from the `
-    + "address to drive the table with the mouse.";
-}
-
 /** The cardiovascular table, on the surface of the application. */
 export async function startCardiovascularTable(host: TableHost): Promise<void> {
+  const voice = host.voice;
+  const copy = voice.pick(CARDIO_TEXT);
+  const kit = words(voice);
+  const roles = cardiovascularRoles(voice);
+  const stats = visibleStats(cardiovascularStats(voice), voice);
   const parameters = host.parameters;
   const assets = host.assets;
   const sex = parameters.get("sex") === "female" ? "female" : "male";
@@ -74,7 +71,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const runtime = new URL("solver/", assets);
   const solverBase = sex === "female" ? new URL("female/solver/", assets) : runtime;
 
-  host.progress("Loading the circulation...");
+  host.progress(copy.loadingCirculation);
   const [data, anatomy, config] = await Promise.all([
     loadCardiovascularData(new URL("cardiovascular-data.json", dataBase)),
     loadAnatomy(new URL("cardiovascular-anatomy.json", assets)),
@@ -93,8 +90,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const body = anatomy.bodies[sex] ?? Object.values(anatomy.bodies)[0];
   if (body === undefined) throw new Error("The anatomy holds no body.");
   const bodies: readonly ChoiceGroup[] = [{
-    id: "sex", label: "Body", selected: sex,
-    options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
+    id: "sex", label: kit.bodySwitch, selected: sex,
+    options: [{id: "male", label: kit.male}, {id: "female", label: kit.female}],
   }];
 
   const reference = data.pressure;
@@ -105,7 +102,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   if (exported === undefined) throw new Error("The export holds no case of the reference heart.");
   const referenceSummary: HeartSummary = exported.summary.after;
 
-  host.progress("Starting the heart...");
+  host.progress(copy.startingHeart);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
   const solver: Solver = await createSolver({
     host: core, key: `heart-${sex}`,
@@ -114,14 +111,15 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
 
   const surface = host.surface;
   const root = host.scene;
-  const scene = createScene(root, body, reference);
-  const readout = createReadout<CardioReadout>(root, CARDIOVASCULAR_STATS);
-  const pulse = createPulse(root);
+  const scene = createScene(root, body, reference, voice);
+  const readout = createReadout<CardioReadout>(root, stats);
+  const pulse = createPulse(root, voice);
   const tokenLayer = createTokenLayer(root);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    voice,
     onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
@@ -131,7 +129,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
 
   const {input, tracker} = await openTableInput({
     parameters, element: surface,
-    markers: CARDIOVASCULAR_ROLES.map(role => role.markers[0] ?? 0),
+    markers: [...CARDIOVASCULAR_MARKERS],
   });
 
   const origins = new Map<number, number>();
@@ -139,7 +137,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
   let steady: PressureSolution = steadyBaseline;
-  let heartControls: HeartControls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, new Map());
+  let heartControls: HeartControls = heartControlsFromTokens(roles, new Map());
   let summary: HeartSummary = referenceSummary;
   let cycle: BeatCycle | undefined;
   /** Where the table stands in the beat, carried over when the rate changes. */
@@ -174,8 +172,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       notice = "";
     } catch (error) {
       if (controller.signal.aborted) return;
-      notice = `The heart could not be solved: `
-        + `${error instanceof Error ? error.message : String(error)} The last beat stays on screen.`;
+      notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
     } finally {
       if (pending === controller) {
         pending = null;
@@ -194,13 +191,13 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     for (const sessionId of [...origins.keys()]) {
       if (!snapshot.tokens.has(sessionId)) origins.delete(sessionId);
     }
-    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, snapshot.tokens, reference, origins);
-    heartControls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, snapshot.tokens, origins);
+    const controls = controlsFromTokens(roles, snapshot.tokens, reference, origins);
+    heartControls = heartControlsFromTokens(roles, snapshot.tokens, origins);
     try {
       steady = solvePressure(reference, controls);
       notice = "";
     } catch (error) {
-      notice = `${error instanceof Error ? error.message : String(error)} The last circulation stays on screen.`;
+      notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
     }
     const next = JSON.stringify(heartControls);
     if (next !== asked) {
@@ -215,23 +212,24 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     scene.update(steady, reference);
     readout.update(value, against);
     tokenLayer.update({
-      snapshot, roles: CARDIOVASCULAR_ROLES, viewport,
-      card: (token, role) => cardFor(token, role, value, origins),
+      snapshot, roles: roles, viewport,
+      card: (token, role) => cardFor(voice, token, role, value, origins),
     });
     chrome.update({
-      title: CARDIO_TITLE, about: CARDIO_ABOUT, tries: CARDIO_TRIES,
-      reading: cardioReading(heartControls, sex, summary, referenceSummary),
-      back: "Back to the body",
+      title: host.title, about: voice.say(copy.about),
+      tries: copy.tries.map(entry => voice.say(entry)),
+      reading: cardioReading(voice, heartControls, sex, summary, referenceSummary),
+      back: true,
       choices: [...host.choices, ...bodies],
-      status, roles: CARDIOVASCULAR_ROLES, notice,
+      status, roles: roles, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];
         if (live === undefined) return "-";
         return role.id === "heartRate" ? `${formatNumber(live, 0)} /min` : formatFactor(live);
       },
-      live: new Set(winningTokens(CARDIOVASCULAR_ROLES, snapshot.tokens).keys()),
-      unassigned: unassignedMarkers(CARDIOVASCULAR_ROLES, snapshot.tokens),
-      hint: hintFor(tracker, status.state),
+      live: new Set(winningTokens(roles, snapshot.tokens).keys()),
+      unassigned: unassignedMarkers(roles, snapshot.tokens),
+      hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
       credit: anatomy.attribution,
     });
   };

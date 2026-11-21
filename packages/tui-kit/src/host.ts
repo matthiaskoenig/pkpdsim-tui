@@ -5,6 +5,7 @@
  */
 
 import type {ChoiceGroup} from "./chrome.ts";
+import type {Voice} from "./voice.ts";
 
 export interface TableHost {
   /** The element a mouse or a finger is read from while no tracker is connected. */
@@ -15,6 +16,14 @@ export interface TableHost {
   readonly chrome: HTMLElement;
   /** The query of the page: the tracker, the body, the species, which table this is. */
   readonly parameters: URLSearchParams;
+  /**
+   * The language and the level of the person at the table, which every word a table says goes
+   * through. Both are switches in the panel and both are in the address, so a table is handed
+   * over as a link that says them.
+   */
+  readonly voice: Voice;
+  /** What this table is called, in the language of the voice: the title of its panel. */
+  readonly title: string;
   /** Where the exported models and reference data of this table are. */
   readonly assets: URL;
   /** What the starting table says it is doing, which the boot screen shows. */

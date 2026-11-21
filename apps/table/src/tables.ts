@@ -4,22 +4,16 @@
  * is loaded when it is opened, so a visitor who looks at the body waits for nothing.
  */
 
-import type {TableApp} from "@pkpdsim-tui/tui-kit";
+import type {TableApp, Voice} from "@pkpdsim-tui/tui-kit";
+import {HUB_TEXT} from "./text.ts";
+import type {EntryCopy} from "./text.ts";
 
 /** The body itself, which is what the application shows when no table is named. */
 export const OVERVIEW = "overview";
 
 export interface TableEntry {
-  /** What `?app` names it. */
+  /** What `?app` names it, and what its words are kept under in `HUB_TEXT`. */
   readonly id: string;
-  /** What the switch in the panels calls it, in one or two words. */
-  readonly label: string;
-  /** The heading of its card on the body, and the title of the page while it is open. */
-  readonly title: string;
-  /** The few words on the card: what a visitor does at this table. */
-  readonly blurb: string;
-  /** The whole of it, behind the card: what the table is, for the visitor who asks. */
-  readonly about: string;
   /** The organ a card points at, by the anchor id of the pkpdsim physiology. */
   readonly organ: string;
   /** The organs the table is about, which are marked on the body together. */
@@ -33,12 +27,6 @@ export interface TableEntry {
 export const TABLES: readonly TableEntry[] = [
   {
     id: "cardiovascular",
-    label: "Circulation",
-    title: "The circulation",
-    blurb: "How the blood reaches every organ.",
-    about: "The heart pushes five to six litres of blood through the body every minute. Narrow "
-      + "the vessels of an organ or change the beat, and watch the pressures and the flows of "
-      + "the whole body settle somewhere new.",
     organ: "he",
     organs: ["he", "lu"],
     assets: "cardiovascular/",
@@ -46,12 +34,6 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "liver",
-    label: "Liver",
-    title: "The liver",
-    blurb: "Why the body needs a liver.",
-    about: "Everything the gut absorbs passes the liver before it reaches the rest of the body. "
-      + "See where its two blood supplies come from, what happens along one sinusoid, and what "
-      + "the liver does to a drug.",
     organ: "li",
     organs: ["li", "si"],
     assets: "cardiovascular/",
@@ -59,12 +41,6 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "lobes",
-    label: "Lobes",
-    title: "The lobed liver",
-    blurb: "Cut a piece away, watch it grow back.",
-    about: "A liver is built of eight pieces, each with its own blood supply. Clamp them or cut "
-      + "them away, and see how much of its work the rest can still do, and how it grows back "
-      + "over the days which follow.",
     organ: "li",
     organs: ["li"],
     assets: "lobes/",
@@ -72,11 +48,6 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "glimepiride",
-    label: "Glimepiride",
-    title: "One tablet, two people",
-    blurb: "What the liver does to a tablet.",
-    about: "Swallow a tablet of a diabetes drug and follow it through the gut, the liver and "
-      + "the kidneys. Change who the person is, and the same tablet does something else.",
     organ: "si",
     organs: ["si", "li", "ki"],
     assets: "glimepiride/",
@@ -84,18 +55,19 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "perfusion",
-    label: "Perfusion",
-    title: "The liver on the machine",
-    blurb: "A liver kept alive outside the body.",
-    about: "A liver taken out of the body stays alive on a machine which pumps warm, oxygen "
-      + "rich fluid through it. Set the pump, the oxygen and the temperature, and watch what "
-      + "the organ makes of them.",
     organ: "li",
     organs: ["li"],
     assets: "perfusion/",
     load: async () => (await import("@pkpdsim-tui/perfusion-table")).startPerfusionTable,
   },
 ];
+
+/** What a table is called, in the language and at the level of this visitor. */
+export function entryCopy(voice: Voice, id: string): EntryCopy {
+  const copy = voice.pick(HUB_TEXT).entries[id] ?? HUB_TEXT.en.entries[id];
+  if (copy === undefined) throw new Error(`No words for the table "${id}".`);
+  return copy;
+}
 
 /** The table `?app` names, or nothing, which is the body. */
 export function tableOf(parameters: URLSearchParams): TableEntry | undefined {

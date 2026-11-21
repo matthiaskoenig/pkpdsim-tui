@@ -10,7 +10,8 @@ import type {Lobe, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
   attributes, clamp, formatNumber, mixHex, perfusionColor, PERFUSION_NEUTRAL, svg, vesselWidth,
 } from "@pkpdsim-tui/tui-kit";
-import type {Box, Viewport} from "@pkpdsim-tui/tui-kit";
+import type {Box, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {LOBE_TEXT} from "./text.ts";
 import {liverLayout} from "./layout.ts";
 import type {LobeBlock} from "./layout.ts";
 
@@ -83,9 +84,9 @@ export function blockLabel(block: {name: string; token: string}): string {
 }
 
 /** How a segment is named on a card beside an object: short enough to read at a glance. */
-export function shortName(block: {name: string; token: string}): string {
+export function shortName(voice: Voice, block: {name: string; token: string}): string {
   const roman = /^segment ([IVX]+)/.exec(block.name);
-  return roman === null ? block.name : `segment ${roman[1]}`;
+  return roman === null ? block.name : voice.pick(LOBE_TEXT).segment(roman[1] ?? "");
 }
 
 /** The part of the name that is worth reading on a block. */
@@ -102,7 +103,10 @@ const STATE_FILL: Readonly<Record<LobeState, string>> = {
   resected: "#1b2430",
 };
 
-export function createLiverScene(parent: SVGSVGElement, lobes: readonly Lobe[]): LiverScene {
+export function createLiverScene(
+  parent: SVGSVGElement, lobes: readonly Lobe[], voice: Voice,
+): LiverScene {
+  const copy = voice.pick(LOBE_TEXT);
   const root = svg("g", {class: "layer layer--liver"}, parent);
   const vessels = svg("g", {class: "liver-vessels"}, root);
   const portal = svg("path", {class: "vessel vessel--portal", d: ""}, vessels);
@@ -195,9 +199,11 @@ export function createLiverScene(parent: SVGSVGElement, lobes: readonly Lobe[]):
         visual.group.setAttribute("data-state", state);
         visual.label.textContent = blockLabel(visual.block);
         visual.name.textContent = blockName(visual.block);
-        visual.value.textContent = resected ? "resected" : `${formatNumber(volume * 100, 0)} %`;
+        visual.value.textContent = resected
+          ? copy.resected
+          : `${formatNumber(volume * 100, 0)} %`;
         visual.note.textContent = resected
-          ? `${formatNumber(visual.block.share * 100, 0)} % of the mass gone`
+          ? copy.massGone(`${formatNumber(visual.block.share * 100, 0)} %`)
           : `${formatNumber(flow * 1000, 0)} ml/min`;
         visual.portalPip.setAttribute("data-closed",
           String(state === "portal" || resected));
@@ -212,9 +218,9 @@ export function createLiverScene(parent: SVGSVGElement, lobes: readonly Lobe[]):
       attributes(portal, {"stroke-width": vesselWidth(qpo, 13, 2, 26)});
       attributes(artery, {"stroke-width": vesselWidth(qha, 13, 2, 26)});
       attributes(hepatic, {"stroke-width": vesselWidth(qh, 13, 2, 26)});
-      portalLabel.textContent = `portal ${formatNumber(qpo)} l/min`;
-      arteryLabel.textContent = `artery ${formatNumber(qha)} l/min`;
-      hepaticLabel.textContent = `hepatic veins ${formatNumber(qh)} l/min`;
+      portalLabel.textContent = `${copy.vessels.portal} ${formatNumber(qpo)} l/min`;
+      arteryLabel.textContent = `${copy.vessels.artery} ${formatNumber(qha)} l/min`;
+      hepaticLabel.textContent = `${copy.vessels.hepatic} ${formatNumber(qh)} l/min`;
     },
   };
 }

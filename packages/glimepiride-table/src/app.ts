@@ -17,38 +17,29 @@ import {
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer,
-  formatNumber, pointerPoints,
+  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint,
+  formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  cardFor, categoryOf, formatValue, GLIMEPIRIDE_STATS, GLIMEPIRIDE_TRACES, MICROMOLAR,
+  cardFor, categoryOf, formatValue, glimepirideStats, glimepirideTraces, MICROMOLAR,
 } from "./cards.ts";
 import type {GlimepirideReadout} from "./cards.ts";
 import {createPathway, PATHWAY_HEIGHT, stationNumber} from "./pathway.ts";
-import {glimepirideRoles} from "./roles.ts";
+import {glimepirideRoles, GLIMEPIRIDE_MARKERS} from "./roles.ts";
+import {GLIMEPIRIDE_TEXT} from "./text.ts";
 import {
-  GLIMEPIRIDE_ABOUT, GLIMEPIRIDE_TITLE, GLIMEPIRIDE_TRIES, glimepirideReading,
+  bodyChoices, glimepirideReading,
 } from "./audience.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 6 put an object down, drag moves it, the wheel turns it.";
-const TABLE_HINT = "Put an object on the table and turn it.";
-const BOTH_HINT = "Put an object on the table and turn it, or press 1 to 6 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
 const BAND = 132;
 const GAP = 26;
 
-
-function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
-  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
-    + "the address to drive the table with the mouse.";
-}
 
 function pathwayBox(viewport: {width: number; height: number}): Box {
   const width = Math.min(viewport.width - 2 * 420, 1180);
@@ -67,10 +58,13 @@ function plotBox(viewport: {width: number; height: number}): Box {
 
 /** The glimepiride table, on the surface of the application. */
 export async function startGlimepirideTable(host: TableHost): Promise<void> {
+  const voice = host.voice;
+  const copy = voice.pick(GLIMEPIRIDE_TEXT);
+  const kit = words(voice);
   const parameters = host.parameters;
   const solverBase = new URL("solver/", host.assets);
 
-  host.progress("Starting the solver...");
+  host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", solverBase));
   const solver: Solver = await createSolver({
     host: core, key: "glimepiride", assets: await fetchSolverAssets(solverBase),
@@ -78,23 +72,22 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
 
   const hours = GLIMEPIRIDE_SIMULATION.end / 60;
   const sex: Sex = parameters.get("sex") === "female" ? "female" : "male";
-  const roles = glimepirideRoles(hours, sex);
+  const roles = glimepirideRoles(hours, voice, sex);
   const reference = referenceIndividual(sex);
-  const bodies: readonly ChoiceGroup[] = [{
-    id: "sex", label: "Body", selected: sex,
-    options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
-  }];
+  const bodies: readonly ChoiceGroup[] = [{...bodyChoices(voice), selected: sex}];
   const axis = {max: GLIMEPIRIDE_SIMULATION.end, tick: 600, scale: 1 / 60, unit: "h"};
 
   const surface = host.surface;
   const root = host.scene;
-  const pathway = createPathway(root);
-  const plot = createPlot(root, GLIMEPIRIDE_TRACES);
-  const readout = createReadout<GlimepirideReadout>(root, GLIMEPIRIDE_STATS);
+  const pathway = createPathway(root, voice);
+  const plot = createPlot(root, glimepirideTraces(voice));
+  const readout = createReadout<GlimepirideReadout>(
+    root, visibleStats(glimepirideStats(voice), voice));
   const tokenLayer = createTokenLayer(root);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    voice,
     onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
@@ -103,7 +96,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   });
 
   const {input, tracker} = await openTableInput({
-    parameters, element: surface, markers: roles.map(role => role.markers[0] ?? 0),
+    parameters, element: surface, markers: [...GLIMEPIRIDE_MARKERS],
   });
 
   const origins = new Map<number, number>();
@@ -139,7 +132,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       notice = "";
     } catch (error) {
       if (controller.signal.aborted) return;
-      notice = `This individual could not be solved: ${error instanceof Error ? error.message : String(error)}`;
+      notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
     } finally {
       if (pending === controller) {
         pending = null;
@@ -183,51 +176,54 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     readout.update(current, reference_readout);
     pathway.update({
       tablet: {
-        value: stationNumber(individual.dose, "mg", 1), note: "oral",
+        value: stationNumber(individual.dose, "mg", 1), note: copy.oral,
         changed: individual.dose !== reference.dose,
       },
       liver: {
         value: `CYP2C9 ${formatNumber(individual.cyp2c9, 2)}x`,
-        note: categoryOf("cirrhosis", individual.cirrhosis),
+        note: categoryOf(voice, "cirrhosis", individual.cirrhosis),
         changed: individual.cyp2c9 !== reference.cyp2c9 || individual.cirrhosis !== reference.cirrhosis,
       },
       plasma: {
         value: stationNumber(current.now, "uM", 3),
-        note: `peak ${formatNumber(current.pk.cmax, 3)} uM`,
+        note: copy.peak(formatNumber(current.pk.cmax, 3)),
         changed: false,
       },
       kidney: {
         value: stationNumber(individual.renal, "ml/min", 0),
-        note: categoryOf("renal", individual.renal),
+        note: categoryOf(voice, "renal", individual.renal),
         changed: individual.renal !== reference.renal,
       },
       urine: {
         value: stationNumber(current.urine, "umole", 1),
-        note: "M1 and M2 at the end",
+        note: copy.endOfCourse,
         changed: false,
       },
     });
     tokenLayer.update({
       snapshot, roles, viewport,
-      card: (token, role) => cardFor(token, role, {values, origins, hours, readout: current}),
+      card: (token, role) => cardFor(
+        voice, token, role, {values, origins, hours, readout: current}),
     });
     chrome.update({
-      title: GLIMEPIRIDE_TITLE, about: GLIMEPIRIDE_ABOUT, tries: GLIMEPIRIDE_TRIES,
-      reading: glimepirideReading(individual, sex, current, reference_readout, reference),
-      back: "Back to the body",
+      title: host.title, about: voice.say(copy.about),
+      tries: copy.tries.map(entry => voice.say(entry)),
+      reading: glimepirideReading(
+        voice, individual, sex, current, reference_readout, reference),
+      back: true,
       choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {
         if (role.id === "hour") return `${formatNumber(hour, 1)} h`;
         const value = values.get(role.id) ?? role.reference;
-        const category = categoryOf(role.id, value);
+        const category = categoryOf(voice, role.id, value);
         return category === "" ? formatValue(role, value) : `${formatValue(role, value)}, ${category}`;
       },
       live: new Set(values.keys()),
       unassigned: unassignedMarkers(roles, snapshot.tokens),
-      hint: hintFor(tracker, status.state),
+      hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
       credit: `${formatNumber(individual.weight, 0)} kg, ${formatNumber(individual.dose, 1)} mg `
-        + `glimepiride, ${categoryOf("cyp2c9", individual.cyp2c9)}`,
+        + `${copy.traces.gli}, ${categoryOf(voice, "cyp2c9", individual.cyp2c9)}`,
     });
   };
 
@@ -254,6 +250,6 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   resize();
   input.connect();
 
-  host.progress("Solving the reference individual...");
+  host.progress(copy.solvingReference);
   await solve(reference, true);
 }

@@ -1,48 +1,39 @@
 /** What the liver table says: the numbers of the band, and the card beside an object. */
 
 import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
-import {clamp, formatFactor, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatFactor, formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {StatDefinition, TokenCard, TokenGlyph, Voice} from "@pkpdsim-tui/tui-kit";
+import {LIVER_TEXT} from "./text.ts";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
 /** How many lobules a human liver is built of, in round numbers. */
 export const LOBULES = 1_000_000;
 
-export const LIVER_STATS: readonly StatDefinition<PressureSolution>[] = [
-  {
-    id: "flow", label: "Through the liver", unit: "l/min", digits: 2, of: value => value.qh,
-    info: "Everything the liver gets, from both of its supplies together. About a litre and a "
-      + "half a minute in a person at rest.",
-  },
-  {
-    id: "portal", label: "From the gut", unit: "l/min", digits: 2, of: value => value.qpo,
-    info: "The blood the portal vein brings from the stomach, the gut and the spleen. It has "
-      + "already given its oxygen away, but it carries everything that was absorbed.",
-  },
-  {
-    id: "artery", label: "From the artery", unit: "l/min", digits: 2, of: value => value.qha,
-    info: "The blood the hepatic artery brings straight from the aorta: a quarter of the "
-      + "supply, and most of the oxygen.",
-  },
-  {
-    id: "share", label: "Of the heart", unit: "%", digits: 0,
-    of: value => (value.co === 0 ? 0 : 100 * value.qh / value.co),
-    info: "How much of everything the heart pumps goes through the liver. No other organ of its "
-      + "size takes as large a share.",
-  },
-  {
-    id: "ppo", label: "Portal pressure", unit: "mmHg", digits: 1, of: value => value.ppo,
-    info: "The pressure in the vein which carries the blood of the gut to the liver. When the "
-      + "liver obstructs it, the blood backs up here: that is portal hypertension.",
-  },
-  {
-    id: "lobule", label: "One lobule gets", unit: "ul/min", digits: 2,
-    of: value => 1e6 * value.qh / LOBULES,
-    info: "A liver is built of about a million lobules. This is what one of them is served "
-      + "with, which is the flow of the whole liver divided among them.",
-  },
-];
+/**
+ * The numbers of the band. A child is shown the three which carry the idea, the two supplies and
+ * what they add up to; an adult the pressures as well; and an expert what one lobule of it gets.
+ */
+export function liverStats(voice: Voice): readonly StatDefinition<PressureSolution>[] {
+  const copy = voice.pick(LIVER_TEXT).stats;
+  const stat = (
+    id: keyof typeof copy, unit: string, digits: number, of: (value: PressureSolution) => number,
+    from?: "adult" | "expert",
+  ): StatDefinition<PressureSolution> => ({
+    id, unit, digits, of,
+    label: voice.say(copy[id].label),
+    info: voice.say(copy[id].info),
+    ...(from === undefined ? {} : {from}),
+  });
+  return [
+    stat("flow", "l/min", 2, value => value.qh),
+    stat("portal", "l/min", 2, value => value.qpo),
+    stat("artery", "l/min", 2, value => value.qha),
+    stat("share", "%", 0, value => (value.co === 0 ? 0 : 100 * value.qh / value.co), "adult"),
+    stat("ppo", "mmHg", 1, value => value.ppo, "adult"),
+    stat("lobule", "ul/min", 2, value => 1e6 * value.qh / LOBULES, "expert"),
+  ];
+}
 
 function glyphFor(role: TokenRole, value: number): TokenGlyph {
   // A resistance is drawn as the vessel it belongs to: the opening follows Poiseuille's law, so
@@ -52,18 +43,20 @@ function glyphFor(role: TokenRole, value: number): TokenGlyph {
 }
 
 export function cardFor(
-  token: TableToken, role: TokenRole | undefined, solution: PressureSolution,
+  voice: Voice, token: TableToken, role: TokenRole | undefined, solution: PressureSolution,
 ): TokenCard {
+  const kit = words(voice);
   if (role === undefined) {
     return {
-      kind: "unassigned", title: `Marker ${token.marker}`, value: "no role",
-      note: "This table does not use this object",
+      kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+      note: voice.say(kit.noRoleNote),
     };
   }
+  const copy = voice.pick(LIVER_TEXT).cardNote;
   const value = valueFromAngle(role, token.angle);
   const note = role.id === "portal"
-    ? `${formatNumber(solution.qpo, 2)} l/min from the gut`
-    : `portal gradient ${formatNumber(solution.ppo - solution.pli, 2)} mmHg`;
+    ? copy.portal(formatNumber(solution.qpo, 2))
+    : copy.gradient(formatNumber(solution.ppo - solution.pli, 2));
   return {
     kind: "dial", title: role.label, value: formatFactor(value), note,
     glyph: glyphFor(role, value), info: role.description,

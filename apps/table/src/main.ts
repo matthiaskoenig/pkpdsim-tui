@@ -11,12 +11,15 @@
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?sex=female           the female reference body, on the body and in every table
  *   ?species=rat          the liver of a rat or a mouse, in the lobed liver table
+ *   ?lang=de              the language of every word: en, de or es, and the browser otherwise
+ *   ?level=child          how much is said: child, adult or expert
  */
 
-import {chooseQuery} from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup, TableApp, TableHost} from "@pkpdsim-tui/tui-kit";
+import {chooseQuery, languageOptions, LEVELS, voiceOf, words} from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup, TableApp, TableHost, Voice} from "@pkpdsim-tui/tui-kit";
 import {startOverview} from "./hub.ts";
-import {OVERVIEW, selectedTable, TABLES, tableOf} from "./tables.ts";
+import {entryCopy, OVERVIEW, selectedTable, TABLES, tableOf} from "./tables.ts";
+import {HUB_TEXT} from "./text.ts";
 
 function element<T extends Element>(id: string): T {
   const found = document.getElementById(id);
@@ -24,49 +27,82 @@ function element<T extends Element>(id: string): T {
   return found as unknown as T;
 }
 
-/** The switch every table carries: which table of the application this is. */
-function tableChoices(selected: string): readonly ChoiceGroup[] {
-  return [{
-    id: "app", label: "Table", selected,
-    options: [
-      {id: OVERVIEW, label: "Body"},
-      ...TABLES.map(entry => ({id: entry.id, label: entry.label})),
-    ],
-  }];
+/**
+ * The three switches every table carries: which table this is, which language it speaks, and
+ * how much it says. The last two are what makes one table readable by a child, by an adult who
+ * knows nothing and by somebody of the field, in the language they brought with them.
+ */
+function appChoices(voice: Voice, selected: string): readonly ChoiceGroup[] {
+  const copy = words(voice);
+  return [
+    {
+      id: "app", label: copy.tableSwitch, selected,
+      options: [
+        {id: OVERVIEW, label: copy.bodySwitch},
+        ...TABLES.map(entry => ({id: entry.id, label: entryCopy(voice, entry.id).label})),
+      ],
+    },
+    {
+      id: "lang", label: copy.languageSwitch, selected: voice.locale,
+      options: languageOptions().map(option => ({id: option.id, label: option.label})),
+    },
+    {
+      id: "level", label: copy.levelSwitch, selected: voice.level,
+      options: LEVELS.map(level => ({id: level, label: copy.levelNames[level]})),
+    },
+  ];
 }
 
-function fail(message: string): void {
+function fail(voice: Voice, message: string): void {
+  const copy = voice.pick(HUB_TEXT);
   const boot = element<HTMLElement>("boot");
   boot.classList.add("boot--error");
   boot.hidden = false;
   const heading = boot.querySelector("h1");
-  if (heading !== null) heading.textContent = "The table could not start";
+  if (heading !== null) heading.textContent = copy.failed;
   element<HTMLElement>("boot-message").textContent = message;
 }
+
+const voice = voiceOf(
+  new URLSearchParams(window.location.search), window.navigator.languages ?? []);
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
   const entry = tableOf(parameters);
   const assets = new URL("assets/", document.baseURI);
-  const title = entry?.title ?? "The body on the table";
+  const copy = voice.pick(HUB_TEXT);
+  const title = entry === undefined ? copy.heading : entryCopy(voice, entry.id).title;
   document.title = `${title} | pkpdsim-tui`;
+  // The page says which language it is in, and how much it says, so that the type and the
+  // spacing of a table for a six year old can be the type of a table for a six year old.
+  document.documentElement.lang = voice.locale;
+  document.documentElement.dataset["level"] = voice.level;
   const heading = element<HTMLElement>("boot").querySelector("h1");
   if (heading !== null) heading.textContent = title;
+  element<HTMLElement>("boot-message").textContent = entry === undefined
+    ? copy.loadingBodies
+    : copy.loadingTable;
 
   const host: TableHost = {
     surface: element<HTMLElement>("surface"),
     scene: element<SVGSVGElement>("scene"),
     chrome: element<HTMLElement>("chrome"),
     parameters,
+    voice,
+    title,
     // Every table keeps its exported models and reference data in a folder of its own, so that
     // one page can serve all of them.
     assets: entry === undefined ? assets : new URL(entry.assets, assets),
     progress: message => {
       element<HTMLElement>("boot-message").textContent = message;
     },
-    choices: tableChoices(selectedTable(parameters)),
+    choices: appChoices(voice, selectedTable(parameters)),
     choose: (group, option) => {
       if (group === "app") chooseQuery("app", option, OVERVIEW);
+      // The language and the level are in the address like the body is, so that a link says
+      // them and a table which is opened from this one keeps them.
+      if (group === "lang") chooseQuery("lang", option, "");
+      if (group === "level") chooseQuery("level", option, "adult");
     },
     back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
   };
@@ -86,6 +122,6 @@ try {
   await start();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  fail(`${message} The exported models and reference data are copied in with "npm run sync".`);
+  fail(voice, `${message} ${voice.pick(HUB_TEXT).failedHint}`);
   console.error(error);
 }

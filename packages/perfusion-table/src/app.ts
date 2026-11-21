@@ -16,24 +16,22 @@ import {
 } from "@pkpdsim-tui/perfusion-sim";
 import type {PerfusionSettings} from "@pkpdsim-tui/perfusion-sim";
 import {
-  createChrome, createInfo, createPlot, createReadout, createTokenLayer, formatNumber,
-  pointerPoints, tokenPoints,
+  createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint, formatNumber,
+  pointerPoints, tokenPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
 import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
-import {cardFor, PERFUSION_STATS, PERFUSION_TRACES} from "./cards.ts";
+import {cardFor, perfusionStats, perfusionTraces} from "./cards.ts";
 import type {PerfusionReadout} from "./cards.ts";
 import {createCircuit} from "./circuit.ts";
 import {
-  PERFUSION_ABOUT, PERFUSION_TITLE, PERFUSION_TRIES, perfusionReading,
+  perfusionReading,
 } from "./audience.ts";
-import {perfusionRoles} from "./roles.ts";
+import {perfusionRoles, PERFUSION_MARKERS} from "./roles.ts";
+import {PERFUSION_TEXT} from "./text.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 4 put an object down, drag moves it, the wheel turns it.";
-const TABLE_HINT = "Put an object on the table and turn it.";
-const BOTH_HINT = "Put an object on the table and turn it, or press 1 to 4 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
 const BAND = 132;
@@ -41,12 +39,7 @@ const PANEL = 400;
 const MARGIN = 36;
 const ZONES = 4;
 
-function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
-  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
-    + "the address to drive the table with the mouse.";
-}
+
 
 function boxes(viewport: Viewport): {circuit: Box; plot: Box} {
   const left = PANEL;
@@ -65,33 +58,38 @@ function boxes(viewport: Viewport): {circuit: Box; plot: Box} {
 
 /** The machine perfusion table, on the surface of the application. */
 export async function startPerfusionTable(host: TableHost): Promise<void> {
+  const voice = host.voice;
+  const copy = voice.pick(PERFUSION_TEXT);
+  const kit = words(voice);
   const solverBase = new URL("solver/", host.assets);
-  host.progress("Starting the solver...");
+  host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", solverBase));
   const solver: Solver = await createSolver({
     host: core, key: "perfusion", assets: await fetchSolverAssets(solverBase),
   });
 
   const hours = PERFUSION_SIMULATION.end / 60;
-  const roles = perfusionRoles(hours);
+  const roles = perfusionRoles(hours, voice);
   const axis = {max: PERFUSION_SIMULATION.end, tick: 60, scale: 1 / 60, unit: "h"};
 
   const surface = host.surface;
   const root = host.scene;
-  const circuit = createCircuit(root);
-  const plot = createPlot(root, PERFUSION_TRACES);
-  const readout = createReadout<PerfusionReadout>(root, PERFUSION_STATS);
+  const circuit = createCircuit(root, voice);
+  const plot = createPlot(root, perfusionTraces(voice));
+  const readout = createReadout<PerfusionReadout>(
+    root, visibleStats(perfusionStats(voice), voice));
   const tokenLayer = createTokenLayer(root);
   createInfo(surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
   ]);
   const chrome = createChrome(host.chrome, {
+    voice,
     onBack: () => host.back(),
     onChoose: (group, option) => host.choose(group, option),
   });
 
   const {input, tracker} = await openTableInput({
-    parameters: host.parameters, element: surface, markers: roles.map(role => role.markers[0] ?? 0),
+    parameters: host.parameters, element: surface, markers: [...PERFUSION_MARKERS],
   });
 
   const origins = new Map<number, number>();
@@ -139,8 +137,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
       notice = "";
     } catch (error) {
       if (controller.signal.aborted) return;
-      notice = `This perfusion could not be solved: `
-        + `${error instanceof Error ? error.message : String(error)}`;
+      notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
     } finally {
       if (pending === controller) {
         pending = null;
@@ -183,12 +180,13 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
     readout.update(current, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
-      card: (token, role) => cardFor(token, role, current, origins),
+      card: (token, role) => cardFor(voice, token, role, current, origins),
     });
     chrome.update({
-      title: PERFUSION_TITLE, about: PERFUSION_ABOUT, tries: PERFUSION_TRIES,
-      reading: perfusionReading(settings, current, hour),
-      back: "Back to the body",
+      title: host.title, about: voice.say(copy.about),
+      tries: copy.tries.map(entry => voice.say(entry)),
+      reading: perfusionReading(voice, settings, current, hour),
+      back: true,
       choices: [...host.choices],
       status, roles, notice,
       value: role => {
@@ -198,7 +196,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
       },
       live: new Set(values.keys()),
       unassigned: unassignedMarkers(roles, snapshot.tokens),
-      hint: hintFor(tracker, status.state),
+      hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
       credit: "",
     });
   };
@@ -228,6 +226,6 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   resize();
   input.connect();
 
-  host.progress("Solving the reference perfusion...");
+  host.progress(copy.solvingReference);
   await solve(REFERENCE_SETTINGS, true);
 }

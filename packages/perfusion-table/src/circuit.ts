@@ -7,7 +7,8 @@
  */
 
 import {attributes, mixHex, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
+import {PERFUSION_TEXT} from "./text.ts";
 import type {PerfusionReadout} from "./cards.ts";
 
 /** The colour of a zone: from the blue of a starved zone to the warm tone of a supplied one. */
@@ -23,28 +24,27 @@ export interface Circuit {
   update(readout: PerfusionReadout, flow: number): void;
 }
 
-export function createCircuit(parent: SVGSVGElement): Circuit {
+export function createCircuit(parent: SVGSVGElement, voice: Voice): Circuit {
+  const copy = voice.pick(PERFUSION_TEXT);
   const root = svg("g", {class: "circuit"}, parent);
   const inner = svg("g", {class: "circuit-inner"}, root);
 
   svg("path", {
     class: "circuit-tube", d: TUBE,
-    "data-info": "The tubing. The perfusate is pumped out of the reservoir, through the "
-      + "oxygenator, and into the organ.",
+    "data-info": voice.say(copy.partInfo.tube),
   }, inner);
   const back = svg("path", {
     class: "circuit-tube circuit-tube--return", d: RETURN_TUBE,
-    "data-info": "What has been through the organ goes back to the reservoir, and round again.",
+    "data-info": voice.say(copy.partInfo.return),
   }, inner);
 
   svg("rect", {
     class: "circuit-part circuit-part--reservoir", x: 6, y: 68, width: 20, height: 18, rx: 3,
-    "data-info": "The reservoir, which holds the fluid the organ is perfused with. It carries "
-      + "no red blood cells: all of its oxygen is dissolved.",
+    "data-info": voice.say(copy.partInfo.reservoir),
   }, inner);
   const pump = svg("g", {
     class: "circuit-pump",
-    "data-info": "The pump. It sets how much fluid goes through the organ every minute.",
+    "data-info": voice.say(copy.partInfo.pump),
   }, inner);
   svg("circle", {class: "circuit-part", cx: 16, cy: 48, r: 7}, pump);
   const blades = svg("path", {
@@ -52,8 +52,7 @@ export function createCircuit(parent: SVGSVGElement): Circuit {
   }, pump);
   svg("rect", {
     class: "circuit-part circuit-part--oxygenator", x: 30, y: 10, width: 24, height: 14, rx: 3,
-    "data-info": "The oxygenator, where the fluid meets the gas and takes its oxygen up. It is "
-      + "the lung of the circuit.",
+    "data-info": voice.say(copy.partInfo.oxygenator),
   }, inner);
 
   const label = (text: string, x: number, y: number, extra = ""): SVGTextElement => {
@@ -61,22 +60,21 @@ export function createCircuit(parent: SVGSVGElement): Circuit {
     element.textContent = text;
     return element;
   };
-  label("Reservoir", 16, 93);
-  label("Pump", 16, 62);
-  label("Oxygenator", 42, 8);
-  label("Liver", 69, 14);
-  label("Bile", 92, 48);
+  label(copy.parts.reservoir, 16, 93);
+  label(copy.parts.pump, 16, 62);
+  label(copy.parts.oxygenator, 42, 8);
+  label(copy.parts.liver, 69, 14);
+  label(copy.parts.bile, 92, 48);
 
   // The organ: the chain of zones from the inflow to the outflow.
   const zones = Array.from({length: 4}, (_unused, index) => {
     const group = svg("g", {
       class: "circuit-zone",
       "data-info": index === 0
-        ? "Zone 1, where the fluid arrives. These cells see the oxygen first."
+        ? voice.say(copy.zoneInfo.first)
         : index === 3
-          ? "Zone 4, the far end of the sinusoid. Whatever is left of the oxygen reaches here, "
-            + "which is why these cells die first."
-          : `Zone ${index + 1}, between the inflow and the outflow.`,
+          ? voice.say(copy.zoneInfo.last)
+          : copy.zoneInfo.middle(index + 1),
     }, inner);
     const plate = svg("rect", {
       class: "circuit-zone-plate", x: 56 + index * 8, y: 26, width: 7, height: 30, rx: 2,
@@ -91,13 +89,11 @@ export function createCircuit(parent: SVGSVGElement): Circuit {
   svg("path", {
     class: "circuit-organ",
     d: "M 52 20 C 48 36, 50 58, 60 64 L 84 64 C 94 56, 92 30, 86 20 Z",
-    "data-info": "The organ on the machine: a rat liver, the model of the perfusion library of "
-      + "pkpdsim. The same machines keep human livers alive on the way to a transplant.",
+    "data-info": voice.say(copy.partInfo.organ),
   }, inner);
   const bile = svg("path", {
     class: "circuit-bile", d: "M 86 42 L 94 42",
-    "data-info": "The bile duct. What drips out of it is the surest sign that the organ is "
-      + "still doing its work.",
+    "data-info": voice.say(copy.partInfo.bile),
   }, inner);
 
   return {

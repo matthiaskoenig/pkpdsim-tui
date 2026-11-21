@@ -2,6 +2,7 @@ import {describe, expect, it} from "vitest";
 import fixture from "../../../packages/lobes-sim/test/fixtures/human-cases.json" with {type: "json"};
 import type {Lobe} from "@pkpdsim-tui/lobes-sim";
 import {caseChanges} from "@pkpdsim-tui/lobes-sim";
+import {createVoice} from "@pkpdsim-tui/tui-kit";
 import type {TableToken} from "@pkpdsim-tui/tuio-input";
 import {liverLayout} from "../src/layout.ts";
 import {idleInstruments, instrumentsOn, statesFrom} from "../src/plan.ts";
@@ -11,7 +12,7 @@ const lobes = fixture.lobes as Lobe[];
 const cases = fixture.cases as Record<string, {changes: Record<string, number>; lobes: string[]}>;
 const viewport = {width: 1000, height: 800};
 const blocks = liverLayout(lobes, {x: 0, y: 0, width: 1000, height: 800});
-const roles = lobeRoles(5);
+const roles = lobeRoles(5, createVoice("en", "adult"));
 
 function at(marker: number, token: string, sessionId = marker): TableToken {
   const block = blocks.find(candidate => candidate.token === token);

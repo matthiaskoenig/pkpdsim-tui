@@ -197,3 +197,48 @@
     font-size: 14px;
   }
 }
+
+/* The language and the level, as two rows of pills in the corner of the landing page. */
+.hub-pill {
+  cursor: pointer;
+}
+
+.hub-pill:focus {
+  outline: none;
+}
+
+.hub-pill-plate {
+  fill: var(--panel);
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+  transition: fill 120ms linear, stroke 120ms linear;
+}
+
+.hub-pill[data-selected="true"] .hub-pill-plate {
+  fill: rgba(39, 179, 172, 0.18);
+  stroke: var(--accent);
+}
+
+.hub-pill:hover .hub-pill-plate,
+.hub-pill:focus-visible .hub-pill-plate,
+.hub-pill[data-arming="true"] .hub-pill-plate {
+  fill: rgba(39, 179, 172, 0.3);
+  stroke: var(--accent);
+}
+
+.hub-pill-text {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.hub-pill[data-selected="true"] .hub-pill-text {
+  fill: var(--accent);
+}
+
+.hub-pill:hover .hub-pill-text,
+.hub-pill[data-arming="true"] .hub-pill-text {
+  fill: var(--ink);
+}

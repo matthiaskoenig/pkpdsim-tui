@@ -7,19 +7,25 @@ import {
   CIRRHOSIS_CLASSES, GENOTYPES, nearestCategory, RENAL_CLASSES,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {Pharmacokinetics} from "@pkpdsim-tui/glimepiride-sim";
-import {clamp, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {PlotTrace, StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {
+  PlotTrace, StatDefinition, TokenCard, TokenGlyph, Voice,
+} from "@pkpdsim-tui/tui-kit";
+import {GLIMEPIRIDE_TEXT} from "./text.ts";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
 /** Plasma concentrations are solved in mM and read in uM. */
 export const MICROMOLAR = 1000;
 
-export const GLIMEPIRIDE_TRACES: readonly PlotTrace[] = [
-  {id: "gli", label: "glimepiride", column: "[Cve_gli]", unit: "uM", colour: "#4fd1c5", factor: MICROMOLAR, digits: 3},
-  {id: "m1", label: "M1", column: "[Cve_m1]", unit: "uM", colour: "#e8a33d", factor: MICROMOLAR, digits: 3},
-  {id: "m2", label: "M2", column: "[Cve_m2]", unit: "uM", colour: "#a06cd5", factor: MICROMOLAR, digits: 3},
-];
+export function glimepirideTraces(voice: Voice): readonly PlotTrace[] {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT).traces;
+  return [
+    {id: "gli", label: copy.gli, column: "[Cve_gli]", unit: "uM", colour: "#4fd1c5", factor: MICROMOLAR, digits: 3},
+    {id: "m1", label: copy.m1, column: "[Cve_m1]", unit: "uM", colour: "#e8a33d", factor: MICROMOLAR, digits: 3},
+    {id: "m2", label: copy.m2, column: "[Cve_m2]", unit: "uM", colour: "#a06cd5", factor: MICROMOLAR, digits: 3},
+  ];
+}
 
 /** Everything the bands read: the course as a whole, and the moment the dial points at. */
 export interface GlimepirideReadout {
@@ -30,49 +36,42 @@ export interface GlimepirideReadout {
   readonly urine: number;
 }
 
-export const GLIMEPIRIDE_STATS: readonly StatDefinition<GlimepirideReadout>[] = [
-  {
-    id: "now", label: "Plasma now", unit: "uM", of: readout => readout.now, digits: 3,
-    info: "How much glimepiride is in the blood at the hour the dial points at.",
-  },
-  {
-    id: "cmax", label: "Peak plasma", unit: "uM", of: readout => readout.pk.cmax, digits: 3,
-    info: "The most the blood ever holds, which is what a dose is felt as.",
-  },
-  {
-    id: "tmax", label: "Time of the peak", unit: "h", of: readout => readout.pk.tmax / 60,
-    digits: 2,
-    info: "How long the tablet takes to reach that peak: the time it needs to dissolve, to "
-      + "cross the gut and to pass the liver.",
-  },
-  {
-    id: "halflife", label: "Half life", unit: "h", of: readout => readout.pk.halflife / 60,
-    digits: 2,
-    info: "The time in which half of what is in the blood disappears. A liver which works "
-      + "slowly makes it longer, and the drug then piles up from one tablet to the next.",
-  },
-  {
-    id: "auc", label: "Exposure", unit: "uM h", of: readout => readout.pk.auc / 60, digits: 2,
-    info: "Everything the body sees of the drug over the whole course: the area under the "
-      + "curve. It is the number a dose is judged by.",
-  },
-  {
-    id: "urine", label: "M1 and M2 in urine", unit: "umole", of: readout => readout.urine,
-    digits: 1,
-    info: "What leaves in the urine. Glimepiride itself does not: the liver turns it into M1 "
-      + "and M2 first, and the kidneys wash those out.",
-  },
-];
+/**
+ * The numbers of the band. A child reads what is in the blood now and the most there ever is;
+ * an adult when that is and how long it stays; an expert the exposure and what leaves in the
+ * urine.
+ */
+export function glimepirideStats(voice: Voice): readonly StatDefinition<GlimepirideReadout>[] {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT).stats;
+  const stat = (
+    id: keyof typeof copy, unit: string, digits: number,
+    of: (readout: GlimepirideReadout) => number, from?: "adult" | "expert",
+  ): StatDefinition<GlimepirideReadout> => ({
+    id, unit, digits, of,
+    label: voice.say(copy[id].label), info: voice.say(copy[id].info),
+    ...(from === undefined ? {} : {from}),
+  });
+  return [
+    stat("now", "uM", 3, readout => readout.now),
+    stat("cmax", "uM", 3, readout => readout.pk.cmax),
+    stat("tmax", "h", 1, readout => readout.pk.tmax / 60, "adult"),
+    stat("halflife", "h", 1, readout => readout.pk.halflife / 60, "adult"),
+    stat("auc", "uM h", 2, readout => readout.pk.auc / 60, "expert"),
+    stat("urine", "umole", 1, readout => readout.urine, "expert"),
+  ];
+}
 
-/** What a dial of the individual is set to, in the words a clinician reads. */
-export function categoryOf(roleId: string, value: number): string {
+export function categoryOf(voice: Voice, roleId: string, value: number): string {
+  const said = (label: string): string =>
+    voice.pick(GLIMEPIRIDE_TEXT).categories[label] ?? label;
   switch (roleId) {
     case "cyp2c9":
+      // A genotype is written the same in every language.
       return nearestCategory(GENOTYPES, value).label;
     case "cirrhosis":
-      return nearestCategory(CIRRHOSIS_CLASSES, value).label;
+      return said(nearestCategory(CIRRHOSIS_CLASSES, value).label);
     case "renal":
-      return nearestCategory(RENAL_CLASSES, value).label;
+      return said(nearestCategory(RENAL_CLASSES, value).label);
     default:
       return "";
   }
@@ -112,12 +111,13 @@ function glyphFor(role: TokenRole, value: number): TokenGlyph {
 }
 
 export function cardFor(
-  token: TableToken, role: TokenRole | undefined, context: CardContext,
+  voice: Voice, token: TableToken, role: TokenRole | undefined, context: CardContext,
 ): TokenCard {
+  const kit = words(voice);
   if (role === undefined) {
     return {
-      kind: "unassigned", title: `Marker ${token.marker}`, value: "no role",
-      note: "This table does not use this object",
+      kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+      note: voice.say(kit.noRoleNote),
     };
   }
   const angle = role.mode === "absolute" ? token.angle : token.turn;
@@ -125,14 +125,15 @@ export function cardFor(
   if (role.id === "hour") {
     return {
       kind: "dial", title: role.label, value: `${formatNumber(value, 1)} h`,
-      note: `plasma ${formatNumber(context.readout.now, 3)} uM at this hour`,
+      note: `${formatNumber(context.readout.now, 3)} uM`,
       glyph: glyphFor(role, value), info: role.description,
     };
   }
-  const category = categoryOf(role.id, value);
+  const category = categoryOf(voice, role.id, value);
   return {
     kind: "dial", title: role.label, value: formatValue(role, value),
-    note: category === "" ? role.description.split(".")[0] ?? "" : category,
+    // A dial which has no clinical class says nothing twice: its value is on the card already.
+    note: category,
     glyph: glyphFor(role, value), info: role.description,
   };
 }

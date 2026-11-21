@@ -2,8 +2,11 @@
  * What the liver says: the numbers of the bands at the edges, and the card beside an object.
  */
 
-import {clamp, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {PlotTrace, StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {
+  PlotTrace, StatDefinition, TokenCard, TokenGlyph, Voice,
+} from "@pkpdsim-tui/tui-kit";
+import {LOBE_TEXT} from "./text.ts";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {LobeBlock} from "./layout.ts";
@@ -12,43 +15,39 @@ import {shortName} from "./scene.ts";
 /** A row of a solved course, every column of it by name. */
 export type Sample = Readonly<Record<string, number>>;
 
-export const LOBE_STATS: readonly StatDefinition<Sample>[] = [
-  {
-    id: "remnant", label: "Liver volume", unit: "% of reference",
-    of: sample => (sample["f_remnant"] ?? 0) * 100, digits: 0,
-    info: "How much liver there is, against the same liver on the same day without an "
-      + "operation. A liver which has lost a part grows until it is back at its size.",
-  },
-  {
-    id: "portal-pressure", label: "Portal pressure", unit: "mmHg",
-    of: sample => sample["CV_P_po"] ?? 0, digits: 1,
-    info: "The pressure in the vein which brings the blood of the gut to the liver. The whole "
-      + "of that blood has to pass through whatever liver is left.",
-  },
-  {
-    id: "gradient", label: "Portal gradient", unit: "mmHg",
-    of: sample => (sample["CV_P_po"] ?? 0) - (sample["CV_P_li"] ?? 0), digits: 1,
-    info: "The pressure the blood loses on its way through the liver. It rises when there is "
-      + "less liver for the same blood to cross.",
-  },
-  {
-    id: "portal-flow", label: "Portal flow", unit: "l/min",
-    of: sample => sample["Qpo"] ?? 0, digits: 2,
-    info: "The blood the gut sends to the liver, about three quarters of everything the liver "
-      + "receives.",
-  },
-  {
-    id: "arterial-flow", label: "Arterial flow", unit: "l/min",
-    of: sample => sample["Qha"] ?? 0, digits: 2,
-    info: "The blood the liver gets straight from the heart, which carries the oxygen.",
-  },
-];
+/**
+ * The numbers of the band. A child reads how much liver is left and how hard the blood has to
+ * push; an adult the flows as well; an expert the gradient which says what the remnant costs.
+ */
+export function lobeStats(voice: Voice): readonly StatDefinition<Sample>[] {
+  const copy = voice.pick(LOBE_TEXT).stats;
+  const stat = (
+    id: keyof typeof copy, unit: string, digits: number, of: (sample: Sample) => number,
+    from?: "adult" | "expert",
+  ): StatDefinition<Sample> => ({
+    id, unit, digits, of,
+    label: voice.say(copy[id].label), info: voice.say(copy[id].info),
+    ...(from === undefined ? {} : {from}),
+  });
+  return [
+    stat("remnant", "% of reference", 0, sample => 100 * (sample["f_remnant"] ?? 0)),
+    stat("portal-pressure", "mmHg", 1, sample => sample["CV_P_po"] ?? 0),
+    stat("portal-flow", "l/min", 2, sample => sample["Qpo"] ?? 0, "adult"),
+    stat("arterial-flow", "l/min", 2, sample => sample["Qha"] ?? 0, "adult"),
+    stat(
+      "gradient", "mmHg", 1,
+      sample => (sample["CV_P_po"] ?? 0) - (sample["CV_P_li"] ?? 0), "expert"),
+  ];
+}
 
 /** What the course below the liver draws. */
-export const LOBE_TRACES: readonly PlotTrace[] = [
-  {id: "volume", label: "liver volume", column: "Vli_lobes", unit: "l", colour: "#4fd1c5"},
-  {id: "portal", label: "portal pressure", column: "CV_P_po", unit: "mmHg", colour: "#e8a33d"},
-];
+export function lobeTraces(voice: Voice): readonly PlotTrace[] {
+  const copy = voice.pick(LOBE_TEXT).traces;
+  return [
+    {id: "volume", label: copy.volume, column: "Vli_lobes", unit: "l", colour: "#4fd1c5"},
+    {id: "portal", label: copy.portal, column: "CV_P_po", unit: "mmHg", colour: "#e8a33d"},
+  ];
+}
 
 export interface CardContext {
   readonly block: LobeBlock | undefined;
@@ -60,18 +59,23 @@ export interface CardContext {
 }
 
 /** What an instrument did to the segment it lies on, for the card beside it. */
-function instrumentNote(roleId: string, block: LobeBlock, context: CardContext): string {
-  const share = `${formatNumber(block.share * 100, 0)} % of the mass`;
+function instrumentNote(
+  voice: Voice, roleId: string, block: LobeBlock, context: CardContext,
+): string {
+  const copy = voice.pick(LOBE_TEXT);
+  const share = `${formatNumber(block.share * 100, 0)} %`;
   const reference = context.baseline[`Vli_${block.token}`];
   const volume = reference === undefined || reference <= 0
     ? undefined
     : (context.sample[`Vli_${block.token}`] ?? reference) / reference;
   switch (roleId) {
     case "resect":
-      return `${share}, taken away`;
+      return copy.takenAway(share);
     case "portal":
     case "arterial":
-      return volume === undefined ? share : `${share}, now at ${formatNumber(volume * 100, 0)} %`;
+      return volume === undefined
+        ? share
+        : copy.nowAt(share, `${formatNumber(volume * 100, 0)} %`);
     default:
       return share;
   }
@@ -84,28 +88,32 @@ function glyphFor(role: TokenRole, level: number): TokenGlyph {
   return {kind: "clock", level: clamp(level, 0, 1)};
 }
 
-export function cardFor(token: TableToken, role: TokenRole | undefined, context: CardContext): TokenCard {
+export function cardFor(
+  voice: Voice, token: TableToken, role: TokenRole | undefined, context: CardContext,
+): TokenCard {
+  const kit = words(voice);
+  const copy = voice.pick(LOBE_TEXT);
   if (role === undefined) {
     return {
-      kind: "unassigned", title: `Marker ${token.marker}`, value: "no role",
-      note: "This table does not use this object",
+      kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+      note: voice.say(kit.noRoleNote),
     };
   }
   if (role.mode === "position") {
     const {block} = context;
     return {
       kind: "plain", title: role.label,
-      value: block === undefined ? "no segment" : shortName(block),
+      value: block === undefined ? copy.noSegment : shortName(voice, block),
       note: block === undefined
-        ? "Put it on a segment of the liver"
-        : instrumentNote(role.id, block, context),
+        ? copy.putOnSegment
+        : instrumentNote(voice, role.id, block, context),
       glyph: glyphFor(role, 1), info: role.description,
     };
   }
   const day = valueFromAngle(role, token.turn, context.origins.get(token.sessionId) ?? 0);
   return {
-    kind: "dial", title: role.label, value: `day ${formatNumber(day, 1)}`,
-    note: "turn back to the operation",
+    kind: "dial", title: role.label, value: copy.dayValue(formatNumber(day, 1)),
+    note: copy.windBack,
     glyph: glyphFor(role, context.days > 0 ? day / context.days : 0), info: role.description,
   };
 }

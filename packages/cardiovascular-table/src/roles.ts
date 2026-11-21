@@ -5,62 +5,39 @@
 
 import {DEFAULT_HEART_CONTROLS, defaultControls, HEART_RATE_RANGE} from "@pkpdsim-tui/cardio-sim";
 import type {HeartControls, PressureControls, PressureReference} from "@pkpdsim-tui/cardio-sim";
+import type {Voice} from "@pkpdsim-tui/tui-kit";
 import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
+import {CARDIO_TEXT} from "./text.ts";
 
 /**
- * The four resistances of the pressure network, on markers 1 to 4. The angle of the object is the
- * factor on the reference resistance: pointing up is the reference physiology, turning it to the
- * right obstructs, turning it to the left dilates. The scale is logarithmic, because a resistance
- * factor is a ratio.
+ * Every object of this table, in the words of the visitor: the four resistances of the pressure
+ * network on markers 1 to 4, and the heart itself on 5 and 6. The angle of an object is the
+ * factor on the reference value, the scale of a resistance is logarithmic because it is a ratio,
+ * and the rate is linear because a rate is read off a scale in beats a minute.
  */
-export const RESISTANCE_ROLES: readonly TokenRole[] = [
-  {
-    id: "hepatic", label: "Hepatic outflow", unit: "x", markers: [1],
-    description: "Resistance of the hepatic veins. Obstruction raises the portal pressure, which is portal hypertension.",
-    min: 0.5, max: 8, reference: 1, mode: "absolute", scale: "log", turns: 1,
-  },
-  {
-    id: "systemic", label: "Systemic resistance", unit: "x", markers: [2],
-    description: "Resistance of every systemic organ at once, the afterload of the heart.",
-    min: 0.5, max: 2, reference: 1, mode: "absolute", scale: "log", turns: 1,
-  },
-  {
-    id: "portal", label: "Portal vein", unit: "x", markers: [3],
-    description: "Resistance of the portal vein between the splanchnic organs and the liver.",
-    min: 0.5, max: 6, reference: 1, mode: "absolute", scale: "log", turns: 1,
-  },
-  {
-    id: "renal", label: "Renal resistance", unit: "x", markers: [4],
-    description: "Resistance of the kidneys, on top of the systemic resistance.",
-    min: 0.5, max: 3, reference: 1, mode: "absolute", scale: "log", turns: 1,
-  },
-];
+export function cardiovascularRoles(voice: Voice): readonly TokenRole[] {
+  const copy = voice.pick(CARDIO_TEXT).roles;
+  const dial = (
+    id: keyof typeof copy, markers: readonly number[], unit: string,
+    min: number, max: number, reference: number, scale: "log" | "linear",
+  ): TokenRole => ({
+    id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
+    unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
+  });
+  return [
+    dial("hepatic", [1], "x", 0.5, 8, 1, "log"),
+    dial("systemic", [2], "x", 0.5, 2, 1, "log"),
+    dial("portal", [3], "x", 0.5, 6, 1, "log"),
+    dial("renal", [4], "x", 0.5, 3, 1, "log"),
+    dial("heartRate", [5], "/min", HEART_RATE_RANGE.min, HEART_RATE_RANGE.max,
+      DEFAULT_HEART_CONTROLS.heartRate, "linear"),
+    dial("contractility", [6], "x", 0.4, 1.6, DEFAULT_HEART_CONTROLS.contractility, "log"),
+  ];
+}
 
-/**
- * The heart itself, on markers 5 and 6. These two are what the beating heart is solved with: the
- * rate it beats at and how hard the ventricles squeeze. The rate is linear, because a rate is
- * read off a scale in beats per minute and not as a ratio.
- */
-export const HEART_ROLES: readonly TokenRole[] = [
-  {
-    id: "heartRate", label: "Heart rate", unit: "/min", markers: [5],
-    description: "How often the heart beats. The beat on the table is the one the compiled heart "
-      + "is solved with, so the numbers belong to that rate.",
-    min: HEART_RATE_RANGE.min, max: HEART_RATE_RANGE.max,
-    reference: DEFAULT_HEART_CONTROLS.heartRate, mode: "absolute", scale: "linear", turns: 1,
-  },
-  {
-    id: "contractility", label: "Contractility", unit: "x", markers: [6],
-    description: "How hard the ventricles squeeze. Turning it down is a heart which is failing: "
-      + "it moves less blood with every beat.",
-    min: 0.4, max: 1.6, reference: DEFAULT_HEART_CONTROLS.contractility,
-    mode: "absolute", scale: "log", turns: 1,
-  },
-];
-
-/** Every object of this table: the four resistances and the two of the heart. */
-export const CARDIOVASCULAR_ROLES: readonly TokenRole[] = [...RESISTANCE_ROLES, ...HEART_ROLES];
+/** The markers this table reads, which the input layer needs before a word is said. */
+export const CARDIOVASCULAR_MARKERS: readonly number[] = [1, 2, 3, 4, 5, 6];
 
 /**
  * The controls the beating heart is solved with. A role without an object keeps the reference,
