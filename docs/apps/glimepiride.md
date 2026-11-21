@@ -37,7 +37,7 @@ The hours object is relative, like the day dial of the [lobed liver](lobes.md): 
 
 Across the top, the way the drug takes through the individual: the tablet, the liver with its CYP2C9 and its Child-Pugh class, the plasma, the kidneys with their clearance and the urine with what has arrived in it. A station the objects moved away from the reference is outlined.
 
-The six numbers at the near and the far edge, with the change against the reference individual under each one:
+The six numbers of the band, with the change against the reference individual under each one. Hovering one, or resting a finger on it, says what it is:
 
 | Number | What it is |
 | --- | --- |

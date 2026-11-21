@@ -27,11 +27,11 @@ Every object is a dial. Pointing away from the person is the reference physiolog
 
 The four resistances change both solutions at once. The two of the heart only change the beating one, because the steady network has no beat.
 
-The position of these objects carries nothing: each one is a dial, wherever it is put. The card next to it turns to the nearest edge of the table, so it reads upright for whoever placed it.
+The position of these objects carries nothing: each one is a dial, wherever it is put. The card stands above it and reads upright, as everything on these tables does. Inside the ring of a resistance is a vessel whose opening narrows as the factor goes up, following Poiseuille's law, and inside the two of the heart is a heart that beats at the rate of the dial.
 
 ## What the table shows
 
-The six numbers at the near and the far edge, all of them read off the beating heart over its last three beats:
+The six numbers of the band, all of them read off the beating heart over its last three beats. Hovering one, or resting a finger on it, says what it is:
 
 | Number | What it is |
 | --- | --- |
@@ -44,9 +44,9 @@ The six numbers at the near and the far edge, all of them read off the beating h
 
 The small number under each one is the change against the reference heart of the same body, which is the case pkpdsim exported for it.
 
-A panel at each long edge draws one beat of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking around the cycle in real time at the rate on the table. The two panels are point symmetric about the middle of the surface, so the people facing each other across it each have one the right way up. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
+A panel beside the body draws one beat of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking around the cycle in real time at the rate on the table. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
 
-While a run of the heart is in flight the beat and the panels step back a little, and the anatomy keeps answering, because the steady network is solved on every frame. One run takes about two seconds.
+While a run of the heart is in flight the beat and the panel step back a little, and the anatomy keeps answering, because the steady network is solved on every frame. One run takes about two seconds.
 
 On the body, each organ is a disc as large as its flow and coloured by the share of its reference flow it still receives: grey at the reference, blue when it has lost half, amber when it has gained half. The vessels are as wide as the flow they carry, with the arterial side in red, the venous side in blue and the portal system in purple.
 

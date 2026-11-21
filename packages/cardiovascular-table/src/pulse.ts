@@ -1,8 +1,7 @@
 /**
  * The beat, large enough to read from across the table: the pressure in the aorta and in the
  * left ventricle over one cycle of the solved heart, with the moment the table is at marked on
- * it. Two of these are drawn, point symmetric about the centre of the surface, so that the
- * people standing at the two long edges each have one the right way up.
+ * it. One panel, at the far side of the body from the panel of the table.
  *
  * The curves are the course the compiled model returned. The panel only draws them.
  */
@@ -82,7 +81,7 @@ function panel(parent: SVGGElement): Panel {
 
 export function createPulse(parent: SVGSVGElement): Pulse {
   const root = svg("g", {class: "layer layer--pulse", opacity: 0}, parent);
-  const panels = [panel(root), panel(root)];
+  const panels = [panel(root)];
   let drawn: BeatCycle | undefined;
   let box: Box = {x: 0, y: 0, width: PANEL.width, height: PANEL.height};
 
@@ -111,12 +110,8 @@ export function createPulse(parent: SVGSVGElement): Pulse {
         x: PANEL.margin, y: (viewport.height - PANEL.height) / 2,
         width: PANEL.width, height: PANEL.height,
       };
-      // The right panel stands as it is written, the left one is turned around the centre of
-      // the table, so that the two readers face the same beat.
       panels[0]?.group.setAttribute("transform",
         `translate(${viewport.width - box.x - PANEL.width} ${box.y})`);
-      panels[1]?.group.setAttribute("transform",
-        `translate(${box.x + PANEL.width} ${box.y + PANEL.height}) rotate(180)`);
     },
 
     update(view: PulseView | undefined): void {

@@ -29,6 +29,12 @@ export interface PlotTrace {
   readonly factor?: number;
   /** Decimals of the value beside the course, where the default follows its magnitude. */
   readonly digits?: number;
+  /**
+   * The scale this course is drawn on, where it is a fixed one. A course which only ever moves
+   * within a percent of itself is noise when it is scaled to what it did; a measurement with a
+   * meaning of its own, such as a share of cells which are alive, is drawn against that meaning.
+   */
+  readonly range?: {readonly low: number; readonly high: number};
 }
 
 /** The time axis, in the unit the model is solved in. */
@@ -71,6 +77,14 @@ interface TraceElements {
 function span(
   courses: readonly PlotSeries[], traces: readonly PlotTrace[], lane = 0.5,
 ): {low: number; high: number} {
+  // A course which says what its scale is keeps it, whatever the numbers do inside it.
+  const fixed = traces.map(trace => trace.range).filter(range => range !== undefined);
+  if (fixed.length === traces.length && fixed.length > 0) {
+    return {
+      low: Math.min(...fixed.map(range => range.low)),
+      high: Math.max(...fixed.map(range => range.high)),
+    };
+  }
   let low = Number.POSITIVE_INFINITY;
   let high = Number.NEGATIVE_INFINITY;
   for (const course of courses) {

@@ -48,7 +48,7 @@ async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
   const entry = tableOf(parameters);
   const assets = new URL("assets/", document.baseURI);
-  const title = entry?.title ?? "pkpdsim on the table";
+  const title = entry?.title ?? "The body on the table";
   document.title = `${title} | pkpdsim-tui`;
   const heading = element<HTMLElement>("boot").querySelector("h1");
   if (heading !== null) heading.textContent = title;
@@ -68,6 +68,7 @@ async function start(): Promise<void> {
     choose: (group, option) => {
       if (group === "app") chooseQuery("app", option, OVERVIEW);
     },
+    back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
   };
 
   // A table is left by opening another one, which reloads the page: nothing of a table has to be

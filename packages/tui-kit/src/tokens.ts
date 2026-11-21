@@ -1,18 +1,20 @@
 /**
- * The objects on the surface: a ring around each one, and a card next to it that is turned to
- * face the edge of the table the object is nearest to, which is where the person who put it
- * down is standing.
+ * The objects on the surface: a ring around each one with a picture of what it is inside it,
+ * and a card above it with its name and its value. A table is read from one side, so the card
+ * always stands upright: a card at an angle reads as a mistake.
  */
 
 import {ABSOLUTE_SPAN, angleForValue, roleForMarker} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 import {clamp, describeArc} from "./format.ts";
+import {createGlyph} from "./glyph.ts";
+import type {Glyph, TokenGlyph} from "./glyph.ts";
 import {attributes, svg} from "./svg.ts";
 import type {Viewport} from "./types.ts";
 
 const RING_RADIUS = 58;
-const CARD_WIDTH = 252;
-const CARD_HEIGHT = 96;
+const CARD_WIDTH = 236;
+const CARD_HEIGHT = 88;
 /** The outer stop of the dial, in degrees from the detent at the top. */
 const STOP = ABSOLUTE_SPAN * 180;
 
@@ -28,6 +30,10 @@ export interface TokenCard {
   readonly title: string;
   readonly value: string;
   readonly note: string;
+  /** The picture inside the ring: what this object is, and where it stands in its range. */
+  readonly glyph?: TokenGlyph;
+  /** The sentence a finger resting on the object opens, empty when there is none. */
+  readonly info?: string;
 }
 
 export interface TokenLayerUpdate {
@@ -40,25 +46,6 @@ export interface TokenLayerUpdate {
 
 export interface TokenLayer {
   update(state: TokenLayerUpdate): void;
-}
-
-/**
- * The rotation that makes a card readable from the nearest edge of the table. People stand at
- * the four sides of a rectangular table, not on a circle around it, so the card turns to one of
- * four quarters instead of following the object exactly: a card at an angle reads as a mistake.
- */
-export function cardRotation(x: number, y: number): number {
-  const edges = [
-    {distance: y, rotation: 180},
-    {distance: 1 - y, rotation: 0},
-    {distance: x, rotation: 90},
-    {distance: 1 - x, rotation: -90},
-  ];
-  let nearest = edges[1] as {distance: number; rotation: number};
-  for (const edge of edges) {
-    if (edge.distance < nearest.distance) nearest = edge;
-  }
-  return nearest.rotation;
 }
 
 /**
@@ -88,6 +75,8 @@ interface TokenElements {
   readonly arc: SVGPathElement;
   readonly detent: SVGLineElement;
   readonly pointer: SVGLineElement;
+  readonly glyph: Glyph;
+  readonly badge: SVGCircleElement;
   readonly marker: SVGTextElement;
   readonly card: SVGGElement;
   readonly plate: SVGRectElement;
@@ -107,15 +96,22 @@ function buildToken(parent: SVGGElement): TokenElements {
   const pointer = svg("line", {
     class: "token-pointer", x1: 0, y1: -14, x2: 0, y2: -RING_RADIUS + 10,
   }, group);
-  const marker = svg("text", {class: "token-marker", x: 0, y: 6}, group);
+  const glyph = createGlyph(group);
+  // The number of the marker is printed on the object itself, so it sits at the foot of the
+  // ring where it names the object without covering its picture.
+  const badge = svg("circle", {class: "token-badge", cx: 0, cy: RING_RADIUS, r: 15}, group);
+  const marker = svg("text", {class: "token-marker", x: 0, y: RING_RADIUS + 6}, group);
   const card = svg("g", {class: "token-card"}, group);
   const plate = svg("rect", {
     class: "card", x: -CARD_WIDTH / 2, y: -CARD_HEIGHT, width: CARD_WIDTH, height: CARD_HEIGHT, rx: 14,
   }, card);
-  const title = svg("text", {class: "card-title", x: 0, y: -CARD_HEIGHT + 26}, card);
-  const value = svg("text", {class: "card-value", x: 0, y: -CARD_HEIGHT + 62}, card);
-  const note = svg("text", {class: "card-note", x: 0, y: -CARD_HEIGHT + 84}, card);
-  return {group, ring, track, arc, detent, pointer, marker, card, plate, title, value, note};
+  const title = svg("text", {class: "card-title", x: 0, y: -CARD_HEIGHT + 24}, card);
+  const value = svg("text", {class: "card-value", x: 0, y: -CARD_HEIGHT + 56}, card);
+  const note = svg("text", {class: "card-note", x: 0, y: -CARD_HEIGHT + 76}, card);
+  return {
+    group, ring, track, arc, detent, pointer, glyph, badge, marker, card, plate, title, value,
+    note,
+  };
 }
 
 export function createTokenLayer(parent: SVGSVGElement): TokenLayer {
@@ -149,15 +145,19 @@ export function createTokenLayer(parent: SVGSVGElement): TokenLayer {
     // other half of the ring stays empty instead of promising a value that does not exist.
     visual.track.setAttribute("d", !dial ? "" : trackOf(role));
     visual.detent.setAttribute("opacity", dial ? "1" : "0");
-    visual.card.setAttribute("transform",
-      `rotate(${cardRotation(token.x, token.y).toFixed(1)}) translate(0 ${-RING_RADIUS - 18})`);
+    // The table is read from one side, so the card stands upright wherever the object is.
+    visual.card.setAttribute("transform", `translate(0 ${-RING_RADIUS - 16})`);
+    visual.glyph.update(card.glyph);
     visual.ring.setAttribute("class",
       card.kind === "unassigned" ? "token-ring token-ring--unassigned" : "token-ring");
     visual.plate.setAttribute("class",
       card.kind === "unassigned" ? "card card--unassigned" : "card");
-    visual.title.textContent = clipLine(card.title, 26);
-    visual.value.textContent = clipLine(card.value, 20);
-    visual.note.textContent = clipLine(card.note, 40);
+    visual.title.textContent = clipLine(card.title, 24);
+    visual.value.textContent = clipLine(card.value, 18);
+    visual.note.textContent = clipLine(card.note, 36);
+    // A finger which rests on an object opens the sentence behind it, like one on a panel.
+    if (card.info === undefined || card.info === "") visual.group.removeAttribute("data-info");
+    else visual.group.setAttribute("data-info", card.info);
   };
 
   return {

@@ -409,6 +409,25 @@ function tokenKeyOf(target) {
   return group === null ? null : group.getAttribute("data-key");
 }
 
+/**
+ * A click on the glass is a tap, and a tap has to last: a table takes a finger as a choice when
+ * it has rested on something for a moment, so a touch which is released at once stays on the
+ * surface until `TAP_HOLD` has passed. Holding the button down is still a finger at rest, and
+ * dragging is still a finger moving.
+ */
+const TAP_MS = 250;
+const TAP_HOLD = 700;
+/** The taps which are still on the surface, so that placing an object can clear them. */
+const taps = new Map();
+
+function dropTaps() {
+  for (const [key, timer] of taps) {
+    window.clearTimeout(timer);
+    pointers.delete(key);
+  }
+  taps.clear();
+}
+
 table.addEventListener("pointerdown", event => {
   if (!event.isPrimary && event.pointerType === "mouse") return;
   closePicker();
@@ -430,7 +449,7 @@ table.addEventListener("pointerdown", event => {
     if (token === undefined) return;
     drag = {kind: "token", key, dx: token.x - position.x, dy: token.y - position.y};
   } else {
-    drag = {kind: "pointer", key: addPointer(position), dx: 0, dy: 0};
+    drag = {kind: "pointer", key: addPointer(position), dx: 0, dy: 0, at: event.timeStamp};
   }
   // The capture keeps a drag that leaves the surface, and is nothing to insist on when the
   // pointer is already gone.
@@ -451,23 +470,43 @@ table.addEventListener("pointermove", event => {
   publish();
 });
 
-function endDrag() {
+function endDrag(event) {
   if (drag === null) return;
-  // A touch exists for as long as the button is down, which is what a finger does.
-  if (drag.kind === "pointer") pointers.delete(drag.key);
+  const ended = drag;
   drag = null;
+  if (ended.kind !== "pointer") {
+    publish();
+    return;
+  }
+  // A touch exists for as long as the button is down, which is what a finger does, except for
+  // a tap: that one is held a moment longer, so that a table can take it as a choice.
+  const held = (event?.timeStamp ?? 0) - ended.at;
+  if (event === undefined || held > TAP_MS) {
+    pointers.delete(ended.key);
+    publish();
+    return;
+  }
+  const key = ended.key;
+  taps.set(key, window.setTimeout(() => {
+    taps.delete(key);
+    pointers.delete(key);
+    publish();
+  }, TAP_HOLD - held));
   publish();
 }
 
-table.addEventListener("pointerup", endDrag);
-table.addEventListener("pointercancel", endDrag);
-table.addEventListener("lostpointercapture", endDrag);
+// Only a release is a tap: a cancelled or lost pointer is a touch which went away.
+table.addEventListener("pointerup", event => endDrag(event));
+table.addEventListener("pointercancel", () => endDrag());
+table.addEventListener("lostpointercapture", () => endDrag());
 
 table.addEventListener("dblclick", event => {
   if (event.button !== 0) return;
   // A double click on a token is not a second token on top of it.
   if (tokenKeyOf(event.target) !== null) return;
   event.preventDefault();
+  // The two clicks which placed the object are not two taps on the table as well.
+  dropTaps();
   addToken(positionOf(event));
 });
 
@@ -530,11 +569,32 @@ document.getElementById("unload").addEventListener("click", hideApp);
 appField.addEventListener("change", () => showApp(appField.value));
 
 document.getElementById("clear").addEventListener("click", () => {
+  dropTaps();
   tokens.clear();
   pointers.clear();
   drag = null;
   publish();
 });
+
+/* The surface alone, for a demonstration: the stage carries the table and the picker. */
+const fullscreenButton = document.getElementById("fullscreen");
+
+function fullscreenLabel() {
+  fullscreenButton.textContent = document.fullscreenElement === null
+    ? "Full screen"
+    : "Leave full screen";
+}
+
+fullscreenButton.addEventListener("click", () => {
+  if (document.fullscreenElement === null) void stage.requestFullscreen?.();
+  else void document.exitFullscreen?.();
+});
+document.addEventListener("fullscreenchange", () => {
+  fullscreenLabel();
+  // The surface is laid out for the room it has, which the screen has just changed.
+  fit();
+});
+fullscreenLabel();
 
 // The content box of the stage, which excludes its padding, is the room the surface has.
 new ResizeObserver(entries => {

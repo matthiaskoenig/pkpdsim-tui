@@ -23,6 +23,8 @@ export interface TableHost {
   readonly choices: readonly ChoiceGroup[];
   /** What a touch on one of `choices` does, which the application and not the table knows. */
   choose(group: string, option: string): void;
+  /** Leave this table for the body, which is where every table is opened from. */
+  back(): void;
 }
 
 /**

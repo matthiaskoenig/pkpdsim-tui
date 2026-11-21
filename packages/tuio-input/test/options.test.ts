@@ -15,7 +15,7 @@ function options(query: string, origin: PageOrigin | undefined = PAGE): ReturnTy
 describe("the tracker of a query", () => {
   it("is no tracker at all without the parameter, which is the mouse", () => {
     expect(options("")).toEqual({
-      tracker: false, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false, path: "/",
+      discovered: false, tracker: false, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false, path: "/",
       address: `${DEFAULT_TUIO_HOST}:${DEFAULT_TUIO_PORT}`, version: "2.0",
     });
     expect(options("species=rat").tracker).toBe(false);
@@ -23,7 +23,7 @@ describe("the tracker of a query", () => {
 
   it("is the tracker of this machine when the parameter carries nothing", () => {
     expect(options("tuio")).toEqual({
-      tracker: true, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false, path: "/",
+      discovered: false, tracker: true, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false, path: "/",
       address: `${DEFAULT_TUIO_HOST}:${DEFAULT_TUIO_PORT}`, version: "2.0",
     });
     expect(options("tuio=").tracker).toBe(true);
@@ -31,10 +31,16 @@ describe("the tracker of a query", () => {
 
   it("is the host and the port the parameter names", () => {
     expect(options("tuio=table.local:3334")).toEqual({
-      tracker: true, host: "table.local", port: 3334, secure: false, path: "/",
+      discovered: false, tracker: true, host: "table.local", port: 3334, secure: false, path: "/",
       address: "table.local:3334", version: "2.0",
     });
     expect(options("tuio=192.168.1.40:3333").host).toBe("192.168.1.40");
+  });
+
+  it("is the mouse when the parameter switches the tracker off", () => {
+    expect(options("tuio=off").tracker).toBe(false);
+    expect(options("tuio=none").tracker).toBe(false);
+    expect(options("tuio=false").tracker).toBe(false);
   });
 
   it("takes the default of whichever half is missing or broken", () => {
@@ -47,7 +53,7 @@ describe("the tracker of a query", () => {
 
   it("is the server the page came from when the parameter is a path", () => {
     expect(options("tuio=/tuio")).toEqual({
-      tracker: true, host: "localhost", port: 5173, secure: false, path: "/tuio",
+      discovered: false, tracker: true, host: "localhost", port: 5173, secure: false, path: "/tuio",
       address: "localhost:5173/tuio", version: "2.0",
     });
   });
@@ -55,7 +61,7 @@ describe("the tracker of a query", () => {
   it("takes the port and the scheme of the page the path is reached on", () => {
     const secure = {hostname: "table.example", port: "", protocol: "https:"};
     expect(options("tuio=/tuio", secure)).toEqual({
-      tracker: true, host: "table.example", port: 443, secure: true, path: "/tuio",
+      discovered: false, tracker: true, host: "table.example", port: 443, secure: true, path: "/tuio",
       address: "table.example:443/tuio", version: "2.0",
     });
     expect(options("tuio=/tuio", {hostname: "table.example", port: "", protocol: "http:"}).port)
@@ -64,18 +70,18 @@ describe("the tracker of a query", () => {
 
   it("falls back to the tracker of this machine for a path without a page", () => {
     expect(trackerOptions(new URLSearchParams("tuio=/tuio"), undefined)).toEqual({
-      tracker: true, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false,
+      discovered: false, tracker: true, host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT, secure: false,
       path: "/tuio", address: `${DEFAULT_TUIO_HOST}:${DEFAULT_TUIO_PORT}/tuio`, version: "2.0",
     });
   });
 
   it("is the address the parameter names in full", () => {
     expect(options("tuio=ws://table.local:3334/tuio")).toEqual({
-      tracker: true, host: "table.local", port: 3334, secure: false, path: "/tuio",
+      discovered: false, tracker: true, host: "table.local", port: 3334, secure: false, path: "/tuio",
       address: "table.local:3334/tuio", version: "2.0",
     });
     expect(options("tuio=wss://table.example/tuio")).toEqual({
-      tracker: true, host: "table.example", port: 443, secure: true, path: "/tuio",
+      discovered: false, tracker: true, host: "table.example", port: 443, secure: true, path: "/tuio",
       address: "table.example:443/tuio", version: "2.0",
     });
   });

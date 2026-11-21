@@ -11,14 +11,15 @@ import type {GlimepirideReadout} from "./cards.ts";
 
 export const GLIMEPIRIDE_TITLE = "One tablet, two people";
 
+/** The note behind the title: what this table is, for the visitor who asks. */
 export const GLIMEPIRIDE_ABOUT = "Glimepiride lowers blood sugar in type 2 diabetes. The liver "
-  + "takes it apart and the kidneys wash the pieces out. Set who the person is, and the same "
-  + "tablet does something else.";
+  + "takes it apart into M1 and M2, and the kidneys wash those out. Set who the person is, and "
+  + "the same tablet does something else. The course is solved from the glimepiride model of "
+  + "pkpdsim for the person on the table.";
 
 export const GLIMEPIRIDE_TRIES: readonly string[] = [
-  "Turn the CYP2C9 dial down: this person breaks the drug down slowly, and the dose builds up.",
-  "Give the liver cirrhosis, or take the kidneys down, and watch which of the three curves moves.",
-  "Wind the hour dial back through the first hours after the tablet.",
+  "Turn 2 down: this person breaks the drug down slowly, and it piles up.",
+  "Wind dial 8 back through the first hours after the tablet.",
 ];
 
 /** How far from the reference a number is, in the words somebody uses about their own dose. */
@@ -64,13 +65,11 @@ export function glimepirideReading(
   const body = `A ${sex === "female" ? "woman" : "man"} of `
     + `${formatNumber(referenceIndividual.weight, 0)} kg`;
   if (who.length === 0 && dose === "") {
-    return `${body} takes ${formatNumber(individual.dose, 0)} mg of glimepiride. Turn a dial to `
-      + "change who they are, and the three curves answer.";
+    return `${body} takes ${formatNumber(individual.dose, 0)} mg of glimepiride.`;
   }
-  const parts = [...(dose === "" ? [] : [dose]), ...who];
-  const sentence = parts.length === 1
-    ? parts[0]
-    : `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;
+  // Two things at once are as much as a sentence carries; the objects on the table say the rest.
+  const parts = [...(dose === "" ? [] : [dose]), ...who].slice(0, 2);
+  const sentence = parts.length === 1 ? parts[0] : `${parts[0]} and ${parts[1]}`;
   const exposure = times(current.pk.auc, reference.pk.auc);
   // The model is solved in minutes, and a half life is spoken about in hours.
   const half = current.pk.halflife > reference.pk.halflife * 1.2
@@ -78,8 +77,8 @@ export function glimepirideReading(
       + `${formatNumber(current.pk.halflife / 60, 0)} hours instead of `
       + `${formatNumber(reference.pk.halflife / 60, 0)}.`
     : "";
-  return `${body} who ${sentence}. They get ${exposure} of the drug in their blood as the person `
-    + `nobody changed.${half}`;
+  return `${body} who ${sentence}: ${exposure} of the drug in the blood as the person nobody `
+    + `changed.${half}`;
 }
 
 /** The body of the individual, as the switch in the panel offers it. */

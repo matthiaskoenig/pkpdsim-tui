@@ -1,0 +1,16 @@
+{
+  "name": "@pkpdsim-tui/perfusion-table",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The machine perfusion table: the pump, the oxygen and the temperature of a liver kept alive outside the body",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/core-runtime": "*",
+    "@pkpdsim-tui/perfusion-sim": "*",
+    "@pkpdsim-tui/tui-kit": "*",
+    "@pkpdsim-tui/tuio-input": "*"
+  }
+}

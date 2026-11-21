@@ -16,14 +16,13 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
+  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer,
+  formatNumber, pointerPoints,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
-import {
-  createMockTableInput, createTuioTableInput, trackerOptions, valueFromAngle,
-} from "@pkpdsim-tui/tuio-input";
+import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
-  TableInput, TableSnapshot, TableStatus, TokenRole, TrackerOptions,
+  TableSnapshot, TableStatus, TokenRole, TrackerOptions,
 } from "@pkpdsim-tui/tuio-input";
 import {cardFor, LOBE_STATS, LOBE_TRACES} from "./cards.ts";
 import type {Sample} from "./cards.ts";
@@ -34,14 +33,15 @@ import {DAY_MARKER, lobeRoles} from "./roles.ts";
 import {LOBE_ABOUT, LOBE_TITLE, LOBE_TRIES, lobeReading} from "./audience.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns the dial, backspace lifts it.";
+const MOUSE_HINT = "Keys 1 to 4 put an object down, drag moves it, the wheel winds the dial.";
 const TABLE_HINT = "Put a clamp or the scalpel on a segment. The dial winds the days.";
+const BOTH_HINT = "Put a clamp or the scalpel on a segment, or press 1 to 4 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
 
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return TABLE_HINT;
+  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
   return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
     + "the address to drive the table with the mouse.";
 }
@@ -100,7 +100,10 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const plot = createPlot(root, LOBE_TRACES);
   const readout = createReadout<Sample>(root, LOBE_STATS);
   const tokenLayer = createTokenLayer(root);
+  // What a number, an object or a segment is: the note opens where a visitor asks for it.
+  createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else if (group === "species") chooseQuery("species", option, "human");
@@ -108,14 +111,9 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     },
   });
 
-  const tracker = trackerOptions(parameters);
-  const usesTracker = tracker.tracker;
-  const input: TableInput = usesTracker
-    ? createTuioTableInput(tracker)
-    : createMockTableInput({
-      element: surface,
-      markers: roles.map(role => role.markers[0] ?? 0),
-    });
+  const {input, tracker} = await openTableInput({
+    parameters, element: surface, markers: roles.map(role => role.markers[0] ?? 0),
+  });
 
   const origins = new Map<number, number>();
   let viewport = {width: window.innerWidth, height: window.innerHeight};
@@ -203,6 +201,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     chrome.update({
       title: LOBE_TITLE, about: LOBE_ABOUT, tries: LOBE_TRIES,
       reading: lobeReading(lobes, states, day, sample, reference),
+      back: "Back to the body",
       choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {

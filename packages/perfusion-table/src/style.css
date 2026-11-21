@@ -1,0 +1,101 @@
+/* The machine: the circuit, its parts and the zones of the organ. */
+.circuit-tube {
+  fill: none;
+  stroke: #4a6076;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-tube--return {
+  stroke: #3b5168;
+}
+
+.circuit-part {
+  fill: rgba(126, 160, 196, 0.22);
+  stroke: #7ea0c4;
+  stroke-width: 0.7;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-part--oxygenator {
+  fill: rgba(79, 209, 197, 0.22);
+  stroke: #4fd1c5;
+}
+
+.circuit-pump {
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-blades {
+  fill: none;
+  stroke: #cfe0f0;
+  stroke-width: 0.8;
+  transform-origin: 16px 48px;
+  animation: circuit-spin var(--spin, 1s) linear infinite;
+}
+
+@keyframes circuit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circuit-blades {
+    animation: none;
+  }
+}
+
+.circuit-organ {
+  fill: rgba(150, 92, 62, 0.45);
+  stroke: rgba(243, 227, 216, 0.35);
+  stroke-width: 0.7;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-zone {
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-zone-plate {
+  stroke: rgba(243, 227, 216, 0.3);
+  stroke-width: 0.5;
+  transition: fill 160ms linear;
+}
+
+.circuit-zone-number,
+.circuit-zone-value {
+  font-size: 2.6px;
+  fill: var(--ink-dim);
+  text-anchor: middle;
+}
+
+.circuit-zone-value {
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.circuit-bile {
+  fill: none;
+  stroke: #cfa63d;
+  stroke-linecap: round;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.circuit-label {
+  font-size: 2.8px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+  text-anchor: middle;
+}

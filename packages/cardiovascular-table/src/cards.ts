@@ -9,8 +9,8 @@
  */
 
 import type {HeartSummary, PressureSolution} from "@pkpdsim-tui/cardio-sim";
-import {formatFactor, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {StatDefinition, TokenCard} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatFactor, formatNumber} from "@pkpdsim-tui/tui-kit";
+import type {StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
@@ -24,26 +24,37 @@ export const CARDIOVASCULAR_STATS: readonly StatDefinition<CardioReadout>[] = [
   {
     id: "systolic", label: "Systolic", unit: "mmHg", digits: 0,
     of: value => value.heart.arterial_systolic,
+    info: "The highest pressure in the arteries, while the heart is squeezing. It is the first "
+      + "of the two numbers a blood pressure cuff reads.",
   },
   {
     id: "diastolic", label: "Diastolic", unit: "mmHg", digits: 0,
     of: value => value.heart.arterial_diastolic,
+    info: "The pressure that is left between two beats, while the heart fills again.",
   },
   {
     id: "co", label: "Cardiac output", unit: "l/min", digits: 2,
     of: value => value.heart.mean_cardiac_output,
+    info: "The blood the heart moves in a minute: the rate times what one beat ejects. Five to "
+      + "six litres at rest, four to five times that in an athlete at full effort.",
   },
   {
     id: "stroke", label: "Stroke volume", unit: "ml", digits: 0,
     of: value => value.heart.stroke_volume,
+    info: "What one beat ejects. A failing heart moves less with every beat and makes it up "
+      + "with a faster rate.",
   },
   {
     id: "ppo", label: "Portal pressure", unit: "mmHg", digits: 1,
     of: value => value.heart.mean_portal_pressure,
+    info: "The pressure in the vein which carries the blood of the gut to the liver. When the "
+      + "liver obstructs it, the blood backs up here: that is portal hypertension.",
   },
   {
     id: "gradient", label: "Portal gradient", unit: "mmHg", digits: 1,
     of: value => value.heart.mean_portal_pressure - value.heart.mean_hepatic_pressure,
+    info: "The pressure the blood loses on its way through the liver. A clinician measures it "
+      + "to tell how far a cirrhosis has gone.",
   },
 ];
 
@@ -70,6 +81,24 @@ export function noteFor(roleId: string, value: CardioReadout): string {
   }
 }
 
+/**
+ * The picture inside the object. A resistance is a vessel: the model is Poiseuille's, where the
+ * resistance of a tube goes with the fourth power of its radius, so a factor of 8 is a vessel
+ * of about six tenths of its width and that is what the picture shows.
+ */
+function glyphFor(role: TokenRole, dialled: number): TokenGlyph {
+  if (role.id === "heartRate") return {kind: "heart", level: 1, rate: dialled};
+  const span = role.max - role.min;
+  if (role.id === "contractility") {
+    return {kind: "heart", level: span <= 0 ? 1 : (dialled - role.min) / span, rate: 75};
+  }
+  const width = (factor: number): number => Math.pow(Math.max(factor, 0.01), -0.25);
+  const widest = width(role.min);
+  const narrowest = width(role.max);
+  const open = widest === narrowest ? 0.5 : (width(dialled) - narrowest) / (widest - narrowest);
+  return {kind: "vessel", level: clamp(open, 0, 1)};
+}
+
 export function cardFor(
   token: TableToken,
   role: TokenRole | undefined,
@@ -87,5 +116,8 @@ export function cardFor(
   const reading = role.id === "heartRate"
     ? `${formatNumber(dialled, 0)} /min`
     : formatFactor(dialled);
-  return {kind: "dial", title: role.label, value: reading, note: noteFor(role.id, value)};
+  return {
+    kind: "dial", title: role.label, value: reading, note: noteFor(role.id, value),
+    glyph: glyphFor(role, dialled), info: role.description,
+  };
 }

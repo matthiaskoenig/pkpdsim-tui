@@ -1,6 +1,6 @@
 /**
- * The headline numbers, repeated at two opposite edges of the table so that the people facing
- * each other across it read the same thing.
+ * The headline numbers, in one band at the edge the table is read from. Each number carries the
+ * sentence which says what it is, which a hover or a finger resting on it opens.
  */
 
 import {formatDelta, formatNumber} from "./format.ts";
@@ -15,6 +15,8 @@ export interface StatDefinition<T> {
   readonly of: (value: T) => number;
   /** Decimals, where the default follows the magnitude of the number. */
   readonly digits?: number;
+  /** What this number is, for the visitor who asks what it means. */
+  readonly info?: string;
 }
 
 interface StatElements {
@@ -37,10 +39,12 @@ export function createReadout<T>(
 ): Readout<T> {
   const root = svg("g", {class: "layer layer--readout"}, parent);
   const top = svg("g", {class: "band band--top"}, root);
-  const bottom = svg("g", {class: "band band--bottom"}, root);
 
   const buildBand = (host: SVGGElement): StatElements[] => stats.map(stat => {
     const group = svg("g", {class: `stat stat--${stat.id}`}, host);
+    if (stat.info !== undefined && stat.info !== "") group.setAttribute("data-info", stat.info);
+    // The note of a number opens from the whole column, not from the glyphs of its digits.
+    svg("rect", {class: "stat-field", x: -70, y: -24, width: 140, height: 106}, group);
     const label = svg("text", {class: "stat-label", x: 0, y: 0, "text-anchor": "middle"}, group);
     label.textContent = stat.label;
     const value = svg("text", {class: "stat-value", x: 0, y: 38, "text-anchor": "middle"}, group);
@@ -51,7 +55,7 @@ export function createReadout<T>(
     return {group, value, delta};
   });
 
-  const bands = [buildBand(top), buildBand(bottom)];
+  const bands = [buildBand(top)];
 
   return {
     resize(viewport: Viewport): void {
@@ -63,8 +67,6 @@ export function createReadout<T>(
           stat.group.setAttribute("transform", `translate(${left + index * span} 46)`);
         });
       }
-      // The band at the far edge is turned around, so it reads upright from the other side.
-      bottom.setAttribute("transform", `rotate(180 ${viewport.width / 2} ${viewport.height / 2})`);
     },
 
     update(value: T, baseline: T): void {

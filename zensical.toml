@@ -17,8 +17,10 @@ nav = [
   { "Run on a table" = "table.md" },
   { "Applications" = [
     { "Cardiovascular circulation" = "apps/cardiovascular.md" },
+    { "The liver" = "apps/liver.md" },
     { "Lobed liver" = "apps/lobes.md" },
     { "Glimepiride" = "apps/glimepiride.md" },
+    { "Machine perfusion" = "apps/perfusion.md" },
   ] },
   { "Development" = "development.md" },
 ]

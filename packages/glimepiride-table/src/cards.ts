@@ -7,8 +7,8 @@ import {
   CIRRHOSIS_CLASSES, GENOTYPES, nearestCategory, RENAL_CLASSES,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {Pharmacokinetics} from "@pkpdsim-tui/glimepiride-sim";
-import {formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {PlotTrace, StatDefinition, TokenCard} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatNumber} from "@pkpdsim-tui/tui-kit";
+import type {PlotTrace, StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
@@ -31,12 +31,37 @@ export interface GlimepirideReadout {
 }
 
 export const GLIMEPIRIDE_STATS: readonly StatDefinition<GlimepirideReadout>[] = [
-  {id: "now", label: "Plasma now", unit: "uM", of: readout => readout.now, digits: 3},
-  {id: "cmax", label: "Peak plasma", unit: "uM", of: readout => readout.pk.cmax, digits: 3},
-  {id: "tmax", label: "Time of the peak", unit: "h", of: readout => readout.pk.tmax / 60, digits: 2},
-  {id: "halflife", label: "Half life", unit: "h", of: readout => readout.pk.halflife / 60, digits: 2},
-  {id: "auc", label: "Exposure", unit: "uM h", of: readout => readout.pk.auc / 60, digits: 2},
-  {id: "urine", label: "M1 and M2 in urine", unit: "umole", of: readout => readout.urine, digits: 1},
+  {
+    id: "now", label: "Plasma now", unit: "uM", of: readout => readout.now, digits: 3,
+    info: "How much glimepiride is in the blood at the hour the dial points at.",
+  },
+  {
+    id: "cmax", label: "Peak plasma", unit: "uM", of: readout => readout.pk.cmax, digits: 3,
+    info: "The most the blood ever holds, which is what a dose is felt as.",
+  },
+  {
+    id: "tmax", label: "Time of the peak", unit: "h", of: readout => readout.pk.tmax / 60,
+    digits: 2,
+    info: "How long the tablet takes to reach that peak: the time it needs to dissolve, to "
+      + "cross the gut and to pass the liver.",
+  },
+  {
+    id: "halflife", label: "Half life", unit: "h", of: readout => readout.pk.halflife / 60,
+    digits: 2,
+    info: "The time in which half of what is in the blood disappears. A liver which works "
+      + "slowly makes it longer, and the drug then piles up from one tablet to the next.",
+  },
+  {
+    id: "auc", label: "Exposure", unit: "uM h", of: readout => readout.pk.auc / 60, digits: 2,
+    info: "Everything the body sees of the drug over the whole course: the area under the "
+      + "curve. It is the number a dose is judged by.",
+  },
+  {
+    id: "urine", label: "M1 and M2 in urine", unit: "umole", of: readout => readout.urine,
+    digits: 1,
+    info: "What leaves in the urine. Glimepiride itself does not: the liver turns it into M1 "
+      + "and M2 first, and the kidneys wash those out.",
+  },
 ];
 
 /** What a dial of the individual is set to, in the words a clinician reads. */
@@ -65,6 +90,27 @@ export interface CardContext {
   readonly readout: GlimepirideReadout;
 }
 
+/** The picture inside the object: what it sets about this person, or the clock of the hours. */
+function glyphFor(role: TokenRole, value: number): TokenGlyph {
+  const span = role.max - role.min;
+  const level = clamp(span <= 0 ? 1 : (value - role.min) / span, 0, 1);
+  switch (role.id) {
+    case "hour":
+      return {kind: "clock", level};
+    case "dose":
+      return {kind: "tablet", level};
+    case "cyp2c9":
+      return {kind: "enzyme", level};
+    case "cirrhosis":
+      // A cirrhotic liver is the end of this dial, so the picture empties as it is turned up.
+      return {kind: "liver", level: 1 - level};
+    case "renal":
+      return {kind: "kidney", level};
+    default:
+      return {kind: "body", level};
+  }
+}
+
 export function cardFor(
   token: TableToken, role: TokenRole | undefined, context: CardContext,
 ): TokenCard {
@@ -80,11 +126,13 @@ export function cardFor(
     return {
       kind: "dial", title: role.label, value: `${formatNumber(value, 1)} h`,
       note: `plasma ${formatNumber(context.readout.now, 3)} uM at this hour`,
+      glyph: glyphFor(role, value), info: role.description,
     };
   }
   const category = categoryOf(role.id, value);
   return {
     kind: "dial", title: role.label, value: formatValue(role, value),
     note: category === "" ? role.description.split(".")[0] ?? "" : category,
+    glyph: glyphFor(role, value), info: role.description,
   };
 }

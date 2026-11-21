@@ -45,13 +45,26 @@ npm run simulator -- --host 0.0.0.0 --rate 30
 | `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
 | `ws://localhost:5173/tuio` | The tracker itself, which an application reaches with `?tuio=/tuio` |
 
-The control page fills that address in for you: an application on the origin of the page came through the same server as the page, so it is given `?tuio=/tuio` rather than a host and a port. One port is also one forwarded port, which is how a table is driven from another machine:
+Nothing has to be added to the address of the application: a page which was not told about a tracker asks the server it came from whether it has one at `/tuio`, and takes it when it does. A page served from a build without a tracker, for example the deployed one, finds nothing there and runs on the mouse. `?tuio=off` keeps a page on the mouse even where a tracker answers, and `?tuio=<host>:<port>` points it somewhere else.
+
+A tracker the page found this way does not take the mouse away: the objects of the simulator and the keys of the laptop put objects on the same surface, which is what makes it possible to try a table with one hand on the mouse while the simulator stands beside it. A tracker the address names is a real table, and there the page listens to the table alone.
+
+One port is also one forwarded port, which is how a table is driven from another machine:
 
 ```bash
 ssh -L 5173:localhost:5173 <machine>
 ```
 
 The **Port** field still moves the tracker, but the one port carries the tracker it was started with: change the port only when an application is pointed at the tracker directly, with `?tuio=host:port`. `npm run dev -- --tuio-port 3343` moves both ends at once.
+
+### Which of the two windows do I want?
+
+| What you want to see | What to open |
+| --- | --- |
+| The application as a visitor will meet it | `http://localhost:5173/`, and `?app=<table>` for one table |
+| The same application with a surface over it, where objects are placed and turned | `http://localhost:5173/simulator/` |
+| The two side by side, which is how a table is rehearsed | both addresses, in two windows: the application follows every object of the surface |
+| The application on the mouse alone, with no tracker in the way | `http://localhost:5173/?tuio=off`, or `npm run dev:app` |
 
 ### What it speaks, and where
 
@@ -73,8 +86,11 @@ The embedded application receives no mouse: the surface over it owns the pointer
 
 ### Drive it
 
+Everything below is also written on the left of the page, beside the surface, together with how a table is chosen and left with a finger.
+
 | Gesture | What happens |
 | --- | --- |
+| Click empty space | A tap: the touch stays down long enough for the table to take it as a choice, which is how a card or a switch is pressed |
 | Press and drag empty space | A touch, which arrives as a TUIO pointer and lasts as long as the button is down |
 | Double click with the left button | Places an object, carrying the id of the **Next object id** field, which then counts up |
 | Double click with the right button | Opens the picker, which places an object of any id without touching the field |
@@ -82,6 +98,9 @@ The embedded application receives no mouse: the surface over it owns the pointer
 | Scroll over an object | Turns it, five degrees at a time, or one with the shift key held |
 | Click with the middle button on an object | Lifts it off the surface |
 | **Clear surface** | Lifts everything at once |
+| **Full screen** | The surface alone, without the fields and the gestures, for a demonstration |
+
+A table has no click. A finger which rests on a card, on a switch, or on **Back** in the panel of a table presses it after a moment, and the element fills while the finger is there. A single click on the surface of the simulator is therefore held as a touch for a moment, so that a click is a choice; holding the button down is a finger at rest, and dragging is a finger moving across the glass.
 
 Every object on the surface says what a tracker reports about it: its id, its angle in degrees, its position as the tuple of surface fractions the protocol sends, and the session id it was given. The **Surface** fields are the sensor size the frame message carries, in pixels, and the surface on the page keeps its aspect ratio, so a position on the page is the position the application draws. What was typed into the fields is kept for the next time the page is opened; what is on the surface is not.
 

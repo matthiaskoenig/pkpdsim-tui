@@ -20,15 +20,12 @@ import type {
 } from "@pkpdsim-tui/cardio-sim";
 import {createSolver, fetchSolverAssets, loadCoreHost} from "@pkpdsim-tui/core-runtime";
 import type {Solver} from "@pkpdsim-tui/core-runtime";
-import {
-  createMockTableInput, createTuioTableInput, trackerOptions,
-} from "@pkpdsim-tui/tuio-input";
-import type {
-  TableInput, TableSnapshot, TableStatus, TrackerOptions,
-} from "@pkpdsim-tui/tuio-input";
+import {openTableInput} from "@pkpdsim-tui/tuio-input";
+import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  chooseQuery, createChrome, createReadout, createTokenLayer, formatFactor, formatNumber,
+  chooseQuery, createChrome, createInfo, createReadout, createTokenLayer, formatFactor,
+  formatNumber, pointerPoints,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
@@ -41,8 +38,9 @@ import {CARDIOVASCULAR_ROLES, controlsFromTokens, heartControlsFromTokens} from 
 import {createScene} from "./scene.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 6 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
+const MOUSE_HINT = "Keys 1 to 6 put an object down, drag moves it, the wheel turns it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
+const BOTH_HINT = "Put an object on the table and turn it, or press 1 to 6 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves the heart. */
 const SETTLE = 160;
 
@@ -60,10 +58,9 @@ const TABLE_COLUMNS = new Set([
 /** What a person at the table should do next, which depends on how the page was started. */
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return TABLE_HINT;
-  return `No tracker answers on ${tracker.address}. Set it to WebSocket and TUIO `
-    + `${tracker.version}, then reload. Without "?tuio" in the address the table runs on the `
-    + "mouse instead.";
+  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
+  return `No tracker answers on ${tracker.address}. Start one, or drop "?tuio" from the `
+    + "address to drive the table with the mouse.";
 }
 
 /** The cardiovascular table, on the surface of the application. */
@@ -121,21 +118,21 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const readout = createReadout<CardioReadout>(root, CARDIOVASCULAR_STATS);
   const pulse = createPulse(root);
   const tokenLayer = createTokenLayer(root);
+  // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
+  // with the mouse or with a finger resting on it.
+  createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else host.choose(group, option);
     },
   });
 
-  const tracker = trackerOptions(parameters);
-  const usesTracker = tracker.tracker;
-  const input: TableInput = usesTracker
-    ? createTuioTableInput(tracker)
-    : createMockTableInput({
-      element: surface,
-      markers: CARDIOVASCULAR_ROLES.map(role => role.markers[0] ?? 0),
-    });
+  const {input, tracker} = await openTableInput({
+    parameters, element: surface,
+    markers: CARDIOVASCULAR_ROLES.map(role => role.markers[0] ?? 0),
+  });
 
   const origins = new Map<number, number>();
   let viewport = {width: window.innerWidth, height: window.innerHeight};
@@ -224,6 +221,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     chrome.update({
       title: CARDIO_TITLE, about: CARDIO_ABOUT, tries: CARDIO_TRIES,
       reading: cardioReading(heartControls, sex, summary, referenceSummary),
+      back: "Back to the body",
       choices: [...host.choices, ...bodies],
       status, roles: CARDIOVASCULAR_ROLES, notice,
       value: role => {

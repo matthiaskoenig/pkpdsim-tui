@@ -1,7 +1,8 @@
 /**
- * The panels at the edge of the table: what is connected, which object does what, and what the
- * table is currently unable to do. One panel sits at each of two opposite edges, the second one
- * turned around, so nobody has to walk around the table to read it.
+ * The panel at the edge of the table: what the table is showing, what to try, which object does
+ * what, and what the table is currently unable to do. There is one panel and it stands upright,
+ * because a table is read from the side its panel is on. Everything that is not needed at a
+ * glance sits behind a note instead: hovering an element, or resting a finger on it, opens it.
  */
 
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
@@ -28,7 +29,10 @@ export interface ChoiceGroup {
 export interface ChromeUpdate {
   /** What this table is, in two or three words. */
   readonly title: string;
-  /** What it shows, in one sentence a visitor who is not a clinician understands. */
+  /**
+   * What it shows, in one sentence a visitor who is not a clinician understands. It is the note
+   * behind the title rather than a paragraph of its own: the table says it to whoever asks.
+   */
   readonly about: string;
   /**
    * What the table is showing right now, in plain words. It changes with the objects, so a
@@ -53,11 +57,15 @@ export interface ChromeUpdate {
   readonly credit: string;
   /** The switches of the table, which are touched rather than turned. */
   readonly choices?: readonly ChoiceGroup[];
+  /** The way out of this table, empty on the page a table is left for. */
+  readonly back?: string;
 }
 
 export interface ChromeOptions {
   /** What a touch on a choice does, which only the application knows. */
   readonly onChoose?: (group: string, option: string) => void;
+  /** What the way out does, which only the application knows. */
+  readonly onBack?: () => void;
 }
 
 export interface Chrome {
@@ -80,6 +88,8 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
         `data-group="${escapeHtml(group.id)}"`,
         `data-choice="${escapeHtml(option.id)}"`,
         `aria-pressed="${option.id === group.selected}"`,
+        // A table has no click: a finger which rests on a switch presses it.
+        `data-dwell="${escapeHtml(group.id)}:${escapeHtml(option.id)}"`,
         unavailable === "" ? "" : `disabled title="${escapeHtml(unavailable)}"`,
       ].filter(attribute => attribute !== "").join(" ");
       return `<button ${attributes}>${escapeHtml(option.label)}</button>`;
@@ -89,20 +99,41 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
   }).join("");
 }
 
+/** The markers a table reads, as a person says them: "1 to 6", "1 to 5 and 8". */
+export function markerSpan(roles: readonly TokenRole[]): string {
+  const markers = [...new Set(roles.flatMap(role => role.markers))].sort((a, b) => a - b);
+  const runs: number[][] = [];
+  for (const marker of markers) {
+    const last = runs.at(-1);
+    if (last !== undefined && marker === (last.at(-1) ?? 0) + 1) last.push(marker);
+    else runs.push([marker]);
+  }
+  const spoken = runs.map(run => (run.length === 1
+    ? String(run[0])
+    : run.length === 2 ? `${run[0]} and ${run[1]}` : `${run[0]} to ${run.at(-1)}`));
+  if (spoken.length <= 1) return spoken[0] ?? "";
+  return `${spoken.slice(0, -1).join(", ")} and ${spoken.at(-1)}`;
+}
+
 function panelHtml(state: ChromeUpdate): string {
-  const items = state.roles.map(role => `<li data-live="${state.live.has(role.id)}">`
+  // What an object does is the note behind its row: the legend stays a list of names and
+  // values, and the sentence is there for the visitor who wants it.
+  const items = state.roles.map(role => `<li data-live="${state.live.has(role.id)}"`
+    + ` data-info="${escapeHtml(role.description)}">`
     + `<span class="marker">${role.markers.join("/")}</span>`
     + `<span>${escapeHtml(role.label)}</span>`
     + `<span class="value">${escapeHtml(state.value(role))}</span>`
     + "</li>").join("");
+  // A marker no role claims is the usual first surprise at a table: the panel says which
+  // objects this one reads rather than leaving the visitor with an inert puck.
+  const reads = markerSpan(state.roles);
   const unassigned = state.unassigned.length === 0
     ? ""
     : `<p class="hint">Unknown ${state.unassigned.length === 1 ? "marker" : "markers"} `
-      + `${state.unassigned.join(", ")} on the table.</p>`;
+      + `${state.unassigned.join(", ")} on the table`
+      + `${reads === "" ? "" : `, which reads ${reads}`}.</p>`;
   const notice = state.notice === "" ? "" : `<p class="hint">${escapeHtml(state.notice)}</p>`;
-  const detail = state.status.detail === ""
-    ? ""
-    : `<p class="hint detail">${escapeHtml(state.status.detail)}</p>`;
+  const detail = state.status.detail === "" ? state.hint : state.status.detail;
   // The body of the application has no objects of its own, so it carries no legend either.
   const objects = state.roles.length === 0
     ? ""
@@ -110,50 +141,54 @@ function panelHtml(state: ChromeUpdate): string {
   const tries = state.tries.length === 0
     ? ""
     : `<ul class="tries">${state.tries.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>`;
+  const back = state.back === undefined || state.back === "" ? "" : `<button class="back"`
+    + ` type="button" data-dwell="back" data-info="Leave this table. The body is where every`
+    + ` table is opened from.">${escapeHtml(state.back)}</button>`;
   return `
-    <h1>${escapeHtml(state.title)}</h1>
-    <p class="about">${escapeHtml(state.about)}</p>
+    ${back}
+    <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<i class="info-dot" aria-hidden="true">i</i></h1>
     <p class="reading">${escapeHtml(state.reading)}</p>
     ${tries}
-    <div class="status" data-state="${state.status.state}">
-      <span class="dot"></span>
-      <span>${escapeHtml(state.status.source)}</span>
-    </div>
-    ${detail}
     ${state.choices === undefined || state.choices.length === 0 ? "" : choicesHtml(state.choices)}
     ${objects}
     ${unassigned}
     ${notice}
+    <div class="status" data-state="${state.status.state}" data-info="${escapeHtml(detail)}">
+      <span class="dot"></span>
+      <span>${escapeHtml(state.status.source)}</span>
+      <i class="info-dot" aria-hidden="true">i</i>
+    </div>
     <p class="hint">${escapeHtml(state.hint)}</p>
     ${state.credit === "" ? "" : `<p class="hint credit">${escapeHtml(state.credit)}</p>`}
   `;
 }
 
 export function createChrome(container: HTMLElement, options: ChromeOptions = {}): Chrome {
-  const panels = ["edge edge--top-left", "edge edge--bottom-right"].map(className => {
-    const panel = document.createElement("aside");
-    panel.className = className;
-    // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
-    panel.addEventListener("click", event => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      const choice = target.closest(".choice");
-      if (!(choice instanceof HTMLButtonElement) || choice.disabled) return;
-      const group = choice.dataset["group"];
-      const option = choice.dataset["choice"];
-      if (group === undefined || option === undefined) return;
-      options.onChoose?.(group, option);
-    });
-    container.appendChild(panel);
-    return panel;
+  const panel = document.createElement("aside");
+  panel.className = "edge edge--near";
+  // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
+  panel.addEventListener("click", event => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest(".back") !== null) {
+      options.onBack?.();
+      return;
+    }
+    const choice = target.closest(".choice");
+    if (!(choice instanceof HTMLButtonElement) || choice.disabled) return;
+    const group = choice.dataset["group"];
+    const option = choice.dataset["choice"];
+    if (group === undefined || option === undefined) return;
+    options.onChoose?.(group, option);
   });
+  container.appendChild(panel);
   let previous = "";
   return {
     update(state: ChromeUpdate): void {
       const html = panelHtml(state);
       if (html === previous) return;
       previous = html;
-      for (const panel of panels) panel.innerHTML = html;
+      panel.innerHTML = html;
     },
   };
 }
