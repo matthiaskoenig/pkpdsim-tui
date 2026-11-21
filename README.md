@@ -20,9 +20,10 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 npm install
 npm run sync          # copies the exported models and reference data of a pkpdsim checkout
 npm run dev           # the cardiovascular application on http://localhost:5173
+npm run simulator     # the TUIO 2.0 simulator: a tracker on 3343, its control page on 3344
 ```
 
-Without a table the application runs on the mouse: digit keys place a token, dragging moves it, the wheel turns it, backspace lifts it. With the TUIO simulator running on WebSocket, TUIO 2.0 and port 3343, open `http://localhost:5173/?tuio=localhost:3343`.
+Without a table the application runs on the mouse: digit keys place a token, dragging moves it, the wheel turns it, backspace lifts it. To drive it from objects, run `npm run simulator`, place tokens on the control page at `http://localhost:3344` and open the application at `http://localhost:5173/?tuio=localhost:3343`. The Unity simulator of Interactive Scape, and a real table, are addressed the same way.
 
 The documentation explains the protocol, the simulator and the table: `npm run docs`.
 
@@ -32,6 +33,7 @@ The documentation explains the protocol, the simulator and the table: `npm run d
 | --- | --- |
 | `packages/tuio-input` | TUIO 2.0 and the mouse behind one `TableInput` interface, and the role, angle and target vocabulary of a tangible application |
 | `packages/cardio-sim` | the steady pressure network of the cardiovascular model of pkpdsim and the loaders of its exported reference data |
+| `packages/tuio-simulator` | the TUIO 2.0 simulator: a control page and the tracker that serves it, on plain `node` |
 | `apps/cardiovascular` | the cardiovascular table application |
 | `scripts/sync-assets.mjs` | copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
 | `docs/` | the [Zensical](https://zensical.org/) documentation |

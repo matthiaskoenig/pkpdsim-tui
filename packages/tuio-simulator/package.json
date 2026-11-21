@@ -1,0 +1,20 @@
+{
+  "name": "@pkpdsim-tui/tuio-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A TUIO 2.0 tracker for development: a control surface in a browser page and the bundles of a tracker on a WebSocket",
+  "exports": {
+    ".": "./src/server.mjs"
+  },
+  "scripts": {
+    "start": "node src/server.mjs"
+  },
+  "dependencies": {
+    "osc-js": "^2.4.1",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "tuio-client": "^0.1.0"
+  }
+}

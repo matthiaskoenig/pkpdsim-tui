@@ -26,7 +26,13 @@ npm run dev
 
 The application opens on `http://localhost:5173`. Without a table it runs on the mouse: keys 1 to 4 place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
 
-To drive it from the simulator or from a table, start the tracker and open `http://localhost:5173/?tuio=localhost:3343`. The [simulator page](simulator.md) covers the settings, the [table page](table.md) covers a real surface.
+To drive it from objects instead, start the simulator this repository carries, in a second terminal:
+
+```bash
+npm run simulator
+```
+
+It is a TUIO 2.0 tracker on `ws://localhost:3343` and a control page on `http://localhost:3344`, where tokens are placed with a double click and turned with the wheel. Open the application at `http://localhost:5173/?tuio=localhost:3343` and it follows them. The [simulator page](simulator.md) covers the gestures and the Unity simulator of Interactive Scape, the [table page](table.md) covers a real surface.
 
 ## The idea
 

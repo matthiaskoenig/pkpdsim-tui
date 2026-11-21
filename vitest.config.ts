@@ -9,7 +9,10 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["packages/*/test/**/*.test.ts", "apps/*/test/**/*.test.ts"],
+    // The simulator runs on plain `node` without a build step, so its tests are modules too.
+    include: [
+      "packages/*/test/**/*.test.ts", "packages/*/test/**/*.test.mjs", "apps/*/test/**/*.test.ts",
+    ],
     environment: "node",
   },
 });

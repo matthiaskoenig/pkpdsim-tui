@@ -6,6 +6,7 @@
 | --- | --- |
 | `packages/tuio-input` | TUIO 2.0 and the mouse behind one `TableInput` interface, and the role, angle and target vocabulary |
 | `packages/cardio-sim` | The steady pressure network of the cardiovascular model and the loaders of the exported data |
+| `packages/tuio-simulator` | The TUIO 2.0 simulator: a control page and the tracker that serves it, on plain `node` |
 | `apps/cardiovascular` | The cardiovascular table application |
 | `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
 | `docs/` | This site |
@@ -18,6 +19,7 @@ The repository is an npm workspace. The packages ship TypeScript source and are 
 npm install
 npm run sync          # the exported models and data of a pkpdsim checkout
 npm run dev           # the cardiovascular application, on http://localhost:5173
+npm run simulator     # the TUIO 2.0 simulator: a tracker on 3343, its control page on 3344
 npm test              # vitest
 npm run typecheck     # tsc
 npm run build         # the production bundle
@@ -26,6 +28,8 @@ npm run docs:build    # this site, strict
 ```
 
 `npm run sync` reads the checkout named by `--pkpdsim`, then by the environment variable `PKPDSIM_DIR`, then the sibling directory `../pkpdsim`. What it copies is gitignored, so a clone stays small, and `--list` prints what each application needs.
+
+An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3343`. Nothing but the checkout is needed for it, and the tokens are placed and turned on the page it serves on `http://localhost:3344`.
 
 ## The input layer
 

@@ -21,6 +21,7 @@
     "dev": "npm run dev --workspace @pkpdsim-tui/cardiovascular",
     "build": "npm run build --workspace @pkpdsim-tui/cardiovascular",
     "preview": "npm run preview --workspace @pkpdsim-tui/cardiovascular",
+    "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

@@ -1,0 +1,263 @@
+/*
+ * The control surface of the simulator: the dark register of a table application, with the
+ * surface itself the brightest thing on the page. It is a developer tool, so everything that is
+ * not the surface is a thin line of chrome.
+ */
+
+:root {
+  --ink: #e8eef5;
+  --ink-dim: #8da2b8;
+  --surface: #070b10;
+  --panel: rgba(18, 26, 36, 0.82);
+  --panel-line: rgba(126, 160, 196, 0.26);
+  --table: #0d141d;
+  --table-line: rgba(126, 160, 196, 0.34);
+  --token: #27b3ac;
+  --pointer: #4d8bf0;
+  --accent: #27b3ac;
+  --warn: #e8a33d;
+  --error: #e2574c;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: ui-sans-serif, "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  touch-action: none;
+  user-select: none;
+}
+
+/* The chrome at the top: what the tracker is doing and what the next token will be. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1.1rem;
+  border-bottom: 1px solid var(--panel-line);
+  background: var(--panel);
+}
+
+.bar h1 {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.status .dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--ink-dim);
+}
+
+.status[data-state="ready"] .dot {
+  background: var(--accent);
+  box-shadow: 0 0 0.5rem rgba(39, 179, 172, 0.7);
+}
+
+.status[data-state="waiting"] .dot,
+.status[data-state="connecting"] .dot {
+  background: var(--warn);
+}
+
+.status[data-state="error"] .dot {
+  background: var(--error);
+}
+
+.status[data-state="error"] {
+  color: var(--error);
+}
+
+.fields {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-left: auto;
+}
+
+.fields label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.fields input {
+  width: 4.6rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.4rem;
+  background: rgba(7, 11, 16, 0.8);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fields input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.fields .times,
+.fields .unit {
+  font-size: 0.8rem;
+}
+
+button {
+  padding: 0.38rem 0.8rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.4rem;
+  background: rgba(39, 179, 172, 0.12);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+  background: rgba(39, 179, 172, 0.22);
+}
+
+/* The surface. It keeps the aspect ratio of the sensor, so a position on it is the position a
+   table application draws. */
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 1.1rem;
+}
+
+.table {
+  display: block;
+  border: 1px solid var(--table-line);
+  border-radius: 0.6rem;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(39, 179, 172, 0.09), transparent 62%),
+    var(--table);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.token-body {
+  fill: rgba(39, 179, 172, 0.16);
+  stroke: var(--token);
+  stroke-width: 2;
+}
+
+.token:hover .token-body {
+  fill: rgba(39, 179, 172, 0.28);
+}
+
+.token-dial {
+  pointer-events: none;
+}
+
+.token-notch {
+  stroke: var(--token);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.token-grip {
+  fill: var(--token);
+}
+
+.token-marker {
+  fill: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.token-readout {
+  fill: var(--ink-dim);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.pointers {
+  pointer-events: none;
+}
+
+.pointer-halo {
+  fill: rgba(77, 139, 240, 0.18);
+  stroke: rgba(77, 139, 240, 0.6);
+}
+
+.pointer-core {
+  fill: var(--pointer);
+}
+
+/* What the gestures are, so the page says it itself. */
+.help {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--panel-line);
+  background: var(--panel);
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+.gestures {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gestures b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.counts {
+  margin: 0 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .fields {
+    margin-left: 0;
+  }
+}
