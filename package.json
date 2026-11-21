@@ -1,0 +1,38 @@
+{
+  "name": "pkpdsim-tui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
+  "license": "MIT",
+  "author": "Matthias König",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @pkpdsim-tui/cardiovascular",
+    "build": "npm run build --workspace @pkpdsim-tui/cardiovascular",
+    "preview": "npm run preview --workspace @pkpdsim-tui/cardiovascular",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "sync": "node scripts/sync-assets.mjs",
+    "docs": "uv run zensical serve",
+    "docs:build": "uv run zensical build --clean --strict"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "jsdom": "^31.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

@@ -1,0 +1,17 @@
+# node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# python / docs
+.venv/
+site/
+__pycache__/
+.cache/
+
+# assets synced from a pkpdsim checkout
+apps/*/public/assets/
+
+# editors
+.idea/
+.vscode/
