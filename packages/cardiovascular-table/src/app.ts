@@ -147,6 +147,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   let heartControls: HeartControls = heartControlsFromTokens(roles, new Map());
   let summary: HeartSummary = referenceSummary;
   let cycle: BeatCycle | undefined;
+  /** The heart of this individual at rest, which every later beat is drawn against. */
+  let baseline: BeatCycle | undefined;
   /** Where the table stands in the beat, carried over when the rate changes. */
   let phase = 0;
   let clock = 0;
@@ -176,6 +178,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       const solved = heartCase(result, controls, table);
       summary = solved.summary.after;
       cycle = beatCycle(solved) ?? cycle;
+      // The first run is the heart of the individual at rest, because an empty surface asks
+      // for the reference controls. It stays behind every later one, dashed.
+      baseline ??= cycle;
       notice = "";
     } catch (error) {
       if (controller.signal.aborted) return;
@@ -237,7 +242,6 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       live: new Set(winningTokens(roles, snapshot.tokens).keys()),
       unassigned: unassignedMarkers(roles, snapshot.tokens),
       hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
-      credit: anatomy.attribution,
     });
   };
 
@@ -256,7 +260,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       phase = (phase + elapsed * (cycle.heartRate / 60)) % 1;
       const frame = sampleBeat(cycle, phase);
       scene.beat({cycle, frame});
-      pulse.update({cycle, frame, summary});
+      pulse.update({cycle, frame, summary, baseline});
     } else {
       scene.beat(undefined);
       pulse.update(undefined);

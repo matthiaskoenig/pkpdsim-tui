@@ -5,6 +5,7 @@
  *
  * Query parameters:
  *   ?app=cardiovascular   a table of `tables.ts`; without it the body is shown
+ *   ?app=about            the page about the models, the software and the laboratory
  *   ?tuio                 a tracker on ws://localhost:3333
  *   ?tuio=host:port       a tracker somewhere else, which is how a table is addressed
  *   ?tuio=/tuio           a tracker behind the server this page came from, on its port
@@ -19,8 +20,11 @@ import {
   chooseQuery, createSettings, languageOptions, LEVELS, voiceOf, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableApp, TableHost, Voice} from "@pkpdsim-tui/tui-kit";
+import {startAbout} from "./about.ts";
 import {startOverview} from "./hub.ts";
-import {entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf} from "./tables.ts";
+import {
+  ABOUT, entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf,
+} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
 
 function element<T extends Element>(id: string): T {
@@ -38,10 +42,12 @@ function element<T extends Element>(id: string): T {
  * in the far corner, and each of them is a picture, because a visitor who cannot read the
  * language the table is in is the visitor who needs the language switch most.
  */
-function appSettings(voice: Voice, selected: string): readonly ChoiceGroup[] {
+function appSettings(voice: Voice, selected: string, overview: boolean): readonly ChoiceGroup[] {
   const copy = words(voice);
+  // On the landing page the ring of cards is the table switch, so only the two switches which
+  // change every page are shown, open, where a visitor sees them before they walk on.
   return [
-    {
+    ...(overview ? [] : [{
       id: "app", label: copy.tableSwitch, selected,
       options: [
         {id: OVERVIEW, label: copy.bodySwitch, picture: OVERVIEW_PICTURE},
@@ -49,7 +55,7 @@ function appSettings(voice: Voice, selected: string): readonly ChoiceGroup[] {
           id: entry.id, label: entryCopy(voice, entry.id).label, picture: entry.picture,
         })),
       ],
-    },
+    }]),
     {
       id: "lang", label: copy.languageSwitch, selected: voice.locale,
       options: languageOptions().map(option => ({
@@ -83,7 +89,10 @@ async function start(): Promise<void> {
   const entry = tableOf(parameters);
   const assets = new URL("assets/", document.baseURI);
   const copy = voice.pick(HUB_TEXT);
-  const title = entry === undefined ? copy.heading : entryCopy(voice, entry.id).title;
+  const about = entry === undefined && parameters.get("app") === ABOUT;
+  const title = about
+    ? copy.about.title
+    : entry === undefined ? copy.heading : entryCopy(voice, entry.id).title;
   document.title = `${title} | pkpdsim-tui`;
   // The page says which language it is in, and how much it says, so that the type and the
   // spacing of a table for a six year old can be the type of a table for a six year old.
@@ -91,7 +100,7 @@ async function start(): Promise<void> {
   document.documentElement.dataset["level"] = voice.level;
   const heading = element<HTMLElement>("boot").querySelector("h1");
   if (heading !== null) heading.textContent = title;
-  element<HTMLElement>("boot-message").textContent = entry === undefined
+  element<HTMLElement>("boot-message").textContent = entry === undefined && !about
     ? copy.loadingBodies
     : copy.loadingTable;
 
@@ -105,8 +114,12 @@ async function start(): Promise<void> {
 
   // One settings menu for the whole page: the body and every table are the same page, so the
   // button in the corner stays where it is while a visitor walks through all five of them.
+  const overview = entry === undefined && parameters.get("app") !== ABOUT;
   createSettings(element<HTMLElement>("chrome"), {
-    voice, groups: appSettings(voice, selectedTable(parameters)), onChoose: choose,
+    voice, groups: appSettings(voice, selectedTable(parameters), overview), onChoose: choose,
+    // The landing page shows them open, so a visitor knows what can be changed; every table
+    // keeps the same switches behind the button in the corner.
+    pinned: overview,
   });
 
   const host: TableHost = {
@@ -132,7 +145,9 @@ async function start(): Promise<void> {
     if (event.key === "Escape" && entry !== undefined) chooseQuery("app", OVERVIEW, OVERVIEW);
   });
 
-  const app: TableApp = entry === undefined ? startOverview : await entry.load();
+  const app: TableApp = about
+    ? startAbout
+    : entry === undefined ? startOverview : await entry.load();
   await app(host);
   element<HTMLElement>("boot").hidden = true;
 }

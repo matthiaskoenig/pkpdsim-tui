@@ -11,8 +11,9 @@ import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 import {CARDIO_TEXT} from "./text.ts";
 
 /**
- * Every object of this table, in the words of the visitor: the four resistances of the pressure
- * network on markers 1 to 4, and the heart itself on 5 and 6. The angle of an object is the
+ * Every object of this table, in the words of the visitor and in the order they are picked up:
+ * the heart on 1 and 2, the vessels of the whole body on 3, and the liver, the kidneys and the
+ * gut on 4 to 6. The angle of an object is the
  * factor on the reference value, the scale of a resistance is logarithmic because it is a ratio,
  * and the rate is linear because a rate is read off a scale in beats a minute.
  */
@@ -25,14 +26,16 @@ export function cardiovascularRoles(voice: Voice): readonly TokenRole[] {
     id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
     unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
   });
+  // The heart first, because it is what drives everything else, then the vessels of the body,
+  // then the three organs the other tables are about.
   return [
-    dial("hepatic", [1], "x", 0.5, 8, 1, "log"),
-    dial("systemic", [2], "x", 0.5, 2, 1, "log"),
-    dial("portal", [3], "x", 0.5, 6, 1, "log"),
-    dial("renal", [4], "x", 0.5, 3, 1, "log"),
-    dial("heartRate", [5], "/min", HEART_RATE_RANGE.min, HEART_RATE_RANGE.max,
+    dial("heartRate", [1], "/min", HEART_RATE_RANGE.min, HEART_RATE_RANGE.max,
       DEFAULT_HEART_CONTROLS.heartRate, "linear"),
-    dial("contractility", [6], "x", 0.4, 1.6, DEFAULT_HEART_CONTROLS.contractility, "log"),
+    dial("contractility", [2], "x", 0.4, 1.6, DEFAULT_HEART_CONTROLS.contractility, "log"),
+    dial("systemic", [3], "x", 0.5, 2, 1, "log"),
+    dial("hepatic", [4], "x", 0.5, 8, 1, "log"),
+    dial("renal", [5], "x", 0.5, 3, 1, "log"),
+    dial("portal", [6], "x", 0.5, 6, 1, "log"),
   ];
 }
 

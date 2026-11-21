@@ -41,10 +41,60 @@ export interface HubCopy {
   readonly labName: string;
   readonly labPlace: string;
   readonly labInfo: string;
+  /** The page about the models, the software, the licences and the laboratory. */
+  readonly about: AboutCopy;
   readonly entries: Readonly<Record<string, EntryCopy>>;
 }
 
+/** What the about page says. It is the same page in every language, with no levels: a licence
+ * and an address say the same thing to a six year old and to a hepatologist. */
+export interface AboutCopy {
+  readonly title: string;
+  readonly intro: string;
+  readonly open: string;
+  readonly groupTitle: string;
+  readonly groupLines: readonly string[];
+  readonly modelsTitle: string;
+  readonly modelsText: string;
+  readonly softwareTitle: string;
+  readonly software: readonly {readonly name: string; readonly line: string}[];
+  readonly licenceTitle: string;
+  readonly licenceLines: readonly string[];
+  readonly fundingTitle: string;
+  readonly fundingText: string;
+}
+
 const EN: HubCopy = {
+  about: {
+    title: "About these tables",
+    intro: "Five working models of the human body, built from the open models of our laboratory and solved while you move the objects on the glass.",
+    open: "About these tables",
+    groupTitle: "The laboratory",
+    groupLines: [
+      "Prof. Dr. Matthias König",
+      "Systems Medicine of the Liver",
+      "University of Lübeck and Humboldt-Universität zu Berlin",
+      "livermetabolism.com",
+    ],
+    modelsTitle: "The models",
+    modelsText: "Every table is a model of pkpdsim: physiologically based pharmacokinetics in SBML, built against the studies curated in PK-DB. The models and the code are open and free to use.",
+    softwareTitle: "The software",
+    software: [
+      {name: "pkpdsim", line: "the models of the body, in SBML"},
+      {name: "sbmlsim", line: "which solves them, in the browser as WebAssembly"},
+      {name: "sbmlutils", line: "which writes and annotates the SBML"},
+      {name: "TUIO", line: "the protocol the table speaks to the objects with"},
+      {name: "Piper", line: "the voice which reads the tables aloud, offline"},
+    ],
+    licenceTitle: "Licences",
+    licenceLines: [
+      "The code of these tables and of pkpdsim: MIT.",
+      "The words and the figures: CC BY-SA 4.0.",
+      "The bodies: adapted from the EMBL-EBI Expression Atlas anatomograms, CC BY 4.0, with the physiology figures of pkpdsim.",
+    ],
+    fundingTitle: "Funding",
+    fundingText: "German Research Foundation (DFG) within the Research Unit Programme FOR 5151 QuaLiPerF, grant 436883643, and grant 465194077 (SPP 2311, SimLivA); Federal Ministry of Education and Research (BMBF) within LiSyM, grant 031L0054.",
+  },
   labName: "Prof. Dr. Matthias König",
   labPlace: "University of Lübeck and Humboldt-Universität zu Berlin",
   labInfo: "The laboratory these models come from. The square takes a phone to",
@@ -140,6 +190,36 @@ const EN: HubCopy = {
 };
 
 const DE: HubCopy = {
+  about: {
+    title: "Über diese Tische",
+    intro: "Fünf Modelle des menschlichen Körpers, gebaut aus den offenen Modellen unseres Labors und gerechnet, während Sie die Objekte auf dem Glas bewegen.",
+    open: "Über diese Tische",
+    groupTitle: "Das Labor",
+    groupLines: [
+      "Prof. Dr. Matthias König",
+      "Systems Medicine of the Liver",
+      "Universität zu Lübeck und Humboldt-Universität zu Berlin",
+      "livermetabolism.com",
+    ],
+    modelsTitle: "Die Modelle",
+    modelsText: "Jeder Tisch ist ein Modell aus pkpdsim: physiologisch basierte Pharmakokinetik in SBML, gebaut gegen die in PK-DB kuratierten Studien. Die Modelle und der Code sind offen und frei verwendbar.",
+    softwareTitle: "Die Software",
+    software: [
+      {name: "pkpdsim", line: "die Modelle des Körpers, in SBML"},
+      {name: "sbmlsim", line: "rechnet sie, im Browser als WebAssembly"},
+      {name: "sbmlutils", line: "schreibt und annotiert das SBML"},
+      {name: "TUIO", line: "die Sprache, in der der Tisch über die Objekte spricht"},
+      {name: "Piper", line: "die Stimme, die die Tische vorliest, ohne Netz"},
+    ],
+    licenceTitle: "Lizenzen",
+    licenceLines: [
+      "Der Code dieser Tische und von pkpdsim: MIT.",
+      "Die Texte und die Abbildungen: CC BY-SA 4.0.",
+      "Die Körper: nach den Anatomogrammen des EMBL-EBI Expression Atlas, CC BY 4.0, mit den Physiologie-Abbildungen von pkpdsim.",
+    ],
+    fundingTitle: "Förderung",
+    fundingText: "Deutsche Forschungsgemeinschaft (DFG), Forschungsgruppe FOR 5151 QuaLiPerF, Projektnummer 436883643, und Projektnummer 465194077 (SPP 2311, SimLivA); Bundesministerium für Bildung und Forschung (BMBF), LiSyM, Förderkennzeichen 031L0054.",
+  },
   labName: "Prof. Dr. Matthias König",
   labPlace: "Universität zu Lübeck und Humboldt-Universität zu Berlin",
   labInfo: "Das Labor, aus dem diese Modelle kommen. Das Quadrat bringt ein Telefon zu",
@@ -235,6 +315,36 @@ const DE: HubCopy = {
 };
 
 const ES: HubCopy = {
+  about: {
+    title: "Sobre estas mesas",
+    intro: "Cinco modelos del cuerpo humano, hechos con los modelos abiertos de nuestro laboratorio y resueltos mientras mueves los objetos sobre el cristal.",
+    open: "Sobre estas mesas",
+    groupTitle: "El laboratorio",
+    groupLines: [
+      "Prof. Dr. Matthias König",
+      "Systems Medicine of the Liver",
+      "Universidad de Lübeck y Humboldt-Universität zu Berlin",
+      "livermetabolism.com",
+    ],
+    modelsTitle: "Los modelos",
+    modelsText: "Cada mesa es un modelo de pkpdsim: farmacocinética con base fisiológica en SBML, construida con los estudios curados en PK-DB. Los modelos y el código son abiertos y de uso libre.",
+    softwareTitle: "El software",
+    software: [
+      {name: "pkpdsim", line: "los modelos del cuerpo, en SBML"},
+      {name: "sbmlsim", line: "los resuelve, en el navegador como WebAssembly"},
+      {name: "sbmlutils", line: "escribe y anota el SBML"},
+      {name: "TUIO", line: "el protocolo con el que la mesa habla con los objetos"},
+      {name: "Piper", line: "la voz que lee las mesas en voz alta, sin red"},
+    ],
+    licenceTitle: "Licencias",
+    licenceLines: [
+      "El código de estas mesas y de pkpdsim: MIT.",
+      "Los textos y las figuras: CC BY-SA 4.0.",
+      "Los cuerpos: adaptados de los anatomogramas del EMBL-EBI Expression Atlas, CC BY 4.0, con las figuras de fisiología de pkpdsim.",
+    ],
+    fundingTitle: "Financiación",
+    fundingText: "Deutsche Forschungsgemeinschaft (DFG), FOR 5151 QuaLiPerF, proyecto 436883643, y proyecto 465194077 (SPP 2311, SimLivA); Bundesministerium für Bildung und Forschung (BMBF), LiSyM, 031L0054.",
+  },
   labName: "Prof. Dr. Matthias König",
   labPlace: "Universidad de Lübeck y Humboldt-Universität zu Berlin",
   labInfo: "El laboratorio del que vienen estos modelos. El cuadrado lleva un teléfono a",

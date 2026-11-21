@@ -63,8 +63,8 @@ export interface ChromeUpdate {
   readonly notice: string;
   /** How to drive the table without a tracker. */
   readonly hint: string;
-  /** An attribution a licence of the application asks for, empty when there is none. */
-  readonly credit: string;
+  /** An attribution a licence of the application asks for; the about page carries them all. */
+  readonly credit?: string;
   /** The switches of the table, which are touched rather than turned. */
   readonly choices?: readonly ChoiceGroup[];
   /** Whether this table carries the way out, which the page a table is left for does not. */
@@ -152,7 +152,8 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     ${unassigned}
     ${notice}
     <p class="hint">${escapeHtml(state.hint)}</p>
-    ${state.credit === "" ? "" : `<p class="hint credit">${escapeHtml(state.credit)}</p>`}
+    ${state.credit === undefined || state.credit === "" ? ""
+      : `<p class="hint credit">${escapeHtml(state.credit)}</p>`}
   `;
 }
 

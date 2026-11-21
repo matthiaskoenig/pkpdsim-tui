@@ -156,3 +156,49 @@
 .organ-field {
   fill: transparent;
 }
+
+/* The heart this visitor started with, behind the one on the table. */
+.pulse-trace--base {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-width: 1.8;
+  stroke-dasharray: 6 5;
+  opacity: 0.75;
+}
+
+/* The thin line from a name at the edge to the organ it belongs to. */
+.organ-leader {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-width: 0.12;
+  opacity: 0.45;
+}
+
+/* The names are read over the body, so they carry the colour of the table behind them. */
+.organ-label,
+.organ-value {
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.vessel-arrow {
+  stroke: none;
+}
+
+.vessel-arrow--arterial {
+  fill: var(--arterial);
+}
+
+.vessel-arrow--venous {
+  fill: var(--venous);
+}
+
+.vessel-arrow--portal {
+  fill: var(--portal);
+}
+
+.pulse-key--base {
+  fill: var(--ink-dim);
+}
