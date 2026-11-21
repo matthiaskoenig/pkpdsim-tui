@@ -7,6 +7,7 @@ export {
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "./format.ts";
 export {createGlyph} from "./glyph.ts";
+export {ICONS} from "./icons.mjs";
 export type {Glyph, GlyphKind, TokenGlyph} from "./glyph.ts";
 export type {TableApp, TableHost} from "./host.ts";
 export {createMirror, MIRROR_SOURCE} from "./mirror.ts";
@@ -17,6 +18,8 @@ export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";
 export {createReadout, visibleStats} from "./readout.ts";
+export {createSettings, pictogram, reportStatus} from "./settings.ts";
+export type {Pictogram, Settings, SettingsOptions} from "./settings.ts";
 export {normalizeSpeech, speechFor, speechKey} from "./speech.ts";
 export type {Speech} from "./speech.ts";
 export type {Readout, StatDefinition} from "./readout.ts";

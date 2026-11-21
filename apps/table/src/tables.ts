@@ -4,12 +4,15 @@
  * is loaded when it is opened, so a visitor who looks at the body waits for nothing.
  */
 
-import type {TableApp, Voice} from "@pkpdsim-tui/tui-kit";
+import type {Pictogram, TableApp, Voice} from "@pkpdsim-tui/tui-kit";
 import {HUB_TEXT} from "./text.ts";
 import type {EntryCopy} from "./text.ts";
 
 /** The body itself, which is what the application shows when no table is named. */
 export const OVERVIEW = "overview";
+
+/** The picture of the body, which is the table every other one is opened from. */
+export const OVERVIEW_PICTURE: Pictogram = "body";
 
 export interface TableEntry {
   /** What `?app` names it, and what its words are kept under in `HUB_TEXT`. */
@@ -20,6 +23,8 @@ export interface TableEntry {
   readonly organs: readonly string[];
   /** Where its exported models and reference data are, under `assets/`. */
   readonly assets: string;
+  /** The picture of the table: the thing a visitor puts their hand on when they open it. */
+  readonly picture: Pictogram;
   /** Its module, which is only fetched when the table is opened. */
   load(): Promise<TableApp>;
 }
@@ -27,6 +32,7 @@ export interface TableEntry {
 export const TABLES: readonly TableEntry[] = [
   {
     id: "cardiovascular",
+    picture: "heart",
     organ: "he",
     organs: ["he", "lu"],
     assets: "cardiovascular/",
@@ -34,6 +40,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "liver",
+    picture: "liver",
     organ: "li",
     organs: ["li", "si"],
     assets: "cardiovascular/",
@@ -41,6 +48,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "lobes",
+    picture: "scalpel",
     organ: "li",
     organs: ["li"],
     assets: "lobes/",
@@ -48,6 +56,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "glimepiride",
+    picture: "tablet",
     organ: "si",
     organs: ["si", "li", "ki"],
     assets: "glimepiride/",
@@ -55,6 +64,7 @@ export const TABLES: readonly TableEntry[] = [
   },
   {
     id: "perfusion",
+    picture: "pump",
     organ: "li",
     organs: ["li"],
     assets: "perfusion/",

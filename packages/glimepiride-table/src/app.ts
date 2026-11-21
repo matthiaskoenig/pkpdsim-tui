@@ -216,7 +216,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       reading: glimepirideReading(
         voice, individual, sex, current, reference_readout, reference),
       back: true,
-      choices: [...host.choices, ...bodies],
+      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.id === "hour") return `${formatNumber(hour, 1)} h`;

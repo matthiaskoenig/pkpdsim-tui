@@ -145,13 +145,16 @@
 }
 
 /* Where the story goes on: the three tables after this one. */
+/* A card of the next table is the dark card of the panel, over the white of the surface. */
 .chapter {
+  --ink: var(--panel-ink);
+  --ink-dim: var(--panel-ink-dim);
   cursor: pointer;
 }
 
 .chapter-plate {
   fill: var(--panel);
-  stroke: var(--panel-line);
+  stroke: var(--panel);
   stroke-width: 1.4;
   transition: fill 120ms linear, stroke 120ms linear;
 }
@@ -159,8 +162,8 @@
 .chapter:hover .chapter-plate,
 .chapter:focus-visible .chapter-plate,
 .chapter[data-arming="true"] .chapter-plate {
-  fill: rgba(39, 179, 172, 0.16);
-  stroke: var(--accent);
+  fill: #11333a;
+  stroke: var(--accent-bright);
 }
 
 .chapter:focus {

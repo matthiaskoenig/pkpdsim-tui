@@ -1,7 +1,7 @@
 /* The machine: the circuit, its parts and the zones of the organ. */
 .circuit-tube {
   fill: none;
-  stroke: #4a6076;
+  stroke: #51687f;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: auto;
@@ -9,20 +9,20 @@
 }
 
 .circuit-tube--return {
-  stroke: #3b5168;
+  stroke: #6a829a;
 }
 
 .circuit-part {
-  fill: rgba(126, 160, 196, 0.22);
-  stroke: #7ea0c4;
+  fill: #e7eef5;
+  stroke: #6e8eae;
   stroke-width: 0.7;
   pointer-events: auto;
   cursor: help;
 }
 
 .circuit-part--oxygenator {
-  fill: rgba(79, 209, 197, 0.22);
-  stroke: #4fd1c5;
+  fill: #dff4f2;
+  stroke: #2a9e97;
 }
 
 .circuit-pump {
@@ -32,7 +32,7 @@
 
 .circuit-blades {
   fill: none;
-  stroke: #cfe0f0;
+  stroke: #3f5a74;
   stroke-width: 0.8;
   transform-origin: 16px 48px;
   animation: circuit-spin var(--spin, 1s) linear infinite;
@@ -55,8 +55,8 @@
 }
 
 .circuit-organ {
-  fill: rgba(150, 92, 62, 0.45);
-  stroke: rgba(243, 227, 216, 0.35);
+  fill: rgba(150, 92, 62, 0.55);
+  stroke: rgba(72, 44, 30, 0.45);
   stroke-width: 0.7;
   pointer-events: auto;
   cursor: help;
@@ -68,7 +68,7 @@
 }
 
 .circuit-zone-plate {
-  stroke: rgba(243, 227, 216, 0.3);
+  stroke: rgba(72, 44, 30, 0.3);
   stroke-width: 0.5;
   transition: fill 160ms linear;
 }

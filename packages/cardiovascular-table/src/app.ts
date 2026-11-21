@@ -225,7 +225,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: cardioReading(voice, heartControls, sex, summary, referenceSummary),
       back: true,
-      choices: [...host.choices, ...bodies],
+      choices: bodies,
       status, roles: roles, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];

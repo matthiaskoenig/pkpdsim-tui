@@ -15,6 +15,9 @@ export interface KitCopy {
   /** The heading over the legend of the objects. */
   readonly objects: string;
   /** The label of the switch which picks the table, the language and the level. */
+  /** The button in the corner which everything about the table itself waits behind. */
+  readonly settings: string;
+  readonly settingsInfo: Phrase;
   readonly tableSwitch: string;
   readonly languageSwitch: string;
   readonly levelSwitch: string;
@@ -59,6 +62,8 @@ const EN: KitCopy = {
     adult: "Leave this table. The body is where every table is opened from.",
   },
   objects: "Objects",
+  settings: "Settings",
+  settingsInfo: "Which table this is, which language it speaks, and how much it says.",
   tableSwitch: "Table",
   languageSwitch: "Language",
   levelSwitch: "For",
@@ -114,6 +119,8 @@ const DE: KitCopy = {
     adult: "Diesen Tisch verlassen. Vom Körper aus wird jeder Tisch geöffnet.",
   },
   objects: "Objekte",
+  settings: "Einstellungen",
+  settingsInfo: "Welcher Tisch das ist, welche Sprache er spricht und wie viel er sagt.",
   tableSwitch: "Tisch",
   languageSwitch: "Sprache",
   levelSwitch: "Für",
@@ -170,6 +177,8 @@ const ES: KitCopy = {
     adult: "Salir de esta mesa. Todas las mesas se abren desde el cuerpo.",
   },
   objects: "Objetos",
+  settings: "Ajustes",
+  settingsInfo: "Qué mesa es esta, en qué idioma habla y cuánto cuenta.",
   tableSwitch: "Mesa",
   languageSwitch: "Idioma",
   levelSwitch: "Para",

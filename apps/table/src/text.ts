@@ -37,10 +37,17 @@ export interface HubCopy {
   readonly loadingTable: string;
   readonly failed: string;
   readonly failedHint: string;
+  /** The laboratory at the foot of the page, and the square which points at it. */
+  readonly labName: string;
+  readonly labPlace: string;
+  readonly labInfo: string;
   readonly entries: Readonly<Record<string, EntryCopy>>;
 }
 
 const EN: HubCopy = {
+  labName: "Prof. Dr. Matthias König",
+  labPlace: "University of Lübeck and Humboldt-Universität zu Berlin",
+  labInfo: "The laboratory these models come from. The square takes a phone to",
   heading: "The body on the table",
   motivation: {
     child: [
@@ -133,6 +140,9 @@ const EN: HubCopy = {
 };
 
 const DE: HubCopy = {
+  labName: "Prof. Dr. Matthias König",
+  labPlace: "Universität zu Lübeck und Humboldt-Universität zu Berlin",
+  labInfo: "Das Labor, aus dem diese Modelle kommen. Das Quadrat bringt ein Telefon zu",
   heading: "Der Körper auf dem Tisch",
   motivation: {
     child: [
@@ -225,6 +235,9 @@ const DE: HubCopy = {
 };
 
 const ES: HubCopy = {
+  labName: "Prof. Dr. Matthias König",
+  labPlace: "Universidad de Lübeck y Humboldt-Universität zu Berlin",
+  labInfo: "El laboratorio del que vienen estos modelos. El cuadrado lleva un teléfono a",
   heading: "El cuerpo sobre la mesa",
   motivation: {
     child: [

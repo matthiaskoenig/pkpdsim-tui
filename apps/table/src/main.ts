@@ -15,10 +15,12 @@
  *   ?level=child          how much is said: child, adult or expert
  */
 
-import {chooseQuery, languageOptions, LEVELS, voiceOf, words} from "@pkpdsim-tui/tui-kit";
+import {
+  chooseQuery, createSettings, languageOptions, LEVELS, voiceOf, words,
+} from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableApp, TableHost, Voice} from "@pkpdsim-tui/tui-kit";
 import {startOverview} from "./hub.ts";
-import {entryCopy, OVERVIEW, selectedTable, TABLES, tableOf} from "./tables.ts";
+import {entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
 
 function element<T extends Element>(id: string): T {
@@ -28,27 +30,37 @@ function element<T extends Element>(id: string): T {
 }
 
 /**
- * The three switches every table carries: which table this is, which language it speaks, and
- * how much it says. The last two are what makes one table readable by a child, by an adult who
+ * The three settings of the application: which table this is, which language it speaks, and how
+ * much it says. The last two are what makes one table readable by a child, by an adult who
  * knows nothing and by somebody of the field, in the language they brought with them.
+ *
+ * They are not in the panel, which says what the table is showing: they wait behind the button
+ * in the far corner, and each of them is a picture, because a visitor who cannot read the
+ * language the table is in is the visitor who needs the language switch most.
  */
-function appChoices(voice: Voice, selected: string): readonly ChoiceGroup[] {
+function appSettings(voice: Voice, selected: string): readonly ChoiceGroup[] {
   const copy = words(voice);
   return [
     {
       id: "app", label: copy.tableSwitch, selected,
       options: [
-        {id: OVERVIEW, label: copy.bodySwitch},
-        ...TABLES.map(entry => ({id: entry.id, label: entryCopy(voice, entry.id).label})),
+        {id: OVERVIEW, label: copy.bodySwitch, picture: OVERVIEW_PICTURE},
+        ...TABLES.map(entry => ({
+          id: entry.id, label: entryCopy(voice, entry.id).label, picture: entry.picture,
+        })),
       ],
     },
     {
       id: "lang", label: copy.languageSwitch, selected: voice.locale,
-      options: languageOptions().map(option => ({id: option.id, label: option.label})),
+      options: languageOptions().map(option => ({
+        id: option.id, label: option.label, picture: `flag-${option.id}` as const,
+      })),
     },
     {
       id: "level", label: copy.levelSwitch, selected: voice.level,
-      options: LEVELS.map(level => ({id: level, label: copy.levelNames[level]})),
+      options: LEVELS.map(level => ({
+        id: level, label: copy.levelNames[level], picture: level,
+      })),
     },
   ];
 }
@@ -83,6 +95,20 @@ async function start(): Promise<void> {
     ? copy.loadingBodies
     : copy.loadingTable;
 
+  const choose = (group: string, option: string): void => {
+    if (group === "app") chooseQuery("app", option, OVERVIEW);
+    // The language and the level are in the address like the body is, so that a link says them
+    // and a table which is opened from this one keeps them.
+    if (group === "lang") chooseQuery("lang", option, "");
+    if (group === "level") chooseQuery("level", option, "");
+  };
+
+  // One settings menu for the whole page: the body and every table are the same page, so the
+  // button in the corner stays where it is while a visitor walks through all five of them.
+  createSettings(element<HTMLElement>("chrome"), {
+    voice, groups: appSettings(voice, selectedTable(parameters)), onChoose: choose,
+  });
+
   const host: TableHost = {
     surface: element<HTMLElement>("surface"),
     scene: element<SVGSVGElement>("scene"),
@@ -96,14 +122,7 @@ async function start(): Promise<void> {
     progress: message => {
       element<HTMLElement>("boot-message").textContent = message;
     },
-    choices: appChoices(voice, selectedTable(parameters)),
-    choose: (group, option) => {
-      if (group === "app") chooseQuery("app", option, OVERVIEW);
-      // The language and the level are in the address like the body is, so that a link says
-      // them and a table which is opened from this one keeps them.
-      if (group === "lang") chooseQuery("lang", option, "");
-      if (group === "level") chooseQuery("level", option, "adult");
-    },
+    choose,
     back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
   };
 

@@ -29,8 +29,10 @@
   fill: var(--ink);
   font-size: 2.6px;
   text-anchor: middle;
+  /* The name of an organ is read over the organ itself, so it carries the white of the table
+     around its letters rather than a shadow. */
   paint-order: stroke;
-  stroke: rgba(7, 11, 16, 0.85);
+  stroke: rgba(255, 255, 255, 0.92);
   stroke-width: 0.7;
 }
 
@@ -75,8 +77,8 @@
 }
 
 .pulse-frame {
-  fill: rgba(11, 16, 23, 0.82);
-  stroke: rgba(126, 160, 196, 0.22);
+  fill: #eef3f7;
+  stroke: var(--line);
   stroke-width: 1;
 }
 
@@ -102,7 +104,7 @@
 
 .pulse-axis {
   fill: none;
-  stroke: rgba(126, 160, 196, 0.3);
+  stroke: var(--line);
   stroke-width: 1;
 }
 
@@ -125,12 +127,12 @@
 .pulse-cursor {
   fill: none;
   stroke: var(--ink-dim);
-  stroke-opacity: 0.5;
+  stroke-opacity: 0.35;
   stroke-width: 1;
 }
 
 .pulse-dot {
-  fill: var(--ink);
+  fill: var(--surface);
   stroke: var(--arterial);
   stroke-width: 2;
 }

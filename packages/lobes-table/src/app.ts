@@ -203,7 +203,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: lobeReading(voice, lobes, states, day, sample, reference),
       back: true,
-      choices: [...host.choices, ...bodies],
+      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.mode === "position") {

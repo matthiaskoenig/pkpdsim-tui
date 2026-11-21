@@ -12,10 +12,11 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, languageOptions, LEVELS, pointerPoints, speechFor, svg,
+  attributes, chooseQuery, createInfo, ICONS, pointerPoints, reportStatus, speechFor, svg,
   tokenPoints, words,
 } from "@pkpdsim-tui/tui-kit";
-import type {TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
 import {entryCopy, OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
@@ -24,13 +25,16 @@ import {wrapText} from "./wrap.ts";
 /** How many lines of motivation stand under the heading, which the layout keeps room for. */
 const MOTIVATION_LINES = 2;
 /** The card of a table, in pixels. */
-const CARD = {height: 132, gap: 22, margin: 28, minWidth: 250, maxWidth: 360} as const;
+const CARD = {height: 158, gap: 22, margin: 28, minWidth: 270, maxWidth: 380} as const;
 /** The room the heading takes at the top. */
 const HEAD = {top: 78, line: 34, bottom: 34} as const;
 const PADDING: number = 20;
 /** How much of a sentence a card holds: characters on a line, and lines. */
 const COLUMNS = 32;
 const LINES = 2;
+/** The heading of a card, which is the name of a table and may need two lines. */
+const TITLE_COLUMNS = 20;
+const TITLE_LINES = 2;
 /** How far the bodies stay away from the cards. */
 const BODY_GAP = 34;
 /** Between the two bodies, in pixels. */
@@ -57,8 +61,8 @@ interface CardView {
   readonly group: SVGGElement;
   readonly plate: SVGRectElement;
   readonly badge: SVGCircleElement;
-  readonly number: SVGTextElement;
-  readonly title: SVGTextElement;
+  readonly picture: SVGGElement;
+  readonly title: readonly SVGTextElement[];
   readonly lines: readonly SVGTextElement[];
   readonly call: SVGTextElement;
   readonly arm: SVGRectElement;
@@ -196,11 +200,17 @@ function createCard(
     "data-info": voice.say(copy.about),
   }, parent);
   const plate = svg("rect", {class: "hub-card-plate", rx: 18}, group);
-  const badge = svg("circle", {class: "hub-card-badge", r: 17}, group);
-  const number = svg("text", {class: "hub-card-number", "text-anchor": "middle"}, group);
-  number.textContent = String(index + 1);
-  const title = svg("text", {class: "hub-card-title"}, group);
-  title.textContent = copy.title;
+  const badge = svg("circle", {class: "hub-card-badge", r: 22}, group);
+  // The picture of the table, which is the object a visitor will have in their hand on it.
+  const picture = svg("g", {class: "hub-card-picture"}, group);
+  svg("path", {
+    class: "hub-card-icon", d: (ICONS[entry.picture as GlyphKind] ?? []).join(" "),
+  }, picture);
+  const title = wrapText(copy.title, TITLE_COLUMNS, TITLE_LINES).map(text => {
+    const element = svg("text", {class: "hub-card-title"}, group);
+    element.textContent = text;
+    return element;
+  });
   const lines = wrapText(voice.say(copy.blurb), COLUMNS, LINES).map(text => {
     const element = svg("text", {class: "hub-card-line"}, group);
     element.textContent = text;
@@ -216,7 +226,7 @@ function createCard(
     open(entry);
   });
   return {
-    entry, group, plate, badge, number, title, lines, call: opener, arm,
+    entry, group, plate, badge, picture, title, lines, call: opener, arm,
     box: {x: 0, y: 0, width: 0, height: 0},
   };
 }
@@ -224,11 +234,15 @@ function createCard(
 function placeCard(card: CardView, box: CardBox): void {
   card.box = box;
   attributes(card.plate, {x: box.x, y: box.y, width: box.width, height: box.height});
-  attributes(card.badge, {cx: box.x + PADDING + 17, cy: box.y + PADDING + 17});
-  attributes(card.number, {x: box.x + PADDING + 17, y: box.y + PADDING + 23});
-  attributes(card.title, {x: box.x + PADDING + 46, y: box.y + PADDING + 24});
+  const centre = {x: box.x + PADDING + 22, y: box.y + PADDING + 22};
+  attributes(card.badge, {cx: centre.x, cy: centre.y});
+  card.picture.setAttribute("transform", `translate(${centre.x} ${centre.y}) scale(0.48)`);
+  for (const [index, line] of card.title.entries()) {
+    attributes(line, {x: box.x + PADDING + 58, y: box.y + PADDING + 22 + index * 26});
+  }
+  const under = box.y + PADDING + 22 + Math.max(card.title.length, 2) * 26;
   for (const [index, line] of card.lines.entries()) {
-    attributes(line, {x: box.x + PADDING, y: box.y + PADDING + 50 + index * 20});
+    attributes(line, {x: box.x + PADDING, y: under + index * 20});
   }
   attributes(card.call, {x: box.x + PADDING, y: box.y + box.height - PADDING + 4});
   attributes(card.arm, {x: box.x, y: box.y + box.height - 4, width: box.width});
@@ -263,9 +277,21 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const organs = svg("g", {class: "hub-organs"}, scene);
   const row = svg("g", {class: "hub-row"}, scene);
   const switches = svg("g", {class: "hub-switches"}, scene);
+  // The foot of the page: whose laboratory this is, and the square a visitor points a phone at.
   const foot = svg("g", {class: "hub-foot"}, scene);
-  const statusDot = svg("circle", {class: "hub-status-dot", r: 4}, foot);
-  const statusText = svg("text", {class: "hub-status"}, foot);
+  const lab = svg("g", {
+    class: "hub-lab", role: "link", tabindex: 0,
+    "data-info": `${copy.labInfo} ${LAB_URL}`,
+  }, foot);
+  const qr = svg("g", {class: "hub-qr"}, lab);
+  svg("rect", {class: "hub-qr-plate", x: -2, y: -2, width: LAB_QR_SIZE + 4, height: LAB_QR_SIZE + 4, rx: 1.5}, qr);
+  svg("path", {class: "hub-qr-code", d: LAB_QR_PATH}, qr);
+  const labName = svg("text", {class: "hub-lab-name"}, lab);
+  labName.textContent = copy.labName;
+  const labPlace = svg("text", {class: "hub-lab-line"}, lab);
+  labPlace.textContent = copy.labPlace;
+  const labLink = svg("text", {class: "hub-lab-link"}, lab);
+  labLink.textContent = LAB_URL.replace("https://", "");
   const credit = svg("text", {class: "hub-credit"}, foot);
   credit.textContent = anatomy.attribution;
 
@@ -282,20 +308,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     : tracker.discovered ? copy.bothToOpen : copy.touchToOpen;
   const cards: CardView[] = TABLES.map(
     (entry, index) => createCard(row, entry, index, call, voice, open));
-  // The two switches of the landing page: which language it speaks, and how much it says.
-  const languages = createPills(
-    switches,
-    languageOptions().map(option => ({
-      id: option.id, label: option.label,
-      info: option.id === voice.locale ? option.label : `${kit.languageSwitch}: ${option.label}`,
-    })),
-    "lang", voice.locale, id => chooseQuery("lang", id, ""));
-  const levels = createPills(
-    switches,
-    LEVELS.map(level => ({
-      id: level, label: kit.levelNames[level], info: kit.levelInfo[level],
-    })),
-    "level", voice.level, id => chooseQuery("level", id, "adult"));
   // Whoever cannot read this yet presses play and is read to instead.
   const speech = speechFor(voice);
   const spoken = `${copy.heading}. ${copy.motivation[voice.level].join(" ")}`;
@@ -433,24 +445,29 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const [index, line] of motivation.entries()) {
       attributes(line, {x: viewport.width / 2, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The switches sit in the corner opposite the status, out of the way of the cards, with
-    // the button which reads the page aloud above them.
-    placePills(reader, viewport.width - CARD.margin, viewport.height - 88);
-    placePills(languages, viewport.width - CARD.margin, viewport.height - 52);
-    placePills(levels, viewport.width - CARD.margin, viewport.height - 16);
-    attributes(statusDot, {cx: CARD.margin + 6, cy: viewport.height - 44});
-    attributes(statusText, {x: CARD.margin + 18, y: viewport.height - 40});
-    attributes(credit, {x: CARD.margin + 18, y: viewport.height - 22});
+    // The button which reads the page aloud sits in the corner opposite the laboratory.
+    placePills(reader, viewport.width - CARD.margin, viewport.height - 20);
+    // The laboratory at the foot: the square, and three lines beside it.
+    const square = 76;
+    const base = viewport.height - 20 - square;
+    qr.setAttribute(
+      "transform", `translate(${CARD.margin} ${base}) scale(${square / LAB_QR_SIZE})`);
+    const text = CARD.margin + square + 16;
+    attributes(labName, {x: text, y: base + 22});
+    attributes(labPlace, {x: text, y: base + 42});
+    attributes(labLink, {x: text, y: base + 62});
+    attributes(credit, {x: CARD.margin, y: viewport.height - 6});
   };
 
   const update = (): void => {
     for (const view of bodies) {
       view.group.setAttribute("data-selected", String(view.sex === chosen));
     }
-    const hint = hintFor(voice, tracker, status.state);
-    statusText.textContent = status.source;
-    statusText.setAttribute("data-info", status.detail === "" ? hint : status.detail);
-    foot.setAttribute("data-state", status.state);
+    // What drives the surface is a setting and not a word of the landing page.
+    reportStatus({
+      ...status,
+      detail: status.detail === "" ? hintFor(voice, tracker, status.state) : status.detail,
+    });
   };
 
   const resize = (): void => {

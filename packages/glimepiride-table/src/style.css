@@ -1,9 +1,9 @@
 /* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
 
-/* The way the drug takes through the individual. */
+/* The way the drug takes through the individual, drawn on the white of the table. */
 .station-plate {
-  fill: rgba(18, 26, 36, 0.78);
-  stroke: var(--panel-line);
+  fill: #eef3f7;
+  stroke: var(--line);
   stroke-width: 1.5;
 }
 
@@ -32,7 +32,7 @@
 
 .pathway-arrow {
   fill: none;
-  stroke: var(--panel-line);
+  stroke: var(--line);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;

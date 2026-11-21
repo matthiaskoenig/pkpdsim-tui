@@ -111,7 +111,6 @@ export async function startLiverTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: liverReading(voice, solution, baseline),
       back: true,
-      choices: [...host.choices],
       status, roles, notice: "",
       value: role => `${(values.get(role.id) ?? role.reference).toFixed(2)}x`,
       live: new Set(values.keys()),

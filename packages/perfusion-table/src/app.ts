@@ -192,7 +192,6 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: perfusionReading(voice, settings, current, hour),
       back: true,
-      choices: [...host.choices],
       status, roles, notice,
       value: role => {
         const value = values.get(role.id) ?? role.reference;
