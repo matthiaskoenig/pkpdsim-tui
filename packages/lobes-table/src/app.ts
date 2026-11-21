@@ -60,11 +60,11 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     {
       id: "sex", label: kit.bodySwitch, selected: sex,
       options: [
-        {id: "male", label: kit.male},
         {
           id: "female", label: kit.female,
           ...(species === "human" ? {} : {unavailable: copy.femaleOnlyHuman}),
         },
+        {id: "male", label: kit.male},
       ],
     },
     {

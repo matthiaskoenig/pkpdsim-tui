@@ -91,7 +91,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   if (body === undefined) throw new Error("The anatomy holds no body.");
   const bodies: readonly ChoiceGroup[] = [{
     id: "sex", label: kit.bodySwitch, selected: sex,
-    options: [{id: "male", label: kit.male}, {id: "female", label: kit.female}],
+    options: [{id: "female", label: kit.female}, {id: "male", label: kit.male}],
   }];
 
   const reference = data.pressure;

@@ -79,6 +79,6 @@ export function bodyChoices(voice: Voice): {
   const kit = words(voice);
   return {
     id: "sex", label: kit.bodySwitch,
-    options: [{id: "male", label: kit.male}, {id: "female", label: kit.female}],
+    options: [{id: "female", label: kit.female}, {id: "male", label: kit.male}],
   };
 }

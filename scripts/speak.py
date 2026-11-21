@@ -17,8 +17,9 @@ them again.
 
 Engines:
 
-* `piper` (the default), a neural voice which runs offline: `uv pip install piper-tts`. The
-  voice of each language is downloaded once into `.cache/piper`.
+* `piper` (the default), a neural voice which runs offline: `uv tool install piper-tts
+  --python 3.12`, which puts a `piper` on the path. The voice of each language is downloaded
+  once into `.cache/piper`, the first time it is asked for.
 * `espeak`, the `espeak-ng` of the system: no download and no model, but it sounds like 1990.
 * `flite`, the voice inside `ffmpeg` where it was built with libflite: nothing to install at all,
   which is how the clips are tried out, but it speaks English only.
@@ -81,14 +82,37 @@ def read_texts(locales: list[str]) -> dict[str, list[Sentence]]:
     return found
 
 
+def piper_python() -> str:
+    """
+    The interpreter piper lives in: the one beside the `piper` of the path, which is where a
+    tool installation puts it, and otherwise the one which runs this script.
+    """
+    found = shutil.which("piper")
+    if found is not None:
+        beside = Path(found).resolve().with_name("python")
+        if beside.exists():
+            return str(beside)
+    return sys.executable
+
+
+def piper_voice(voice: str) -> None:
+    """The model of a language, downloaded into the cache the first time it is asked for."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    if (CACHE / f"{voice}.onnx").exists():
+        return
+    print(f"The voice {voice}, into {CACHE}. This is downloaded once.", file=sys.stderr)
+    subprocess.run(
+        [piper_python(), "-m", "piper.download_voices", voice, "--data-dir", str(CACHE)],
+        check=True)
+
+
 def piper_speak(voice: str, text: str, out: Path) -> None:
     """One sentence, in the neural voice of this language."""
-    CACHE.mkdir(parents=True, exist_ok=True)
+    piper_voice(voice)
     command = [
-        sys.executable, "-m", "piper",
+        piper_python(), "-m", "piper",
         "--model", voice,
         "--data-dir", str(CACHE),
-        "--download-dir", str(CACHE),
         "--output-file", str(out),
     ]
     subprocess.run(command, input=text, text=True, check=True, capture_output=True)

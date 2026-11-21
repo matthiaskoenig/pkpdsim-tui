@@ -310,7 +310,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   });
   const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
 
-  const bodies: readonly BodyView[] = (["male", "female"] as const).flatMap(sex => {
+  // The woman stands first, and the man beside her.
+  const bodies: readonly BodyView[] = (["female", "male"] as const).flatMap(sex => {
     const body = anatomy.bodies[sex];
     if (body === undefined) return [];
     const group = svg("g", {
