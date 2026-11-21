@@ -139,15 +139,16 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
     <div class="settings-card"${pinned ? "" : " hidden"}>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
       <div class="settings-groups"></div>
-      <p class="settings-tracker"><span class="dot"></span><span class="settings-source"></span></p>
+      ${pinned ? "" : `<p class="settings-tracker"><span class="dot"></span>`
+        + `<span class="settings-source"></span></p>`}
     </div>
   `;
   const button = root.querySelector(".settings-button") as HTMLButtonElement;
   const card = root.querySelector(".settings-card") as HTMLElement;
   const groups = root.querySelector(".settings-groups") as HTMLElement;
   const dot = root.querySelector(".settings-dot") as HTMLElement;
-  const tracker = root.querySelector(".settings-tracker") as HTMLElement;
-  const source = root.querySelector(".settings-source") as HTMLElement;
+  const tracker = root.querySelector(".settings-tracker");
+  const source = root.querySelector(".settings-source");
   groups.innerHTML = options.groups.map(groupHtml).join("");
 
   const show = (open: boolean): void => {
@@ -181,8 +182,8 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   const settings: Settings = {
     status(state: TableStatus): void {
       dot.dataset["state"] = state.state;
-      tracker.dataset["state"] = state.state;
-      source.textContent = state.source;
+      if (tracker instanceof HTMLElement) tracker.dataset["state"] = state.state;
+      if (source instanceof HTMLElement) source.textContent = state.source;
       const detail = state.detail === "" ? state.source : state.detail;
       button.title = `${copy.settings}: ${detail}`;
     },
