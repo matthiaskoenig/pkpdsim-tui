@@ -30,9 +30,13 @@ That is a decision about what these tables are for. A booth has a front, and the
 
 A table has no click, so everything which is pressed rather than turned is pressed by **resting a finger on it**: a card on the landing page, the organ the card points at, a switch in the panel, or **Back**, which every table carries above its title and which returns to the landing page. The element fills while the finger is on it, so that holding is visibly doing something, and lifting the finger before it is full cancels it. A hand sweeping across the glass opens nothing.
 
-The landing page carries no panel: a heading, two lines of what the table is for, the two reference bodies and the five tables around them. Touching a body is what every table is then solved for. What a card is, and what a body is, waits behind it as a note.
+The landing page carries no panel: a heading, two lines of what the table is for, one body in the middle and the five tables on a ring around it, each card joined to the organ its table is about by a thin line. It is one person seen five ways, which is the thing to understand before a visitor walks to the first table. What a card is, and what a body is, waits behind it as a note.
 
-Everything about the table itself, rather than about what is on it, waits behind the **gear in the far corner**: which table is open, the language and the level. They are three rows of either-or switches with a tick on the one which is on, drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The address of the tracker is in that card too, where it belongs to whoever set the booth up, rather than on the glass in front of the audience; the dot on the gear is green while the table is connected and amber while it is not. The choices hold while a visitor walks from one table to another and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
+The body in the middle is the one every table is then solved for, and the **woman and the man are one either-or beside it**, so that wherever a body is shown it is one press to see the other one. The settings of the table stand **open in a column at the right of the landing page**, where a visitor reads what can be changed before anything is open; every table keeps the same switches behind the gear in its corner.
+
+The laboratory is in the bottom right corner with the square a phone is pointed at, and the line under it opens the page **about** all of this: whose laboratory the models come from, what they are, which software solves them, under which licences, and who paid for the work. Everything a licence asks to be said is on that page, and nothing of it is on the glass of a table.
+
+Everything about the table itself, rather than about what is on it, waits behind the **gear in the far corner** of a table, and stands open on the landing page: which table is open, the language and the level. They are three rows of either-or switches with a tick on the one which is on, drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The address of the tracker is in that card too, where it belongs to whoever set the booth up, rather than on the glass in front of the audience; the dot on the gear is green while the table is connected and amber while it is not. The gear says nothing and reads nothing aloud: the settings are not something a table explains. The choices hold while a visitor walks from one table to another and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
 
 ## Two surfaces
 
@@ -54,6 +58,12 @@ Each table says the little that is needed at a glance, and keeps the rest behind
 The objects say what they are as well. Inside the ring of an object is a picture of the thing it stands for, and the picture answers while the object is turned: a vessel narrows as its resistance goes up, a heart beats at the rate the dial is set to, a tablet fills, a clock hand walks through the days after an operation.
 
 Whoever cannot read any of it presses the **play button**, which every panel, every note and the landing page carry, and the table reads it out instead.
+
+## The page about all of this
+
+The line under the laboratory in the corner of the landing page opens one more page, which is not a table: **about**. It carries whose laboratory this is and how to reach it, which models the tables solve and where they come from, which software solves them, under which licences all of it stands, and who paid for the work. It is where everything a licence asks to be said is said, including the anatomy of the bodies, which is adapted from the EMBL-EBI Expression Atlas anatomograms under CC BY 4.0. A table itself carries none of it: the glass in front of an audience is for the body, not for attributions.
+
+The page is reached at `?app=about`, and **Back** returns to the landing page, by a finger as everywhere else.
 
 ## Full screen
 

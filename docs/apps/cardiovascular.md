@@ -16,12 +16,14 @@ A circulation is not a detail of a pharmacokinetic model: every organ of a PBPK 
 
 | Marker | Object | What it changes | Range |
 | --- | --- | --- | --- |
-| 1 | Hepatic outflow | The resistance of the hepatic veins, between the liver and the vena cava | 0.5x to 8x |
-| 2 | Systemic resistance | The resistance of every systemic organ at once, the afterload of the heart | 0.5x to 2x |
-| 3 | Portal vein | The resistance of the portal vein, between the splanchnic organs and the liver | 0.5x to 6x |
-| 4 | Renal resistance | The resistance of the kidneys, on top of the systemic resistance | 0.5x to 3x |
-| 5 | Heart rate | How often the heart beats, which the compiled heart is solved with | 40 to 150 /min |
-| 6 | Contractility | How hard the ventricles squeeze, where turning it down is a failing heart | 0.4x to 1.6x |
+| 1 | Heart rate | How often the heart beats, which the compiled heart is solved with | 40 to 150 /min |
+| 2 | Contractility | How hard the ventricles squeeze, where turning it down is a failing heart | 0.4x to 1.6x |
+| 3 | Systemic resistance | The resistance of every systemic organ at once, the afterload of the heart | 0.5x to 2x |
+| 4 | Hepatic outflow | The resistance of the hepatic veins, between the liver and the vena cava | 0.5x to 8x |
+| 5 | Renal resistance | The resistance of the kidneys, on top of the systemic resistance | 0.5x to 3x |
+| 6 | Portal vein | The resistance of the portal vein, between the splanchnic organs and the liver | 0.5x to 6x |
+
+They are picked up in the order they are understood in: the heart itself on 1 and 2, the vessels of the whole body on 3, and then the three parts a model of a drug cares about, the liver, the kidneys and the gut.
 
 Every object is a dial. Pointing away from the person is the reference physiology, 1.00x for a resistance and 75 beats a minute for the heart. Turning it to the right raises the value, turning it to the left lowers it. The four resistances are logarithmic, because a resistance factor is a ratio; the heart rate is linear, because a rate is read off a scale in beats per minute. The last tenth of each half turn is the stop of the dial, where the value sits on its extreme instead of on a knife edge. Lifting the object restores the reference.
 
@@ -44,21 +46,23 @@ The six numbers of the band, all of them read off the beating heart over its las
 
 The small number under each one is the change against the reference heart of the same body, which is the case pkpdsim exported for it.
 
-A panel beside the body draws one beat of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking around the cycle in real time at the rate on the table. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
+A panel in the corner draws **2.4 seconds** of the solved heart: the pressure in the aorta in red, the pressure in the left ventricle in blue, and a cursor walking through them in real time at the rate on the table. The window is a time and not a number of beats, so it holds three beats of a heart at rest and five of a fast one, and a visitor sees the beats crowd together as the rate goes up. Behind them, dashed, is the first heart that was solved on this table, which is the heart of this body before anything was turned: every later run is read against it. On the anatomy the left ventricle empties and fills with the same cycle, which is the heart beating on the body.
 
 While a run of the heart is in flight the beat and the panel step back a little, and the anatomy keeps answering, because the steady network is solved on every frame. One run takes about two seconds.
 
-On the body, each organ is a disc as large as its flow and coloured by the share of its reference flow it still receives: grey at the reference, blue when it has lost half, amber when it has gained half. The vessels are as wide as the flow they carry, with the arterial side in red, the venous side in blue and the portal system in purple.
+On the body the circulation is drawn as the circuit the blood runs: out of the heart, down the arterial trunk on one side, through the organs, up the venous trunk on the other, back to the heart and through the lungs before it starts again. The gut, the spleen and the pancreas drain into the portal vein instead, which carries their blood through the liver first. Every vessel carries an arrow saying which way the blood in it runs and is as wide as the flow it carries, with the arterial side in red, the venous side in blue and the portal system in purple. Each organ is a disc as large as its flow and coloured by the share of its reference flow it still receives: grey at the reference, blue when it has lost half, amber when it has gained half.
+
+The organs of the abdomen sit on each other, so their names are read in two columns clear of the body, each joined to its organ by a thin line: the organs which drain into the vena cava down the left, the portal ones down the right, and the liver under them, which is where their blood goes. Under each name is the flow that organ is getting right now.
 
 ## Things to try
 
-- **Portal hypertension.** Turn object 1 to the right. The hepatic veins obstruct, the portal pressure and the portal gradient rise, the liver and the splanchnic organs lose flow. This is the haemodynamics of cirrhosis.
-- **Portal vein thrombosis.** Turn object 3 to the right instead. The portal pressure rises as well, but the pressure in the liver does not follow, so the gradient opens further and the hepatic artery takes over part of the supply.
-- **Vasodilation.** Turn object 2 to the left. Every organ gains flow and the cardiac output rises, because the model drives the circulation with a fixed pressure head.
-- **Renal artery stenosis.** Turn object 4 to the right. The kidneys lose flow and almost nothing else moves, because the kidneys are one organ among fourteen.
-- **A slow heart.** Turn object 5 down to 40 beats a minute. The heart has longer to fill, so one beat moves half as much again, but the cardiac output still falls and the pressure in the aorta has further to fall between two beats: the blood pressure opens to something like 107/41 mmHg.
-- **A failing heart.** Turn object 6 down. The ventricle beside the heart empties less with every beat, the stroke volume falls and the circulation is carried by the rate alone.
-- **The other body.** Touch Female in the panel. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
+- **Portal hypertension.** Turn object 4 to the right. The hepatic veins obstruct, the portal pressure and the portal gradient rise, the liver and the splanchnic organs lose flow. This is the haemodynamics of cirrhosis.
+- **Portal vein thrombosis.** Turn object 6 to the right instead. The portal pressure rises as well, but the pressure in the liver does not follow, so the gradient opens further and the hepatic artery takes over part of the supply.
+- **Vasodilation.** Turn object 3 to the left. Every organ gains flow and the cardiac output rises, because the model drives the circulation with a fixed pressure head.
+- **Renal artery stenosis.** Turn object 5 to the right. The kidneys lose flow and almost nothing else moves, because the kidneys are one organ among fourteen.
+- **A slow heart.** Turn object 1 down to 40 beats a minute. The heart has longer to fill, so one beat moves half as much again, but the cardiac output still falls and the pressure in the aorta has further to fall between two beats: the blood pressure opens to something like 107/41 mmHg.
+- **A failing heart.** Turn object 2 down. The ventricle beside the heart empties less with every beat, the stroke volume falls and the circulation is carried by the rate alone.
+- **The other body.** Touch Woman beside the body, here or on the landing page. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
 
 ## Where the numbers come from
 

@@ -817,6 +817,18 @@ body {
   background: var(--warn);
 }
 
+/* On the landing page the switches stand open in a column at the right, so a visitor sees what
+   can be changed before they walk to the first table. */
+.settings--pinned {
+  top: 1.5rem;
+  bottom: 1.5rem;
+  align-content: start;
+}
+
+.settings--pinned .settings-button {
+  display: none;
+}
+
 .settings-card {
   width: min(27rem, calc(100vw - 3rem));
   padding: 1.1rem 1.2rem 0.9rem;

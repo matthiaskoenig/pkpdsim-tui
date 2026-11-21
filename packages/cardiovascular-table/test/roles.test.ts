@@ -20,14 +20,15 @@ function tokens(...list: TableToken[]): ReadonlyMap<number, TableToken> {
 }
 
 const CARDIOVASCULAR_ROLES = cardiovascularRoles(createVoice("en", "adult"));
-const RESISTANCE_ROLES = CARDIOVASCULAR_ROLES.slice(0, 4);
-const HEART_ROLES = CARDIOVASCULAR_ROLES.slice(4);
+const HEART_ROLES = CARDIOVASCULAR_ROLES.slice(0, 2);
+const RESISTANCE_ROLES = CARDIOVASCULAR_ROLES.slice(2);
 
 describe("the objects of the circulation", () => {
-  it("covers the four resistances and the two of the heart, on six markers", () => {
-    expect(RESISTANCE_ROLES.map(role => role.id))
-      .toEqual(["hepatic", "systemic", "portal", "renal"]);
+  it("covers the two of the heart and the four resistances, on six markers", () => {
+    // The heart is picked up first, because it is what drives everything else.
     expect(HEART_ROLES.map(role => role.id)).toEqual(["heartRate", "contractility"]);
+    expect(RESISTANCE_ROLES.map(role => role.id))
+      .toEqual(["systemic", "hepatic", "renal", "portal"]);
     expect(CARDIOVASCULAR_ROLES.flatMap(role => [...role.markers])).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
@@ -52,17 +53,17 @@ describe("heartControlsFromTokens", () => {
     });
   });
 
-  it("reads the rate off the object on marker five", () => {
-    const role = roleForMarker(CARDIOVASCULAR_ROLES, 5);
+  it("reads the rate off the object on marker one", () => {
+    const role = roleForMarker(CARDIOVASCULAR_ROLES, 1);
     expect(role?.id).toBe("heartRate");
-    const controls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(3, 5, 0.8)));
+    const controls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(3, 1, 0.8)));
     expect(controls.heartRate).toBeCloseTo(valueFromAngle(role!, 0.8), 12);
     expect(controls.contractility).toBe(1);
   });
 
   it("never asks the model for a rate it was not built for", () => {
     for (const angle of [-3, -1, 0, 1, 3]) {
-      const controls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(3, 5, angle)));
+      const controls = heartControlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(3, 1, angle)));
       expect(controls.heartRate).toBeGreaterThanOrEqual(40);
       expect(controls.heartRate).toBeLessThanOrEqual(150);
     }
@@ -79,9 +80,9 @@ describe("controlsFromTokens", () => {
   });
 
   it("takes the value of the angle of a token", () => {
-    const role = roleForMarker(RESISTANCE_ROLES, 1);
+    const role = roleForMarker(RESISTANCE_ROLES, 4);
     expect(role?.id).toBe("hepatic");
-    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(5, 1, 1.2)), pressure);
+    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(5, 4, 1.2)), pressure);
     expect(controls.hepatic).toBeCloseTo(valueFromAngle(role!, 1.2), 12);
     expect(controls.systemic).toBe(1);
   });
@@ -93,17 +94,18 @@ describe("controlsFromTokens", () => {
   });
 
   it("lets the token that arrived last win when two carry one role", () => {
-    const first = token(5, 1, 0.4);
-    const second = token(9, 1, -0.4 + Math.PI * 2);
+    const first = token(5, 4, 0.4);
+    const second = token(9, 4, -0.4 + Math.PI * 2);
     const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(first, second), pressure);
-    expect(controls.hepatic).toBeCloseTo(valueFromAngle(RESISTANCE_ROLES[0]!, second.angle), 12);
+    const hepatic = roleForMarker(RESISTANCE_ROLES, 4)!;
+    expect(controls.hepatic).toBeCloseTo(valueFromAngle(hepatic, second.angle), 12);
     expect(controls.hepatic).toBeLessThan(1.0001);
   });
 
   it("measures a relative role from the turn it was put down at", () => {
-    const roles = [{...RESISTANCE_ROLES[1]!, mode: "relative" as const, turns: 1}];
-    const placed = token(7, 2, 1.0, 1.0);
-    const twisted = token(7, 2, 1.0 + Math.PI / 2, 1.0 + Math.PI / 2);
+    const roles = [{...roleForMarker(RESISTANCE_ROLES, 3)!, mode: "relative" as const, turns: 1}];
+    const placed = token(7, 3, 1.0, 1.0);
+    const twisted = token(7, 3, 1.0 + Math.PI / 2, 1.0 + Math.PI / 2);
     const origins = new Map([[7, 1.0]]);
     expect(controlsFromTokens(roles, tokens(placed), pressure, origins).systemic).toBeCloseTo(1, 12);
     expect(controlsFromTokens(roles, tokens(twisted), pressure, origins).systemic)
@@ -111,7 +113,7 @@ describe("controlsFromTokens", () => {
   });
 
   it("never leaves the pressure boundaries of the reference", () => {
-    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(1, 4, 2.5)), pressure);
+    const controls = controlsFromTokens(CARDIOVASCULAR_ROLES, tokens(token(1, 5, 2.5)), pressure);
     expect(controls.arterial).toBe(pressure.arterial_pressure);
     expect(controls.venous).toBe(pressure.venous_pressure);
   });
