@@ -41,6 +41,9 @@ export interface KitCopy {
   readonly bodySwitch: string;
   readonly male: string;
   readonly female: string;
+  /** The button which puts a figure back the way it opened. */
+  readonly reset: string;
+  readonly resetInfo: Phrase;
   /** The button which reads the text of a panel, a note or the landing page aloud. */
   readonly speak: string;
   readonly speakStop: string;
@@ -99,6 +102,12 @@ const EN: KitCopy = {
     expert: "Every number, with the mechanism and the model behind it.",
   },
   bodySwitch: "Body",
+  reset: "Start again",
+  resetInfo: {
+    child: "Puts everything back the way it was at the start.",
+    adult: "Puts the table back the way it opened, with nothing changed.",
+    expert: "Reloads this table at its reference state: every value back to the physiology it started from.",
+  },
   speak: "Read it to me",
   speakStop: "Stop",
   speakInfo: {
@@ -169,6 +178,12 @@ const DE: KitCopy = {
     expert: "Alle Zahlen, mit dem Mechanismus und dem Modell dahinter.",
   },
   bodySwitch: "Körper",
+  reset: "Von vorn",
+  resetInfo: {
+    child: "Stellt alles wieder so ein wie am Anfang.",
+    adult: "Stellt den Tisch wieder so ein, wie er geöffnet wurde.",
+    expert: "Lädt diesen Tisch im Referenzzustand neu: jeder Wert zurück auf die Physiologie, mit der er begonnen hat.",
+  },
   speak: "Vorlesen",
   speakStop: "Stopp",
   speakInfo: {
@@ -240,6 +255,12 @@ const ES: KitCopy = {
     expert: "Todos los números, con el mecanismo y el modelo detrás.",
   },
   bodySwitch: "Cuerpo",
+  reset: "Desde el principio",
+  resetInfo: {
+    child: "Deja todo como estaba al principio.",
+    adult: "Deja la mesa como estaba al abrirla, sin nada cambiado.",
+    expert: "Recarga esta mesa en su estado de referencia: cada valor vuelve a la fisiología de partida.",
+  },
   speak: "Léemelo",
   speakStop: "Parar",
   speakInfo: {

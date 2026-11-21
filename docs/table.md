@@ -30,9 +30,13 @@ That is a decision about what these tables are for. A booth has a front, and the
 
 A table has no click, so everything which is pressed rather than turned is pressed by **resting a finger on it**: a card on the landing page, the organ the card points at, a switch in the panel, or **Back**, which every table carries above its title and which returns to the landing page. The element fills while the finger is on it, so that holding is visibly doing something, and lifting the finger before it is full cancels it. A hand sweeping across the glass opens nothing.
 
-The landing page carries no panel: a heading, two lines of what the table is for, one body in the middle and the five tables on a ring around it, each card joined to the organ its table is about by a thin line. It is one person seen five ways, which is the thing to understand before a visitor walks to the first table. What a card is, and what a body is, waits behind it as a note.
+The landing page carries no panel: a heading, two lines of what the table is for, the woman and the man side by side in the middle, and the five tables on a ring around them, each card joined to the organ its table is about by a thin line. It is one person seen five ways, which is the thing to understand before a visitor walks to the first table. Both bodies are shown, and nothing on the page asks a visitor to pick one: which body a model is solved for is a question of a table, and every table carries that switch in its panel.
 
-The body in the middle is the one every table is then solved for, and the **woman and the man are one either-or beside it**, so that wherever a body is shown it is one press to see the other one. The settings of the table stand **open in a column at the right of the landing page**, where a visitor reads what can be changed before anything is open; every table keeps the same switches behind the gear in its corner.
+What a table is about stands in the **box at the right**: the card a hand is over, or an organ a finger is on, fills it with the whole of what that table shows. It is one place to read rather than a note wherever the hand happens to be, which is what a table across a room wants.
+
+The **first object of the surface, marker 0, is the table switch**. Turning it walks around the ring, the card it points at lights up and the box at the right says what it is; holding the object still on one opens that table, and the card fills while it is held, as it does under a finger. It is the one object a visitor is handed before they have opened anything, and it is how a table is left for another one without walking back to a card.
+
+The settings of the table stand **open in a strip along the top of the landing page**, where a visitor reads what can be changed before anything is open; every table keeps the same switches behind the gear in its corner.
 
 The laboratory is in the bottom right corner with the square a phone is pointed at, and the line under it opens the page **about** all of this: whose laboratory the models come from, what they are, which software solves them, under which licences, and who paid for the work. Everything a licence asks to be said is on that page, and nothing of it is on the glass of a table.
 
@@ -57,7 +61,11 @@ Each table says the little that is needed at a glance, and keeps the rest behind
 
 The objects say what they are as well. Inside the ring of an object is a picture of the thing it stands for, and the picture answers while the object is turned: a vessel narrows as its resistance goes up, a heart beats at the rate the dial is set to, a tablet fills, a clock hand walks through the days after an operation.
 
-Whoever cannot read any of it presses the **play button**, which every panel, every note and the landing page carry, and the table reads it out instead.
+Nothing is read aloud at the moment. The clips and the voice of all three languages are kept (see [Languages and the voice](languages.md)), and the button which played them is off: a table in a room with other tables is read rather than listened to.
+
+## Starting again
+
+Every table carries **Start again** under what it is showing. It loads the table once more at its reference state: the body of the physiology, every value as it was exported, nothing of what the last visitor did left on the glass. It is a reload and not an undo, which is what an exhibit between two visitors wants, and it keeps the language, the level and the tracker, which belong to the booth and not to the visitor.
 
 ## The page about all of this
 
@@ -75,7 +83,7 @@ google-chrome --kiosk --noerrdialogs --disable-pinch --overscroll-history-naviga
   --app="http://localhost:4173/?tuio=localhost:3333&lang=de"
 ```
 
-`--autoplay-policy=no-user-gesture-required` is what lets the play button speak: a finger resting on it is a press of the table and not a gesture the browser counts as an interaction, and without the flag Chrome holds the first clip of the day back. `&lang=` and `&level=` open the table in the language and at the level a booth wants to start the day with; a visitor changes both on the table.
+`--autoplay-policy=no-user-gesture-required` is for the clips, which are off at the moment: a finger resting on a button is a press of the table and not a gesture the browser counts as an interaction, and without the flag Chrome would hold the first clip of the day back. `&lang=` and `&level=` open the table in the language and at the level a booth wants to start the day with; a visitor changes both on the table.
 
 Serve the built application rather than the development server:
 
@@ -103,4 +111,4 @@ Put the marker on the underside of a puck, and put a label and an arrow on the t
 5. Lifting a puck returns its number to the reference.
 6. The panel, the numbers and the cards all read upright from the side the visitors stand at.
 7. A finger resting on a number, an organ or an object opens the note behind it.
-8. The play button speaks, in the language the switch is on. A silent button on the first press of the day is the autoplay flag above.
+8. The first object of the surface, marker 0, walks around the ring of the landing page, and holding it still opens the table it points at.

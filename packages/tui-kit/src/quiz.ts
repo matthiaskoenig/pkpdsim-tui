@@ -11,7 +11,6 @@
  * question which stands on the surface all day is furniture a visitor stops seeing.
  */
 
-import {speechFor} from "./speech.ts";
 import type {Voice} from "./voice.ts";
 import {words} from "./words.ts";
 
@@ -57,7 +56,6 @@ function escapeHtml(value: string): string {
 export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
   const copy = words(options.voice).quiz;
   const panel = words(options.voice);
-  const speech = speechFor(options.voice);
   const questions = options.questions;
   const root = document.createElement("div");
   root.className = "quiz";
@@ -71,11 +69,6 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
       <div class="quiz-head">
         <span class="quiz-step"></span>
         <div class="quiz-head-buttons">
-          <button class="speak quiz-speak" type="button" data-dwell="quiz-speak"
-            data-info="${escapeHtml(options.voice.say(panel.speakInfo))}">
-            <span class="speak-icon" aria-hidden="true"></span>
-            <span class="speak-label">${escapeHtml(options.voice.say(panel.speak))}</span>
-          </button>
           <button class="quiz-close" type="button" data-dwell="quiz-close"
             aria-label="${escapeHtml(copy.close)}">${escapeHtml(copy.close)}</button>
         </div>
@@ -100,8 +93,6 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
   const because = root.querySelector(".quiz-because") as HTMLElement;
   const tried = root.querySelector(".quiz-try") as HTMLElement;
   const next = root.querySelector(".quiz-next") as HTMLElement;
-  const speakButton = root.querySelector(".quiz-speak") as HTMLElement;
-  const speakLabel = root.querySelector(".quiz-speak .speak-label") as HTMLElement;
 
   let at = 0;
   let right = 0;
@@ -113,22 +104,6 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
     const state = index < at ? "past" : index === at ? "now" : "ahead";
     return `<span class="quiz-dot" data-state="${state}"></span>`;
   }).join("");
-
-  /** What the button reads out: what is on the card right now, in the order it is read in. */
-  const spoken = (): readonly string[] => {
-    const question = questions[at];
-    if (done || question === undefined) return [copy.score(right, questions.length)];
-    if (!answered) return [question.ask, ...question.choices.map(choice => choice.label)];
-    const verdictText = card.dataset["correct"] === "true" ? copy.right : copy.wrong;
-    return [question.ask, verdictText, question.because, ...(question.tryIt ?? "" ? [question.tryIt as string] : [])];
-  };
-
-  const drawSpeaking = (): void => {
-    const reading = speech.speaking();
-    speakButton.dataset["speaking"] = String(reading);
-    speakLabel.textContent = options.voice.say(reading ? panel.speakStop : panel.speak);
-  };
-  speech.listen(drawSpeaking);
 
   const draw = (): void => {
     const question = questions[at];
@@ -143,7 +118,6 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
       return;
     }
     card.dataset["state"] = answered ? "answered" : "asking";
-    drawSpeaking();
     step.innerHTML = marks();
     ask.textContent = question.ask;
     choices.innerHTML = question.choices.map(choice => `<button class="quiz-choice"`
@@ -184,7 +158,6 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
     tried.hidden = question.tryIt === undefined;
     next.textContent = at + 1 < questions.length ? copy.next : copy.last;
     answer.hidden = false;
-    drawSpeaking();
   };
 
   root.addEventListener("click", event => {
@@ -194,12 +167,7 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
       show(card.hidden === true);
       return;
     }
-    if (target.closest(".quiz-speak") !== null) {
-      speech.toggle(spoken());
-      return;
-    }
     if (target.closest(".quiz-close") !== null) {
-      speech.stop();
       show(false);
       return;
     }

@@ -8,7 +8,6 @@
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {Pictogram} from "./settings.ts";
 import {reportStatus} from "./settings.ts";
-import {speechFor} from "./speech.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
 
@@ -78,6 +77,8 @@ export interface ChromeOptions {
   readonly onChoose?: (group: string, option: string) => void;
   /** What the way out does, which only the application knows. */
   readonly onBack?: () => void;
+  /** What putting the figure back the way it opened does, which only the application knows. */
+  readonly onReset?: () => void;
 }
 
 export interface Chrome {
@@ -141,10 +142,13 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     ${back}
     <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<i class="info-dot" aria-hidden="true">i</i></h1>
     <p class="reading">${escapeHtml(state.reading)}</p>
-    <button class="speak" type="button" data-dwell="speak"
-      data-info="${escapeHtml(voice.say(copy.speakInfo))}">
-      <span class="speak-icon" aria-hidden="true"></span>
-      <span class="speak-label">${escapeHtml(copy.speak)}</span>
+    <button class="reset" type="button" data-dwell="reset"
+      data-info="${escapeHtml(voice.say(copy.resetInfo))}">
+      <svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path>
+        <path d="M20.5 3.5v5.2h-5.2"></path>
+      </svg>
+      <span class="reset-label">${escapeHtml(copy.reset)}</span>
     </button>
     ${tries}
     ${state.choices === undefined || state.choices.length === 0 ? "" : choicesHtml(state.choices)}
@@ -160,23 +164,6 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
 export function createChrome(container: HTMLElement, options: ChromeOptions): Chrome {
   const panel = document.createElement("aside");
   panel.className = "edge edge--near";
-  const copy = words(options.voice);
-  const speech = speechFor(options.voice);
-  // What the panel says, in the order a visitor reads it: what this table is, what it says
-  // about what is on it right now, and what there is to try. Each sentence is read on its own,
-  // so the recorded ones sound the same at every table.
-  let spoken: readonly string[] = [];
-
-  /** The button says what pressing it does now, which is stopping while it is reading. */
-  const showSpeaking = (): void => {
-    const button = panel.querySelector(".speak");
-    if (!(button instanceof HTMLElement)) return;
-    const reading = speech.speaking();
-    button.dataset["speaking"] = String(reading);
-    const label = button.querySelector(".speak-label");
-    if (label !== null) label.textContent = reading ? copy.speakStop : copy.speak;
-  };
-  speech.listen(showSpeaking);
   // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
   panel.addEventListener("click", event => {
     const target = event.target;
@@ -185,8 +172,8 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
       options.onBack?.();
       return;
     }
-    if (target.closest(".speak") !== null) {
-      speech.toggle(spoken);
+    if (target.closest(".reset") !== null) {
+      options.onReset?.();
       return;
     }
     const choice = target.closest(".choice");
@@ -202,12 +189,10 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
     update(state: ChromeUpdate): void {
       // What drives the surface belongs to the settings of the table and not to its words.
       reportStatus(state.status);
-      spoken = [state.title, state.about, state.reading, ...state.tries];
       const html = panelHtml(state, options.voice);
       if (html === previous) return;
       previous = html;
       panel.innerHTML = html;
-      showSpeaking();
     },
   };
 }

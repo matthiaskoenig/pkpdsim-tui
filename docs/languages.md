@@ -1,6 +1,6 @@
 # Languages, levels and the voice
 
-The same table in three languages, at three levels, and read aloud for whoever cannot read it. A table in a museum is walked up to by a six year old, by their parent and by a hepatologist, one after the other, and they are not owed the same sentence.
+The same table in three languages and at three levels. A table in a museum is walked up to by a six year old, by their parent and by a hepatologist, one after the other, and they are not owed the same sentence.
 
 ## What a visitor chooses
 
@@ -32,9 +32,9 @@ A band of six numbers is not what a six year old came to read, so a number carri
 
 ## Reading it aloud
 
-Every panel, every note and the landing page carry a **play button**. Pressing it reads the text: for a panel, what this table is, what it says about the objects on it right now, and the things worth trying; for a note, the sentence behind the element a finger rested on. Pressing it again stops.
+**The reading is off at the moment.** The buttons which played it are gone from the panel, from a note and from the quiz, and a table is read rather than listened to. Everything below is kept, because the sentences are written down and the clips are recorded: putting the button back is a change of the chrome and not of the copy.
 
-What is read comes from two places:
+What would be read comes from two places:
 
 - **A recorded clip**, where there is one. The whole copy of the application is written down before anybody walks up to the table, so almost everything it says can be recorded in a good voice, in the language it belongs to, and it sounds the same at every table. The voice of all three languages is the same kind of voice, a friendly and confident woman: `en_GB-cori-high`, `de_DE-kerstin-medium` and `es_MX-claude-high` in `PIPER_VOICES` of `scripts/speak.py`.
 - **The speech of the browser** for everything else: a reading like *2.5 times as much of the drug in the blood* is built out of the numbers of the moment and was never a sentence anybody could record.

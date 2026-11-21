@@ -179,70 +179,6 @@
   }
 }
 
-/* The language and the level, as two rows of pills in the corner of the landing page. */
-.hub-pill {
-  cursor: pointer;
-}
-
-.hub-pill:focus {
-  outline: none;
-}
-
-.hub-pill-plate {
-  fill: var(--panel);
-  stroke: var(--panel);
-  stroke-width: 1.5;
-  transition: fill 120ms linear, stroke 120ms linear;
-}
-
-.hub-pill[data-selected="true"] .hub-pill-plate {
-  fill: rgba(39, 179, 172, 0.18);
-  stroke: var(--accent);
-}
-
-.hub-pill:hover .hub-pill-plate,
-.hub-pill:focus-visible .hub-pill-plate,
-.hub-pill[data-arming="true"] .hub-pill-plate {
-  fill: rgba(39, 179, 172, 0.3);
-  stroke: var(--accent);
-}
-
-.hub-pill-text {
-  font-size: 15px;
-  font-weight: 600;
-  fill: var(--ink-dim);
-  dominant-baseline: middle;
-  pointer-events: none;
-}
-
-.hub-pill[data-selected="true"] .hub-pill-text {
-  fill: var(--accent);
-}
-
-.hub-pill:hover .hub-pill-text,
-.hub-pill[data-arming="true"] .hub-pill-text {
-  fill: var(--ink);
-}
-
-.hub-pill-icon {
-  fill: var(--accent);
-  pointer-events: none;
-}
-
-/* The pill which reads the page aloud says so while it is reading. */
-.hub-pill[data-speaking="true"] .hub-pill-plate {
-  fill: rgba(39, 179, 172, 0.3);
-  stroke: var(--accent);
-}
-
-.hub-pill[data-speaking="true"] .hub-pill-text {
-  fill: var(--ink);
-}
-
-.hub-pill[data-speaking="true"] .hub-pill-icon {
-  fill: var(--ink);
-}
-
 
 /* The laboratory at the foot of the page: the square a phone reads, and who this is. */
 .hub-lab {
@@ -396,4 +332,50 @@
 .about-funding {
   font-size: 0.92rem;
   color: var(--panel-ink-dim);
+}
+
+/* The two bodies, and the word under each one. */
+.hub-body-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  fill: var(--ink-dim);
+  letter-spacing: 0.02em;
+}
+
+/* The box at the right: what the table under the hand, or under the object, is about. */
+.hub-info-plate {
+  fill: var(--panel);
+  stroke: var(--panel);
+  stroke-width: 1.5;
+}
+
+.hub-info-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  fill: var(--panel-ink);
+}
+
+.hub-info-icon {
+  fill: var(--accent-bright);
+  fill-rule: evenodd;
+}
+
+.hub-info-line {
+  font-size: 1.05rem;
+  fill: var(--panel-ink-dim);
+}
+
+.hub-info-call {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: var(--accent-bright);
+}
+
+/* The card the object is pointing at: the same card a hand is on, so that both read alike. */
+.hub-card[data-selected="true"] .hub-card-plate {
+  fill: #16303d;
+  stroke: var(--accent-bright);
+  stroke-width: 2.5;
 }

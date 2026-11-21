@@ -74,7 +74,7 @@ Touches stay for what touches are good at: moving a panel, scrubbing a time cour
 
 Each table also says in words what it is and what it is showing. One panel, in the corner of the edge the visitors stand at, carries the title, a reading of the state the objects have put the body in, which changes as they are moved, and two things worth trying. The numbers at the edge are for whoever wants them; the sentence is for everybody else.
 
-It says all of that in **three languages and at three levels**: English, German and Spanish, for a child, for an adult who knows nothing about the subject, and for somebody who wants the mechanism. The level is not only the words: a child reads three numbers at the edge where an expert reads six. Every panel, every note and the landing page also carry a **play button**, which reads the text out, from a recorded clip where there is one and with the speech of the browser where there is not, so a visitor who cannot read it yet is told it instead. [Languages and the voice](languages.md) is the whole of it.
+It says all of that in **three languages and at three levels**: English, German and Spanish, for a child, for an adult who knows nothing about the subject, and for somebody who wants the mechanism. The level is not only the words: a child reads three numbers at the edge where an expert reads six. The clips which read a table out are recorded and kept, and the button which played them is off for now. [Languages and the voice](languages.md) is the whole of it.
 
 Everything that is not needed at a glance waits behind the element it belongs to: hovering a number, an object, an organ or a card with the mouse, or resting a finger on it at the table, opens a note that says what it is. That is what keeps the surface short enough to read in a room full of people.
 
@@ -82,11 +82,11 @@ Everything that is not needed at a glance waits behind the element it belongs to
 
 The table is made for a visitor who has a minute, not for a reader. What that costs the design:
 
-- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, one body in the middle, and the five tables on a ring around it, each joined to the organ it is about. The woman and the man are one press apart, the settings stand open at the right, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status: those belong to a table which is already open.
+- **A landing page with nothing on it but the invitation.** A heading, two lines of what this is, the woman and the man side by side, and the five tables on a ring around them, each joined to the organ it is about. The first object of the surface walks around the ring and opens the table it is held on, the box at the right says what that table is, the settings stand open in a strip along the top, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status: those belong to a table which is already open.
 - **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
 - **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
 - **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.
-- **Their language, at their level, and read out.** Three languages, three levels and a play button on every text: a visitor picks how much they want to be told, and whether they want to read it at all.
+- **Their language, at their level.** Three languages and three levels: a visitor picks how much they want to be told, and every word of every table follows.
 - **Nothing is permanent.** Lifting an object undoes it, and every table is one touch away from the body it belongs to.
 
 ## What runs the model

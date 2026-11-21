@@ -4,6 +4,7 @@
  * is loaded when it is opened, so a visitor who looks at the body waits for nothing.
  */
 
+import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {Pictogram, TableApp, Voice} from "@pkpdsim-tui/tui-kit";
 import {HUB_TEXT} from "./text.ts";
 import type {EntryCopy} from "./text.ts";
@@ -92,4 +93,29 @@ export function tableOf(parameters: URLSearchParams): TableEntry | undefined {
 /** Which table is open, for the switch the panels of every table carry. */
 export function selectedTable(parameters: URLSearchParams): string {
   return tableOf(parameters)?.id ?? OVERVIEW;
+}
+
+/** The marker of the object which picks a table: the first one of the surface. */
+export const TOPIC_MARKER = 0;
+
+/**
+ * The object which picks a table. Its angle walks around the ring of cards, with the detent in
+ * the middle of them, so that a visitor who puts it down and turns it either way walks through
+ * all five rather than running into a stop at once.
+ */
+export function topicRole(voice: Voice): TokenRole {
+  const copy = voice.pick(HUB_TEXT);
+  return {
+    id: "topic", label: copy.topic.label, description: voice.say(copy.topic.info), unit: "",
+    markers: [TOPIC_MARKER], min: 0, max: TABLES.length - 1,
+    reference: Math.floor(TABLES.length / 2), mode: "absolute", scale: "linear", turns: 1,
+  };
+}
+
+/** The table a value of that dial points at, which is one of the five whatever the value is. */
+export function tableAtDial(value: number): TableEntry {
+  const index = Math.min(TABLES.length - 1, Math.max(0, Math.round(value)));
+  const entry = TABLES[index];
+  if (entry === undefined) throw new Error("The application carries no tables.");
+  return entry;
 }
