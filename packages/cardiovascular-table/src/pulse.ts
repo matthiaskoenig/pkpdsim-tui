@@ -8,7 +8,9 @@
 
 import type {HeartSummary} from "@pkpdsim-tui/cardio-sim";
 import {attributes, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box, Viewport} from "@pkpdsim-tui/tui-kit";
+import type {Box, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {CARDIO_TEXT} from "./text.ts";
+import type {CardioCopy} from "./text.ts";
 import type {BeatCycle, BeatFrame} from "./beat.ts";
 
 /** The size of a panel and the air around its curves, in the pixels of the surface. */
@@ -39,13 +41,13 @@ interface Panel {
   readonly period: SVGTextElement;
 }
 
-function panel(parent: SVGGElement): Panel {
+function panel(parent: SVGGElement, copy: CardioCopy["pulse"]): Panel {
   const group = svg("g", {class: "pulse"}, parent);
   svg("rect", {
     class: "pulse-frame", x: 0, y: 0, width: PANEL.width, height: PANEL.height, rx: 14,
   }, group);
   const title = svg("text", {class: "pulse-title", x: PAD.left - 24, y: 30}, group);
-  title.textContent = "One beat of the heart";
+  title.textContent = copy.title;
   const pressure = svg("text", {class: "pulse-number", x: PAD.left - 24, y: 64}, group);
   const rate = svg("text", {
     class: "pulse-rate", x: PANEL.width - PAD.right, y: 64, "text-anchor": "end",
@@ -71,17 +73,17 @@ function panel(parent: SVGGElement): Panel {
     "text-anchor": "end",
   }, plot);
   const aorta = svg("text", {class: "pulse-key pulse-key--aorta", x: PAD.left, y: PANEL.height - PAD.bottom + 18}, plot);
-  aorta.textContent = "aorta";
+  aorta.textContent = copy.aorta;
   const ventricle = svg("text", {
     class: "pulse-key pulse-key--ventricle", x: PAD.left + 48, y: PANEL.height - PAD.bottom + 18,
   }, plot);
-  ventricle.textContent = "ventricle";
+  ventricle.textContent = copy.ventricle;
   return {group, pressure, rate, arterial, ventricular, cursor, dot, high, low, period};
 }
 
-export function createPulse(parent: SVGSVGElement): Pulse {
+export function createPulse(parent: SVGSVGElement, voice: Voice): Pulse {
   const root = svg("g", {class: "layer layer--pulse", opacity: 0}, parent);
-  const panels = [panel(root)];
+  const panels = [panel(root, voice.pick(CARDIO_TEXT).pulse)];
   let drawn: BeatCycle | undefined;
   let box: Box = {x: 0, y: 0, width: PANEL.width, height: PANEL.height};
 

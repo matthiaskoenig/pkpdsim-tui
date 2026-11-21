@@ -1,7 +1,10 @@
 /** What the perfusion table says: the numbers of the band, and the card beside an object. */
 
-import {clamp, formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {PlotTrace, StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {
+  PlotTrace, StatDefinition, TokenCard, TokenGlyph, Voice,
+} from "@pkpdsim-tui/tui-kit";
+import {PERFUSION_TEXT} from "./text.ts";
 import {PERFUSION_CONTROLS} from "@pkpdsim-tui/perfusion-sim";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
@@ -26,59 +29,47 @@ export interface PerfusionReadout {
   readonly zones: readonly {alive: number; oxygen: number}[];
 }
 
-export const PERFUSION_STATS: readonly StatDefinition<PerfusionReadout>[] = [
-  {
-    id: "taken", label: "Oxygen taken", unit: "kPa", digits: 1,
-    of: value => value.inflow - value.outflow,
-    info: "How much of the oxygen the organ took out of the fluid on its way through. A living "
-      + "liver breathes, and this is the measurement which says that it does.",
-  },
-  {
-    id: "outflow", label: "Oxygen leaving", unit: "kPa", digits: 1, of: value => value.outflow,
-    info: "What is left in the fluid when it leaves the organ. When it reaches zero, the cells "
-      + "at the far end have nothing to breathe.",
-  },
-  {
-    id: "bile", label: "Bile", unit: "ul/min", digits: 2, of: value => value.bile,
-    info: "A liver makes bile as long as it is working, so the drop which comes out of the bile "
-      + "duct is the clearest sign that the organ is alive.",
-  },
-  {
-    id: "alive", label: "Cells alive", unit: "%", digits: 0,
-    of: value => 100 * value.alivePericentral,
-    info: "The cells still alive at the far end of the sinusoid, the ones which are served "
-      + "last. They are the first to die when the oxygen or the flow is not enough.",
-  },
-  {
-    id: "alt", label: "ALT released", unit: "ukat/l", digits: 3, of: value => value.alt,
-    info: "An enzyme from inside the liver cells. It only reaches the fluid when cells break "
-      + "open, which is how damage is measured in a perfusion and in a blood sample alike.",
-  },
-  {
-    id: "lactate", label: "Lactate", unit: "mM", digits: 2, of: value => value.lactate,
-    info: "A healthy liver eats lactate. A struggling one makes it instead, so a rising lactate "
-      + "is bad news on a machine as well as in a patient.",
-  },
-];
-
 /**
- * The three courses of a perfusion, each on a scale of its own which does not move: an organ
- * which is doing well draws three flat lines near the top, and one which is not says so.
+ * The numbers of the band. A child reads what comes out and what is alive; an adult what the
+ * organ took and what it makes; an expert the enzyme and the lactate which say why.
  */
-export const PERFUSION_TRACES: readonly PlotTrace[] = [
-  {
-    id: "outflow", label: "oxygen leaving", column: "pO2_out", unit: "kPa", colour: "#4fd1c5",
-    digits: 1, range: {low: 0, high: 85},
-  },
-  {
-    id: "bile", label: "bile", column: "bile_rate", unit: "ul/min", colour: "#e8a33d",
-    digits: 2, range: {low: 0, high: 5},
-  },
-  {
-    id: "alive", label: "cells alive", column: "f_alive_pc", unit: "%", colour: "#a06cd5",
-    factor: 100, digits: 0, range: {low: 0, high: 105},
-  },
-];
+export function perfusionStats(voice: Voice): readonly StatDefinition<PerfusionReadout>[] {
+  const copy = voice.pick(PERFUSION_TEXT).stats;
+  const stat = (
+    id: keyof typeof copy, unit: string, digits: number,
+    of: (value: PerfusionReadout) => number, from?: "adult" | "expert",
+  ): StatDefinition<PerfusionReadout> => ({
+    id, unit, digits, of,
+    label: voice.say(copy[id].label), info: voice.say(copy[id].info),
+    ...(from === undefined ? {} : {from}),
+  });
+  return [
+    stat("outflow", "kPa", 1, value => value.outflow),
+    stat("bile", "ul/min", 2, value => value.bile),
+    stat("alive", "%", 0, value => 100 * value.alivePericentral),
+    stat("taken", "kPa", 1, value => value.inflow - value.outflow, "adult"),
+    stat("alt", "ukat/l", 3, value => value.alt, "expert"),
+    stat("lactate", "mM", 2, value => value.lactate, "expert"),
+  ];
+}
+
+export function perfusionTraces(voice: Voice): readonly PlotTrace[] {
+  const copy = voice.pick(PERFUSION_TEXT).traces;
+  return [
+    {
+      id: "outflow", label: copy.outflow, column: "pO2_out", unit: "kPa", colour: "#4fd1c5",
+      digits: 1, range: {low: 0, high: 85},
+    },
+    {
+      id: "bile", label: copy.bile, column: "bile_rate", unit: "ul/min", colour: "#e8a33d",
+      digits: 2, range: {low: 0, high: 5},
+    },
+    {
+      id: "alive", label: copy.alive, column: "f_alive_pc", unit: "%", colour: "#a06cd5",
+      factor: 100, digits: 0, range: {low: 0, high: 105},
+    },
+  ];
+}
 
 function glyphFor(role: TokenRole, value: number): TokenGlyph {
   const span = (control: {min: number; max: number}): number =>
@@ -92,25 +83,27 @@ function glyphFor(role: TokenRole, value: number): TokenGlyph {
 }
 
 export function cardFor(
-  token: TableToken, role: TokenRole | undefined, readout: PerfusionReadout,
+  voice: Voice, token: TableToken, role: TokenRole | undefined, readout: PerfusionReadout,
   origins: ReadonlyMap<number, number>,
 ): TokenCard {
+  const kit = words(voice);
+  const copy = voice.pick(PERFUSION_TEXT).notes;
   if (role === undefined) {
     return {
-      kind: "unassigned", title: `Marker ${token.marker}`, value: "no role",
-      note: "This table does not use this object",
+      kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+      note: voice.say(kit.noRoleNote),
     };
   }
   const angle = role.mode === "absolute" ? token.angle : token.turn;
   const value = valueFromAngle(role, angle, origins.get(token.sessionId) ?? 0);
   const digits = role.id === "temperature" || role.id === "oxygen" ? 0 : 1;
   const note = role.id === "flow"
-    ? `${formatNumber(readout.outflow, 1)} kPa leaving`
+    ? copy.leaving(formatNumber(readout.outflow, 1))
     : role.id === "oxygen"
-      ? `${formatNumber(100 * readout.alivePericentral, 0)}% of the cells alive`
+      ? copy.alive(formatNumber(100 * readout.alivePericentral, 0))
       : role.id === "temperature"
-        ? `${formatNumber(readout.bile, 2)} ul/min of bile`
-        : "of the perfusion";
+        ? copy.bile(formatNumber(readout.bile, 2))
+        : copy.ofThePerfusion;
   return {
     kind: "dial", title: role.label, value: `${formatNumber(value, digits)} ${role.unit}`,
     note, glyph: glyphFor(role, value), info: role.description,

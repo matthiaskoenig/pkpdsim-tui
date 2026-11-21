@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
   "license": "MIT",
-  "author": "Matthias König",
+  "author": "Matthias K\u00f6nig",
   "repository": {
     "type": "git",
     "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
@@ -32,6 +32,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "sync": "node scripts/sync-assets.mjs",
+    "speech:texts": "node scripts/speech.mjs",
+    "speech": "node scripts/speech.mjs && uv run python scripts/speak.py",
     "export:glimepiride": "uv run python scripts/export_model.py --sbml ${GLIMEPIRIDE_MODEL:-../glimepiride-model/models/glimepiride_body_flat.xml} --output apps/table/public/assets/glimepiride/solver",
     "export:perfusion": "uv run python scripts/export_model.py --sbml ${PERFUSION_MODEL:-../pkpdsim/models/rat_liver_nmp_flat.xml} --output apps/table/public/assets/perfusion/solver",
     "docs": "uv run zensical serve",

@@ -80,11 +80,23 @@
         <li><b>Hold</b> the button on one spot is a finger resting there</li>
         <li><b>Drag</b> empty space is a finger moving across the glass</li>
       </ul>
+      <ul class="legend">
+        <li data-kind="tap"><span class="swatch"></span>a tap</li>
+        <li data-kind="hold"><span class="swatch"></span>a finger at rest</li>
+        <li data-kind="drag"><span class="swatch"></span>a finger moving</li>
+      </ul>
       <h2>Choosing and going back</h2>
       <p>A table opens when a finger rests on something for a moment. On the body, tap a card or the organ it points at. In a table, a finger held on a number, an object or an organ opens the note which says what it is.</p>
       <p><b>Back</b> in the panel of a table returns to the body, and so does the table switch beside it.</p>
       <h2>The surface</h2>
       <p class="counts" id="counts"></p>
+
+      <div class="history-head">
+        <h2>What has happened</h2>
+        <button id="forget" type="button" class="ghost small">Clear</button>
+      </div>
+      <ol class="history" id="history" aria-live="polite"></ol>
+      <p class="history-empty" id="history-empty">Nothing yet. Place an object or touch the glass.</p>
     </aside>
 
     <main class="stage" id="stage">

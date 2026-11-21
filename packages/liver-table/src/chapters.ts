@@ -4,46 +4,24 @@
  */
 
 import {chooseQuery, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
+import {LIVER_TEXT} from "./text.ts";
 
-export interface Chapter {
-  readonly app: string;
-  readonly title: string;
-  readonly line: string;
-  readonly info: string;
-}
-
-export const CHAPTERS: readonly Chapter[] = [
-  {
-    app: "glimepiride", title: "It takes drugs apart",
-    line: "Follow a tablet through one.",
-    info: "Almost every drug is changed by the liver before the body is rid of it. The "
-      + "glimepiride table follows one tablet through the gut, the liver and the kidneys.",
-  },
-  {
-    app: "lobes", title: "It grows back",
-    line: "Cut a piece away.",
-    info: "A liver is built of eight pieces which can be taken out one by one. The lobed liver "
-      + "table cuts them away and follows how the rest takes the work over.",
-  },
-  {
-    app: "perfusion", title: "It lives outside the body",
-    line: "Keep one alive on a machine.",
-    info: "A liver on a perfusion machine is kept warm and supplied with oxygen outside the "
-      + "body, which is how a donor organ is carried and tested today.",
-  },
-];
+/** Which table a chapter leads to; what it is called is in the words of the table. */
+const CHAPTER_APPS = ["glimepiride", "lobes", "perfusion"] as const;
 
 export interface Chapters {
   resize(box: Box): void;
 }
 
-export function createChapters(parent: SVGSVGElement): Chapters {
+export function createChapters(parent: SVGSVGElement, voice: Voice): Chapters {
+  const copy = voice.pick(LIVER_TEXT).chapters;
   const root = svg("g", {class: "chapters"}, parent);
-  const cards = CHAPTERS.map(chapter => {
+  const cards = CHAPTER_APPS.map(app => {
+    const chapter = copy[app];
     const group = svg("g", {
       class: "chapter", role: "button", tabindex: 0,
-      "data-dwell": `app:${chapter.app}`, "data-info": chapter.info,
+      "data-dwell": `app:${app}`, "data-info": voice.say(chapter.info),
     }, root);
     const plate = svg("rect", {class: "chapter-plate", rx: 14}, group);
     const title = svg("text", {class: "chapter-title"}, group);
@@ -51,7 +29,7 @@ export function createChapters(parent: SVGSVGElement): Chapters {
     const line = svg("text", {class: "chapter-line"}, group);
     line.textContent = chapter.line;
     const arm = svg("rect", {class: "chapter-arm", height: 3}, group);
-    const open = (): void => chooseQuery("app", chapter.app, "overview");
+    const open = (): void => chooseQuery("app", app, "overview");
     group.addEventListener("click", open);
     group.addEventListener("keydown", event => {
       if (event.key !== "Enter" && event.key !== " ") return;

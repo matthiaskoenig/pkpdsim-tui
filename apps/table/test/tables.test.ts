@@ -2,7 +2,9 @@
 
 import {describe, expect, it} from "vitest";
 
-import {OVERVIEW, selectedTable, TABLES, tableOf} from "../src/tables.ts";
+import {createVoice, LEVELS, LOCALES, say} from "@pkpdsim-tui/tui-kit";
+import {entryCopy, OVERVIEW, selectedTable, TABLES, tableOf} from "../src/tables.ts";
+import {HUB_TEXT} from "../src/text.ts";
 import {wrapText} from "../src/wrap.ts";
 
 function query(search: string): URLSearchParams {
@@ -36,11 +38,55 @@ describe("the table of a query", () => {
     for (const entry of TABLES) {
       // Two tables may read the same export, as the liver and the circulation do.
       expect(entry.assets.endsWith("/")).toBe(true);
-      expect(entry.label.length).toBeGreaterThan(0);
-      expect(entry.blurb.length).toBeGreaterThan(10);
-      expect(entry.about.length).toBeGreaterThan(20);
       // The card points at an organ the body is marked at, which is one the table is about.
       expect(entry.organs).toContain(entry.organ);
+    }
+  });
+});
+
+describe("the words of the application", () => {
+  it("says every table in every language, at every level", () => {
+    for (const locale of LOCALES) {
+      for (const level of LEVELS) {
+        const voice = createVoice(locale, level);
+        for (const entry of TABLES) {
+          const copy = entryCopy(voice, entry.id);
+          expect(copy.label.length, `${locale} ${entry.id}`).toBeGreaterThan(2);
+          expect(copy.title.length, `${locale} ${entry.id}`).toBeGreaterThan(4);
+          expect(voice.say(copy.blurb).length, `${locale} ${level} ${entry.id}`)
+            .toBeGreaterThan(10);
+          expect(voice.say(copy.about).length, `${locale} ${level} ${entry.id}`)
+            .toBeGreaterThan(40);
+        }
+      }
+    }
+  });
+
+  it("says the landing page in every language, at every level", () => {
+    for (const locale of LOCALES) {
+      const copy = HUB_TEXT[locale];
+      expect(copy.heading.length).toBeGreaterThan(8);
+      for (const level of LEVELS) {
+        expect(copy.motivation[level].length, `${locale} ${level}`).toBe(2);
+        for (const line of copy.motivation[level]) expect(line.length).toBeGreaterThan(20);
+        expect(say(copy.headingInfo, level).length).toBeGreaterThan(30);
+        expect(say(copy.bodyInfo.male, level).length).toBeGreaterThan(20);
+        expect(say(copy.bodyInfo.female, level).length).toBeGreaterThan(20);
+      }
+      // A language which forgot a table would leave a card of the landing page empty.
+      expect(Object.keys(copy.entries).sort()).toEqual(TABLES.map(entry => entry.id).sort());
+    }
+  });
+
+  it("says a child less than an expert", () => {
+    for (const locale of LOCALES) {
+      for (const entry of TABLES) {
+        const child = createVoice(locale, "child");
+        const expert = createVoice(locale, "expert");
+        const copy = entryCopy(child, entry.id);
+        expect(child.say(copy.about).length, `${locale} ${entry.id}`)
+          .toBeLessThan(expert.say(copy.about).length);
+      }
     }
   });
 });
@@ -51,7 +97,7 @@ describe("the sentence of a card", () => {
   });
 
   it("fits the words it is given", () => {
-    for (const line of wrapText(TABLES[0]?.about ?? "", 34)) {
+    for (const line of wrapText(HUB_TEXT.en.entries["liver"]?.title ?? "", 34)) {
       expect(line.length).toBeLessThanOrEqual(34);
     }
   });

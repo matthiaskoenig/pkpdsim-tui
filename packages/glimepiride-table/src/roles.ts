@@ -10,51 +10,59 @@
 
 import {GLIMEPIRIDE_CONTROLS, REFERENCE_BODIES} from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideControl, Sex} from "@pkpdsim-tui/glimepiride-sim";
+import type {Voice} from "@pkpdsim-tui/tui-kit";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
+import {GLIMEPIRIDE_TEXT} from "./text.ts";
 
 /** The marker of the dial of the hours, which is the only object that is not a property. */
 export const HOUR_MARKER = 8;
 
-function dial(control: GlimepirideControl, marker: number, description: string): TokenRole {
+/** One dial of the individual, in the words of the visitor. */
+function dial(
+  control: GlimepirideControl, marker: number, id: "dose" | "cyp2c9" | "cirrhosis" | "renal" | "weight",
+  voice: Voice,
+): TokenRole {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT);
   return {
-    id: control.id, label: control.label, unit: control.unit, markers: [marker], description,
+    id: control.id, label: voice.say(copy.roles[id].label), unit: control.unit, markers: [marker],
+    description: voice.say(copy.roles[id].info),
     min: control.min, max: control.max, reference: control.value,
     mode: "absolute", scale: "linear", turns: 1,
   };
 }
 
 /** The dials of the individual. The body of the reference moves the detent of the weight dial. */
-export function individualRoles(sex: Sex = "male"): readonly TokenRole[] {
-  return INDIVIDUAL_ROLES.map(role => (role.id === GLIMEPIRIDE_CONTROLS.weight.id
+export function individualRoles(voice: Voice, sex: Sex = "male"): readonly TokenRole[] {
+  const roles: readonly TokenRole[] = [
+    dial(GLIMEPIRIDE_CONTROLS.dose, 1, "dose", voice),
+    dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 2, "cyp2c9", voice),
+    dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 3, "cirrhosis", voice),
+    dial(GLIMEPIRIDE_CONTROLS.renal, 4, "renal", voice),
+    dial(GLIMEPIRIDE_CONTROLS.weight, 5, "weight", voice),
+  ];
+  return roles.map(role => (role.id === GLIMEPIRIDE_CONTROLS.weight.id
     ? {...role, reference: REFERENCE_BODIES[sex].weight}
     : role));
 }
-
-const INDIVIDUAL_ROLES: readonly TokenRole[] = [
-  dial(GLIMEPIRIDE_CONTROLS.dose, 1,
-    "The tablet the individual takes. The table gives the reference dose while the object is off the surface."),
-  dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 2,
-    "The activity of CYP2C9, which makes M1 out of glimepiride. Turning it down is a poor metabolizer."),
-  dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 3,
-    "How cirrhotic the liver is, from healthy to Child-Pugh C."),
-  dial(GLIMEPIRIDE_CONTROLS.renal, 4,
-    "What the kidneys still clear. The metabolites leave in the urine, so impairment holds them back."),
-  dial(GLIMEPIRIDE_CONTROLS.weight, 5,
-    "The body weight, which scales the organs and the blood flows of the individual."),
-];
 
 /**
  * The dial of the hours. It is relative and starts at the end of the course wherever it is put
  * down, so it is wound backwards towards the dose. Half a turn covers the whole course.
  */
-export function hourRole(hours: number): TokenRole {
+export function hourRole(hours: number, voice: Voice): TokenRole {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT).roles.hour;
   return {
-    id: "hour", label: "Hours after the dose", unit: "h", markers: [HOUR_MARKER],
-    description: "Turn it back to walk from the end of the course to the moment of the dose.",
+    id: "hour", label: voice.say(copy.label), unit: "h", markers: [HOUR_MARKER],
+    description: voice.say(copy.info),
     min: 0, max: hours, reference: hours, mode: "relative", scale: "linear", turns: 1,
   };
 }
 
-export function glimepirideRoles(hours: number, sex: Sex = "male"): readonly TokenRole[] {
-  return [...individualRoles(sex), hourRole(hours)];
+export function glimepirideRoles(
+  hours: number, voice: Voice, sex: Sex = "male",
+): readonly TokenRole[] {
+  return [...individualRoles(voice, sex), hourRole(hours, voice)];
 }
+
+/** The markers this table reads, which the input layer needs before a word is said. */
+export const GLIMEPIRIDE_MARKERS: readonly number[] = [1, 2, 3, 4, 5, HOUR_MARKER];

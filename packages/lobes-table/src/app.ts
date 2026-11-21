@@ -11,48 +11,42 @@
 import {createSolver, fetchSolverAssets, loadCoreHost, sampleAt, toSeries} from "@pkpdsim-tui/core-runtime";
 import type {Series, Solver} from "@pkpdsim-tui/core-runtime";
 import {
-  caseChanges, describeStates, intactStates, loadLobeConfig, loadLobeData, lobeRequest,
+  caseChanges, intactStates, loadLobeConfig, loadLobeData, lobeRequest,
   remnantFraction,
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer,
-  formatNumber, pointerPoints,
+  chooseQuery, createChrome, createInfo, createPlot, createReadout, createTokenLayer, driveHint,
+  formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
-  TableSnapshot, TableStatus, TokenRole, TrackerOptions,
+  TableSnapshot, TableStatus, TokenRole,
 } from "@pkpdsim-tui/tuio-input";
-import {cardFor, LOBE_STATS, LOBE_TRACES} from "./cards.ts";
+import {cardFor, lobeStats, lobeTraces} from "./cards.ts";
 import type {Sample} from "./cards.ts";
 import {blockAt} from "./layout.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
 import {instrumentsOn, statesFrom} from "./plan.ts";
-import {DAY_MARKER, lobeRoles} from "./roles.ts";
-import {LOBE_ABOUT, LOBE_TITLE, LOBE_TRIES, lobeReading} from "./audience.ts";
+import {DAY_MARKER, lobeRoles, LOBE_MARKERS} from "./roles.ts";
+import {lobeReading} from "./audience.ts";
+import {LOBE_TEXT} from "./text.ts";
 import "./style.css";
 
-const MOUSE_HINT = "Keys 1 to 4 put an object down, drag moves it, the wheel winds the dial.";
-const TABLE_HINT = "Put a clamp or the scalpel on a segment. The dial winds the days.";
-const BOTH_HINT = "Put a clamp or the scalpel on a segment, or press 1 to 4 here to place one.";
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
 
-function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
-  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
-    + "the address to drive the table with the mouse.";
-}
-
 /** The lobed liver table, on the surface of the application. */
 export async function startLobesTable(host: TableHost): Promise<void> {
+  const voice = host.voice;
+  const copy = voice.pick(LOBE_TEXT);
+  const kit = words(voice);
   const parameters = host.parameters;
   const assets = host.assets;
   const runtime = new URL("runtime/", assets);
 
-  host.progress("Loading the lobed liver...");
+  host.progress(copy.loading);
   const wanted = parameters.get("species") ?? "human";
   // The female liver is exported for the human only, so another species is the one body there is.
   const sex = parameters.get("sex") === "female" && wanted === "human" ? "female" : "male";
@@ -64,30 +58,30 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const lobes: readonly Lobe[] = liver.lobes;
   const bodies: readonly ChoiceGroup[] = [
     {
-      id: "sex", label: "Body", selected: sex,
+      id: "sex", label: kit.bodySwitch, selected: sex,
       options: [
-        {id: "male", label: "Male"},
+        {id: "male", label: kit.male},
         {
-          id: "female", label: "Female",
-          ...(species === "human" ? {} : {unavailable: "The export has the female liver of the human only."}),
+          id: "female", label: kit.female,
+          ...(species === "human" ? {} : {unavailable: copy.femaleOnlyHuman}),
         },
       ],
     },
     {
-      id: "species", label: "Species", selected: species,
+      id: "species", label: copy.speciesSwitch, selected: species,
       options: Object.keys(data.species).length > 1
-        ? [{id: "human", label: "Human"}, {id: "rat", label: "Rat"}, {id: "mouse", label: "Mouse"}]
-        : [{id: species, label: species[0]?.toUpperCase() + species.slice(1)}],
+        ? Object.keys(data.species).map(id => ({id, label: copy.species[id] ?? id}))
+        : [{id: species, label: copy.species[species] ?? species}],
     },
   ];
 
   const solverBase = new URL(`solver_lobes/${species}/`, base);
   const config: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
   const days = config.end / (24 * 60);
-  const roles = lobeRoles(days);
-  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: "days"};
+  const roles = lobeRoles(days, voice);
+  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: copy.days};
 
-  host.progress("Starting the solver...");
+  host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
   const solver: Solver = await createSolver({
     host: core, key: `lobes-${species}`,
@@ -96,13 +90,14 @@ export async function startLobesTable(host: TableHost): Promise<void> {
 
   const surface = host.surface;
   const root = host.scene;
-  const scene = createLiverScene(root, lobes);
-  const plot = createPlot(root, LOBE_TRACES);
-  const readout = createReadout<Sample>(root, LOBE_STATS);
-  const tokenLayer = createTokenLayer(root);
+  const scene = createLiverScene(root, lobes, voice);
+  const plot = createPlot(root, lobeTraces(voice));
+  const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
+  const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport));
+  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   const chrome = createChrome(host.chrome, {
+    voice,
     onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
@@ -112,7 +107,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   });
 
   const {input, tracker} = await openTableInput({
-    parameters, element: surface, markers: roles.map(role => role.markers[0] ?? 0),
+    parameters, element: surface, markers: [...LOBE_MARKERS],
   });
 
   const origins = new Map<number, number>();
@@ -154,7 +149,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       notice = "";
     } catch (error) {
       if (controller.signal.aborted) return;
-      notice = `The liver could not be solved: ${error instanceof Error ? error.message : String(error)}`;
+      notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
     } finally {
       if (pending === controller) {
         pending = null;
@@ -191,7 +186,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     readout.update(sample, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
-      card: (token, role) => cardFor(token, role, {
+      card: (token, role) => cardFor(voice, token, role, {
         block: role?.mode === "position"
           ? blockAt(scene.blocks, token.x * viewport.width, token.y * viewport.height)
           : undefined,
@@ -199,9 +194,10 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       }),
     });
     chrome.update({
-      title: LOBE_TITLE, about: LOBE_ABOUT, tries: LOBE_TRIES,
-      reading: lobeReading(lobes, states, day, sample, reference),
-      back: "Back to the body",
+      title: host.title, about: voice.say(copy.about),
+      tries: copy.tries.map(entry => voice.say(entry)),
+      reading: lobeReading(voice, lobes, states, day, sample, reference),
+      back: true,
       choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {
@@ -210,7 +206,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
           if (found.length === 0) return "-";
           return found.map(instrument => instrument.token ?? "beside").join(", ");
         }
-        return `day ${formatNumber(day, 1)}`;
+        return copy.dayValue(formatNumber(day, 1));
       },
       live: new Set([
         ...instruments.filter(instrument => instrument.token !== undefined)
@@ -220,10 +216,12 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       unassigned: [...new Set([...snapshot.tokens.values()]
         .filter(token => !roles.some(role => role.markers.includes(token.marker)))
         .map(token => token.marker))],
-      hint: hintFor(tracker, status.state),
-      credit: `${describeStates(lobes, states)} - `
-        + `${formatNumber(remnantFraction(lobes, states) * 100, 0)} % of the mass left, `
-        + `${sex} ${species} liver`,
+      hint: driveHint(voice, {...tracker, connected: status.state === "connected"}, roles),
+      credit: copy.credit(
+        formatNumber(remnantFraction(lobes, states) * 100, 0),
+        copy.species[species] ?? species,
+        sex === "female" ? kit.female : kit.male,
+      ),
     });
   };
 
@@ -250,6 +248,6 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   resize();
   input.connect();
 
-  host.progress("Solving the intact liver...");
+  host.progress(copy.solvingIntact);
   await solve(intactStates(lobes), true);
 }

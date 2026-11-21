@@ -1,11 +1,11 @@
 import {describe, expect, it} from "vitest";
 import reference from "../../../packages/cardio-sim/test/fixtures/pressure-reference.json" with {type: "json"};
 import {parsePressureReference} from "@pkpdsim-tui/cardio-sim";
+import {createVoice} from "@pkpdsim-tui/tui-kit";
 import {roleForMarker, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken} from "@pkpdsim-tui/tuio-input";
 import {
-  CARDIOVASCULAR_ROLES, controlsFromTokens, heartControlsFromTokens, HEART_ROLES,
-  RESISTANCE_ROLES,
+  cardiovascularRoles, controlsFromTokens, heartControlsFromTokens,
 } from "../src/roles.ts";
 import {unassignedMarkers} from "@pkpdsim-tui/tuio-input";
 
@@ -19,7 +19,11 @@ function tokens(...list: TableToken[]): ReadonlyMap<number, TableToken> {
   return new Map(list.map(entry => [entry.sessionId, entry]));
 }
 
-describe("CARDIOVASCULAR_ROLES", () => {
+const CARDIOVASCULAR_ROLES = cardiovascularRoles(createVoice("en", "adult"));
+const RESISTANCE_ROLES = CARDIOVASCULAR_ROLES.slice(0, 4);
+const HEART_ROLES = CARDIOVASCULAR_ROLES.slice(4);
+
+describe("the objects of the circulation", () => {
   it("covers the four resistances and the two of the heart, on six markers", () => {
     expect(RESISTANCE_ROLES.map(role => role.id))
       .toEqual(["hepatic", "systemic", "portal", "renal"]);

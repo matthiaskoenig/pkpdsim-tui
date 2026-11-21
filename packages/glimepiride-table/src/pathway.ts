@@ -8,20 +8,21 @@
  */
 
 import {attributes, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
+import {GLIMEPIRIDE_TEXT} from "./text.ts";
 
 export interface Station {
   readonly id: string;
   readonly label: string;
 }
 
-export const STATIONS: readonly Station[] = [
-  {id: "tablet", label: "Tablet"},
-  {id: "liver", label: "Liver"},
-  {id: "plasma", label: "Plasma"},
-  {id: "kidney", label: "Kidneys"},
-  {id: "urine", label: "Urine"},
-];
+/** The five stations a tablet passes, in the order it passes them. */
+export const STATION_IDS = ["tablet", "liver", "plasma", "kidney", "urine"] as const;
+
+export function stations(voice: Voice): readonly Station[] {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT).stations;
+  return STATION_IDS.map(id => ({id, label: copy[id]}));
+}
 
 export interface StationValue {
   readonly value: string;
@@ -46,10 +47,11 @@ interface StationElements {
   readonly note: SVGTextElement;
 }
 
-export function createPathway(parent: SVGSVGElement): Pathway {
+export function createPathway(parent: SVGSVGElement, voice: Voice): Pathway {
+  const list = stations(voice);
   const root = svg("g", {class: "layer layer--pathway"}, parent);
   const arrows = svg("g", {class: "pathway-arrows"}, root);
-  const stations = new Map<string, StationElements>(STATIONS.map(station => {
+  const visuals = new Map<string, StationElements>(list.map(station => {
     const group = svg("g", {class: `station station--${station.id}`}, root);
     const plate = svg("rect", {class: "station-plate", rx: 14, height: NODE_HEIGHT}, group);
     const label = svg("text", {class: "station-label", "text-anchor": "middle"}, group);
@@ -61,10 +63,10 @@ export function createPathway(parent: SVGSVGElement): Pathway {
 
   return {
     resize(box: Box): void {
-      const width = (box.width - ARROW * (STATIONS.length - 1)) / STATIONS.length;
+      const width = (box.width - ARROW * (list.length - 1)) / list.length;
       arrows.replaceChildren();
-      STATIONS.forEach((station, index) => {
-        const visual = stations.get(station.id);
+      list.forEach((station, index) => {
+        const visual = visuals.get(station.id);
         if (visual === undefined) return;
         const x = box.x + index * (width + ARROW);
         attributes(visual.plate, {x, y: box.y, width});
@@ -83,7 +85,7 @@ export function createPathway(parent: SVGSVGElement): Pathway {
     },
 
     update(values: Readonly<Record<string, StationValue>>): void {
-      for (const [id, visual] of stations) {
+      for (const [id, visual] of visuals) {
         const value = values[id];
         visual.value.textContent = value?.value ?? "-";
         visual.note.textContent = value?.note ?? "";

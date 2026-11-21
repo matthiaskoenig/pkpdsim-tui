@@ -5,32 +5,22 @@
  */
 
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
-import {formatNumber} from "@pkpdsim-tui/tui-kit";
+import {formatNumber, words} from "@pkpdsim-tui/tui-kit";
+import type {Voice} from "@pkpdsim-tui/tui-kit";
+import {GLIMEPIRIDE_TEXT} from "./text.ts";
+import type {GlimepirideFacts} from "./text.ts";
 import {categoryOf} from "./cards.ts";
 import type {GlimepirideReadout} from "./cards.ts";
 
-export const GLIMEPIRIDE_TITLE = "One tablet, two people";
-
-/** The note behind the title: what this table is, for the visitor who asks. */
-export const GLIMEPIRIDE_ABOUT = "Glimepiride lowers blood sugar in type 2 diabetes. The liver "
-  + "takes it apart into M1 and M2, and the kidneys wash those out. Set who the person is, and "
-  + "the same tablet does something else. The course is solved from the glimepiride model of "
-  + "pkpdsim for the person on the table.";
-
-export const GLIMEPIRIDE_TRIES: readonly string[] = [
-  "Turn 2 down: this person breaks the drug down slowly, and it piles up.",
-  "Wind dial 8 back through the first hours after the tablet.",
-];
-
-/** How far from the reference a number is, in the words somebody uses about their own dose. */
-function times(value: number, reference: number): string {
-  if (reference <= 0) return "";
+/** How far from the reference a number is, as a key the three languages each say their way. */
+function times(value: number, reference: number): GlimepirideFacts["exposure"] {
+  if (reference <= 0) return "same";
   const factor = value / reference;
-  if (factor > 1.8) return `${formatNumber(factor, 1)} times as much`;
-  if (factor > 1.25) return "noticeably more";
-  if (factor < 0.55) return "about half as much";
-  if (factor < 0.8) return "noticeably less";
-  return "about as much";
+  if (factor > 1.8) return "times";
+  if (factor > 1.25) return "more";
+  if (factor < 0.55) return "half";
+  if (factor < 0.8) return "less";
+  return "same";
 }
 
 /**
@@ -38,51 +28,57 @@ function times(value: number, reference: number): string {
  * person nothing was changed about.
  */
 export function glimepirideReading(
+  voice: Voice,
   individual: GlimepirideIndividual,
   sex: Sex,
   current: GlimepirideReadout,
   reference: GlimepirideReadout,
   referenceIndividual: GlimepirideIndividual,
 ): string {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT);
   const who: string[] = [];
   if (individual.cyp2c9 < referenceIndividual.cyp2c9) {
-    who.push(`breaks glimepiride down slowly (${categoryOf("cyp2c9", individual.cyp2c9)})`);
+    who.push(copy.slowly(categoryOf(voice, "cyp2c9", individual.cyp2c9)));
   }
   if (individual.cirrhosis > 0.02) {
-    who.push(`has a cirrhotic liver (${categoryOf("cirrhosis", individual.cirrhosis)})`);
+    who.push(copy.cirrhotic(categoryOf(voice, "cirrhosis", individual.cirrhosis)));
   }
   if (individual.renal < referenceIndividual.renal - 1) {
-    who.push(`has kidneys that clear ${formatNumber(individual.renal, 0)} ml/min `
-      + `(${categoryOf("renal", individual.renal)})`);
+    who.push(copy.kidneys(
+      formatNumber(individual.renal, 0), categoryOf(voice, "renal", individual.renal)));
   }
   if (Math.abs(individual.weight - referenceIndividual.weight) > 1) {
-    who.push(`weighs ${formatNumber(individual.weight, 0)} kg`);
+    who.push(copy.weighs(formatNumber(individual.weight, 0)));
   }
-  const dose = Math.abs(individual.dose - referenceIndividual.dose) > 0.05
-    ? `takes ${formatNumber(individual.dose, 1)} mg instead of `
-      + `${formatNumber(referenceIndividual.dose, 0)} mg`
-    : "";
-  const body = `A ${sex === "female" ? "woman" : "man"} of `
-    + `${formatNumber(referenceIndividual.weight, 0)} kg`;
-  if (who.length === 0 && dose === "") {
-    return `${body} takes ${formatNumber(individual.dose, 0)} mg of glimepiride.`;
-  }
-  // Two things at once are as much as a sentence carries; the objects on the table say the rest.
-  const parts = [...(dose === "" ? [] : [dose]), ...who].slice(0, 2);
-  const sentence = parts.length === 1 ? parts[0] : `${parts[0]} and ${parts[1]}`;
-  const exposure = times(current.pk.auc, reference.pk.auc);
-  // The model is solved in minutes, and a half life is spoken about in hours.
-  const half = current.pk.halflife > reference.pk.halflife * 1.2
-    ? ` It also stays in the blood longer: half of it is gone after `
-      + `${formatNumber(current.pk.halflife / 60, 0)} hours instead of `
-      + `${formatNumber(reference.pk.halflife / 60, 0)}.`
-    : "";
-  return `${body} who ${sentence}: ${exposure} of the drug in the blood as the person nobody `
-    + `changed.${half}`;
+  const factor = reference.pk.auc <= 0 ? 1 : current.pk.auc / reference.pk.auc;
+  return copy.reading({
+    sex: sex === "female" ? "female" : "male",
+    weight: formatNumber(referenceIndividual.weight, 0),
+    who,
+    dose: Math.abs(individual.dose - referenceIndividual.dose) > 0.05
+      ? copy.takesInstead(
+        formatNumber(individual.dose, 1), formatNumber(referenceIndividual.dose, 0))
+      : undefined,
+    referenceDose: formatNumber(individual.dose, 0),
+    exposure: times(current.pk.auc, reference.pk.auc),
+    factor: formatNumber(factor, 1),
+    // The model is solved in minutes, and a half life is spoken about in hours.
+    half: current.pk.halflife > reference.pk.halflife * 1.2
+      ? {
+        now: formatNumber(current.pk.halflife / 60, 0),
+        reference: formatNumber(reference.pk.halflife / 60, 0),
+      }
+      : undefined,
+  });
 }
 
 /** The body of the individual, as the switch in the panel offers it. */
-export const BODY_CHOICES = {
-  id: "sex", label: "Body",
-  options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
-} as const;
+export function bodyChoices(voice: Voice): {
+  id: string; label: string; options: readonly {id: string; label: string}[];
+} {
+  const kit = words(voice);
+  return {
+    id: "sex", label: kit.bodySwitch,
+    options: [{id: "male", label: kit.male}, {id: "female", label: kit.female}],
+  };
+}

@@ -37,6 +37,7 @@ npm run dev
 | --- | --- |
 | `http://localhost:5173/` | The two bodies, from which every table is opened |
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
+| `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
 
@@ -73,6 +74,8 @@ Touches stay for what touches are good at: moving a panel, scrubbing a time cour
 
 Each table also says in words what it is and what it is showing. One panel, in the corner of the edge the visitors stand at, carries the title, a reading of the state the objects have put the body in, which changes as they are moved, and two things worth trying. The numbers at the edge are for whoever wants them; the sentence is for everybody else.
 
+It says all of that in **three languages and at three levels**: English, German and Spanish, for a child, for an adult who knows nothing about the subject, and for somebody who wants the mechanism. The level is not only the words: a child reads three numbers at the edge where an expert reads six. Every panel, every note and the landing page also carry a **play button**, which reads the text out, from a recorded clip where there is one and with the speech of the browser where there is not, so a visitor who cannot read it yet is told it instead. [Languages and the voice](languages.md) is the whole of it.
+
 Everything that is not needed at a glance waits behind the element it belongs to: hovering a number, an object, an organ or a card with the mouse, or resting a finger on it at the table, opens a note that says what it is. That is what keeps the surface short enough to read in a room full of people.
 
 ## On show
@@ -83,6 +86,7 @@ The table is made for a visitor who has a minute, not for a reader. What that co
 - **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
 - **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
 - **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.
+- **Their language, at their level, and read out.** Three languages, three levels and a play button on every text: a visitor picks how much they want to be told, and whether they want to read it at all.
 - **Nothing is permanent.** Lifting an object undoes it, and every table is one touch away from the body it belongs to.
 
 ## What runs the model

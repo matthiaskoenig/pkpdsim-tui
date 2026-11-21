@@ -12,6 +12,9 @@ __pycache__/
 # assets synced from a pkpdsim checkout
 apps/*/public/assets/
 
+# the clips the table reads aloud, recorded with scripts/speak.py
+apps/*/public/audio/
+
 # editors
 .idea/
 .vscode/

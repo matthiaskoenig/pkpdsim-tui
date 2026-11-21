@@ -8,7 +8,8 @@
 
 import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {attributes, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
+import {LIVER_TEXT} from "./text.ts";
 
 const LIVER_PATH = "M 44 22 C 58 12, 88 14, 93 31 C 98 48, 85 62, 64 62 C 50 62, 42 46, 44 22 Z";
 const GUT_PATH = "M 8 66 C 8 58, 30 56, 30 66 C 30 72, 26 74, 26 80 C 26 88, 10 90, 8 82 "
@@ -26,7 +27,8 @@ export interface Supply {
   update(solution: PressureSolution): void;
 }
 
-export function createSupply(parent: SVGSVGElement): Supply {
+export function createSupply(parent: SVGSVGElement, voice: Voice): Supply {
+  const copy = voice.pick(LIVER_TEXT).supply;
   const root = svg("g", {class: "supply"}, parent);
   const inner = svg("g", {class: "supply-inner"}, root);
 
@@ -54,13 +56,11 @@ export function createSupply(parent: SVGSVGElement): Supply {
   }, inner);
   svg("path", {
     class: "supply-organ supply-organ--gut", d: GUT_PATH,
-    "data-info": "The stomach and the gut. What is absorbed here, food and drugs alike, is "
-      + "handed to the liver before the body ever sees it.",
+    "data-info": voice.say(copy.gutInfo),
   }, inner);
   svg("path", {
     class: "supply-organ supply-organ--liver", d: LIVER_PATH,
-    "data-info": "The liver. It is the only organ with two supplies: one of oxygen from the "
-      + "artery, one of everything that was eaten from the gut.",
+    "data-info": voice.say(copy.liverInfo),
   }, inner);
 
   const name = (text: string, x: number, y: number, extra = ""): SVGTextElement => {
@@ -68,9 +68,9 @@ export function createSupply(parent: SVGSVGElement): Supply {
     element.textContent = text;
     return element;
   };
-  name("Heart", 16, 30, "supply-name--centre");
-  name("Gut", 17, 95, "supply-name--centre");
-  name("Liver", 68, 40, "supply-name--organ");
+  name(copy.heart, 16, 30, "supply-name--centre");
+  name(copy.gut, 17, 95, "supply-name--centre");
+  name(copy.liver, 68, 40, "supply-name--organ");
 
   const value = (x: number, y: number, extra = ""): SVGTextElement =>
     svg("text", {class: `supply-value ${extra}`, x, y}, inner);
@@ -97,7 +97,7 @@ export function createSupply(parent: SVGSVGElement): Supply {
       hepaticValue.textContent = `${solution.qh.toFixed(2)} l/min`;
       share.textContent = solution.co === 0
         ? ""
-        : `${Math.round(100 * solution.qh / solution.co)}% of the heart`;
+        : copy.share(Math.round(100 * solution.qh / solution.co));
     },
   };
 }

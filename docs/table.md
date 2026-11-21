@@ -32,11 +32,15 @@ A table has no click, so everything which is pressed rather than turned is press
 
 The landing page carries no panel: a heading, two lines of what the table is for, the two reference bodies and the five tables around them. Touching a body is what every table is then solved for. What a card is, and what a body is, waits behind it as a note.
 
+The language and the level are chosen the same way: two rows of pills in the corner of the landing page, two switches in the panel of a table. Both hold while a visitor walks from one table to another, and both travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
+
 ## What a visitor is told
 
 Each table says the little that is needed at a glance, and keeps the rest behind the thing it belongs to. Hovering a number, an object, an organ or a card with a mouse, or resting a finger on it for a moment at the table, opens a note that says what it is: what a portal pressure means, what the object in somebody's hand does, how much blood an organ is getting.
 
 The objects say what they are as well. Inside the ring of an object is a picture of the thing it stands for, and the picture answers while the object is turned: a vessel narrows as its resistance goes up, a heart beats at the rate the dial is set to, a tablet fills, a clock hand walks through the days after an operation.
+
+Whoever cannot read any of it presses the **play button**, which every panel, every note and the landing page carry, and the table reads it out instead.
 
 ## Full screen
 
@@ -44,8 +48,11 @@ A table has no keyboard and no browser chrome. Start Chrome in kiosk mode on the
 
 ```bash
 google-chrome --kiosk --noerrdialogs --disable-pinch --overscroll-history-navigation=0 \
-  --app="http://localhost:4173/?tuio=localhost:3333"
+  --autoplay-policy=no-user-gesture-required \
+  --app="http://localhost:4173/?tuio=localhost:3333&lang=de"
 ```
+
+`--autoplay-policy=no-user-gesture-required` is what lets the play button speak: a finger resting on it is a press of the table and not a gesture the browser counts as an interaction, and without the flag Chrome holds the first clip of the day back. `&lang=` and `&level=` open the table in the language and at the level a booth wants to start the day with; a visitor changes both on the table.
 
 Serve the built application rather than the development server:
 
@@ -73,3 +80,4 @@ Put the marker on the underside of a puck, and put a label and an arrow on the t
 5. Lifting a puck returns its number to the reference.
 6. The panel, the numbers and the cards all read upright from the side the visitors stand at.
 7. A finger resting on a number, an organ or an object opens the note behind it.
+8. The play button speaks, in the language the switch is on. A silent button on the first press of the day is the autoplay flag above.

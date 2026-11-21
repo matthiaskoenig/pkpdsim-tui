@@ -21,6 +21,8 @@
 | `scripts/dev.mjs` | Starts the application and the simulator on one port |
 | `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into `apps/table/public/assets/<table>` |
 | `scripts/export_model.py` | Compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
+| `scripts/speech.mjs` | Collects every sentence of the copy, in three languages and at three levels, for the clips the table reads aloud |
+| `scripts/speak.py` | Records those sentences into `apps/table/public/audio/<locale>/` |
 | `docs/` | This site |
 
 The repository is an npm workspace. The packages ship TypeScript source and are consumed as source, so there is one type check and one build for the whole tree. There is one application: `apps/table` is the page, and a table of `packages/*-table` is a module it loads when `?app` names it, with the assets of that table under `assets/<table>/`. A table is left by opening another one, which reloads the page, so no table has to take itself down and a worker, a solver and a socket go with the page they belong to.
@@ -37,6 +39,8 @@ npm run dev:app       # the application alone, for a real table or another track
 npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
 npm run preview       # the built application, served the same way
 npm run simulator     # the simulator alone: a tracker on 3333, its control page on 3344
+npm run speech:texts  # every sentence the table can say, for the clips
+npm run speech        # the same, and records the clips with scripts/speak.py
 npm test              # vitest
 npm run typecheck     # tsc
 npm run build         # the production bundle
@@ -79,6 +83,8 @@ flat = build(definition, Path("models"))  # models/rat_liver_nmp_flat.xml
 PERFUSION_MODEL=../pkpdsim/models/rat_liver_nmp_flat.xml npm run export:perfusion
 ```
 
+`npm run speech` writes the clips a table reads aloud. `scripts/speech.mjs` imports the copy modules straight into `node`, which reads TypeScript of its own, so there is one copy of the text and no build step between it and the clips. [Languages and the voice](languages.md) covers the engines and what is recorded.
+
 A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface which drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`. The flags of `scripts/dev.mjs` move the ports (`--port`, `--page-port`, `--tuio-port`), leave the simulator out (`--no-simulator`) or serve the build (`--preview`).
 
 ## The input layer
@@ -98,7 +104,8 @@ Everything that carries logic is a pure function and is tested without a socket:
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
 6. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
 7. Anything a visitor presses rather than turns carries `data-dwell="<name>"` and a click handler. The note layer of `createInfo` watches the fingers of the tracker, fires the click when one has rested on it for a moment, and marks the element with `data-arming` while it does, which is what the element fills from. The name and not the element is the identity of a target, because a panel is redrawn under a finger which is resting on it.
-8. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
+8. Write its words in `packages/<name>-table/src/text.ts`: one module with English, German and Spanish side by side, where every explanatory sentence is a `Phrase` of a child, an adult and an expert text. Nothing a visitor reads is written into the code of a scene, a card or a role, and a test walks every locale and every level to insist that nothing was forgotten. See [Languages and the voice](languages.md).
+9. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
 
 ## Conventions
 
@@ -107,6 +114,7 @@ Everything that carries logic is a pure function and is tested without a socket:
 - A table application never shows a browser dialog. `alert`, `confirm` and `prompt` block the surface and there is no keyboard at a table to dismiss them.
 - A table is read from one side: everything a person reads stands upright for the edge the panel is in, and nothing is drawn twice.
 - What is not needed at a glance is a note behind the element it belongs to, which a hover or a finger at rest opens, and not another paragraph on the surface.
+- Every word a visitor reads comes from the `text.ts` of its package, in three languages and at three levels. A string in the middle of a scene is a word which cannot be translated and cannot be read aloud.
 - The reference state stays on screen when something fails. An empty table in front of an audience is the worst failure mode there is.
 - Markdown carries no hard line wraps: a paragraph, a list item or a table row is a single line.
 

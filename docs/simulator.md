@@ -91,7 +91,8 @@ Everything below is also written on the left of the page, beside the surface, to
 | Gesture | What happens |
 | --- | --- |
 | Click empty space | A tap: the touch stays down long enough for the table to take it as a choice, which is how a card or a switch is pressed |
-| Press and drag empty space | A touch, which arrives as a TUIO pointer and lasts as long as the button is down |
+| Press and hold empty space | A finger at rest, which is what presses a card or a switch on a table |
+| Press and drag empty space | A finger moving across the glass, which arrives as a TUIO pointer and lasts as long as the button is down |
 | Double click with the left button | Places an object, carrying the id of the **Next object id** field, which then counts up |
 | Double click with the right button | Opens the picker, which places an object of any id without touching the field |
 | Press and drag on an object | Moves it |
@@ -100,9 +101,21 @@ Everything below is also written on the left of the page, beside the surface, to
 | **Clear surface** | Lifts everything at once |
 | **Full screen** | The surface alone, without the fields and the gestures, for a demonstration |
 
-A table has no click. A finger which rests on a card, on a switch, or on **Back** in the panel of a table presses it after a moment, and the element fills while the finger is there. A single click on the surface of the simulator is therefore held as a touch for a moment, so that a click is a choice; holding the button down is a finger at rest, and dragging is a finger moving across the glass.
+A table has no click. A finger which rests on a card, on a switch, or on **Back** in the panel of a table presses it after a moment, and the element fills while the finger is there. A single click on the surface of the simulator is therefore held as a touch for a moment, so that a click is a choice; holding the button down is a finger at rest, and dragging is a finger moving across the glass. The three are three colours on the surface, teal, amber and blue, with the legend beside the gestures, because a table tells them apart and so should whoever is rehearsing on it.
 
 Every object on the surface says what a tracker reports about it: its id, its angle in degrees, its position as the tuple of surface fractions the protocol sends, and the session id it was given. The **Surface** fields are the sensor size the frame message carries, in pixels, and the surface on the page keeps its aspect ratio, so a position on the page is the position the application draws. What was typed into the fields is kept for the next time the page is opened; what is on the surface is not.
+
+### The objects are the things they stand for
+
+With an application under the surface, an object is not a numbered disc. The table says what it reads on it, and the surface draws it: the name the table gives it, the value it is set to, and the picture of the thing itself, which grows as the object is turned up. Object 1 on the glimepiride table is a tablet which gets bigger with the dose; object 2 is the enzyme which takes it apart. An object whose number the open table does not read keeps a dashed amber ring, which is how a mislabelled puck is found without walking to the table.
+
+The table posts what it reads to the page which embeds it, and only that page; an application nobody embeds says nothing. Nothing travels the other way, so the surface is still a tracker and nothing else.
+
+### What has happened
+
+The rail keeps the actions, newest first: every object put down, turned, moved and taken off, every touch with the kind it was, and, on its own line, what the table made of each change. Turning one object folds into the line it rewrites, so a long turn is one entry and not forty.
+
+That is the quickest way to see where a disagreement is. An object which was turned, with no reading under it, is a table which did not hear the tracker; a reading which does not move is a table which heard it and did not believe it.
 
 The simulator is a tracker and nothing else. It sends a frame at the rate of the stream and at once when something moves, it never reads anything from an application, and an application that connects in the middle gets the surface as it stands. One control page drives the surface at a time: a second one takes it over and the first says so.
 

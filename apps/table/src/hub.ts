@@ -11,18 +11,18 @@ import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
 import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
-import {attributes, chooseQuery, createInfo, pointerPoints, svg, tokenPoints} from "@pkpdsim-tui/tui-kit";
-import type {TableApp, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
-import {OVERVIEW, TABLES} from "./tables.ts";
+import {
+  attributes, chooseQuery, createInfo, languageOptions, LEVELS, pointerPoints, speechFor, svg,
+  tokenPoints, words,
+} from "@pkpdsim-tui/tui-kit";
+import type {TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {entryCopy, OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
+import {HUB_TEXT} from "./text.ts";
 import {wrapText} from "./wrap.ts";
 
-/** What the table is for, in the two lines under the heading. */
-const HEADING = "The body on the table";
-const MOTIVATION = [
-  "Five working models of the human body, solved while you move the objects on the glass.",
-  "How the blood reaches every organ, what the liver does with it, and where a tablet goes.",
-];
+/** How many lines of motivation stand under the heading, which the layout keeps room for. */
+const MOTIVATION_LINES = 2;
 /** The card of a table, in pixels. */
 const CARD = {height: 132, gap: 22, margin: 28, minWidth: 250, maxWidth: 360} as const;
 /** The room the heading takes at the top. */
@@ -86,7 +86,7 @@ function cardBoxes(viewport: Viewport, count: number): readonly CardBox[] {
   const height = CARD.height;
   const left = CARD.margin;
   const right = viewport.width - CARD.margin - width;
-  const top = HEAD.top + HEAD.line * MOTIVATION.length + HEAD.bottom;
+  const top = HEAD.top + HEAD.line * MOTIVATION_LINES + HEAD.bottom;
   const second = top + height + CARD.gap;
   const bottom = viewport.height - CARD.margin - height;
   const slots: readonly {x: number; y: number}[] = [
@@ -103,7 +103,7 @@ function cardBoxes(viewport: Viewport, count: number): readonly CardBox[] {
 /** The room the bodies have: between the columns of cards, under the heading. */
 function bodyBox(viewport: Viewport, boxes: readonly CardBox[]): CardBox {
   const width = boxes[0]?.width ?? CARD.minWidth;
-  const top = HEAD.top + HEAD.line * MOTIVATION.length + HEAD.bottom;
+  const top = HEAD.top + HEAD.line * MOTIVATION_LINES + HEAD.bottom;
   const bottom = viewport.height - CARD.margin - CARD.height - BODY_GAP;
   return {
     x: CARD.margin + width + BODY_GAP,
@@ -119,35 +119,89 @@ function anchorOf(body: Body, id: string): {x: number; y: number} {
 }
 
 /** What a person at the table should do, which depends on what the page is driven by. */
-function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return "Click a card to open its table.";
-  if (state === "connected") {
-    return tracker.discovered
-      ? "Hold a finger on a card, or click it, to open its table."
-      : "Hold a finger on a card to open its table.";
+function hintFor(voice: Voice, tracker: TrackerOptions, state: TableStatus["state"]): string {
+  const copy = voice.pick(HUB_TEXT);
+  if (!tracker.tracker) return copy.clickHint;
+  if (state === "connected") return tracker.discovered ? copy.bothHint : copy.touchHint;
+  return words(voice).waitingHint(tracker.version, tracker.address);
+}
+
+/** One switch of the landing page, which has no panel to put it in. */
+interface Pill {
+  readonly group: SVGGElement;
+  readonly plate: SVGRectElement;
+  readonly text: SVGTextElement;
+  /** The triangle of the pill which reads the page aloud, for the pills which have one. */
+  readonly icon: SVGPathElement | undefined;
+  readonly width: number;
+}
+
+/**
+ * The language and the level, as two rows of pills in the corner. The landing page carries no
+ * panel, and these are the two things a visitor has to be able to change before they have read
+ * anything: the switches of a table are in its panel instead.
+ */
+function createPills(
+  parent: SVGGElement,
+  entries: readonly {id: string; label: string; info: string; play?: boolean}[],
+  group: string, selected: string, choose: (id: string) => void,
+): readonly Pill[] {
+  return entries.map(entry => {
+    const pill = svg("g", {
+      class: "hub-pill", role: "button", tabindex: 0,
+      "data-selected": String(entry.id === selected),
+      "data-dwell": `${group}:${entry.id}`, "data-info": entry.info,
+    }, parent);
+    const plate = svg("rect", {class: "hub-pill-plate", rx: 15, height: 30}, pill);
+    // A play button is a triangle wherever it is, so a visitor who cannot read the word knows it.
+    const icon = entry.play !== true
+      ? undefined
+      : svg("path", {class: "hub-pill-icon", d: "M -4 -6 L 7 0 L -4 6 Z"}, pill);
+    const text = svg("text", {class: "hub-pill-text", "text-anchor": "middle"}, pill);
+    text.textContent = entry.label;
+    pill.addEventListener("click", () => choose(entry.id));
+    pill.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      choose(entry.id);
+    });
+    // A pill is as wide as its word, which differs in three languages.
+    const width = Math.max(78, entry.label.length * 10 + 28) + (entry.play === true ? 24 : 0);
+    return {group: pill, plate, text, icon, width};
+  });
+}
+
+function placePills(pills: readonly Pill[], right: number, y: number): void {
+  const total = pills.reduce((sum, pill) => sum + pill.width, 0) + (pills.length - 1) * 8;
+  let cursor = right - total;
+  for (const pill of pills) {
+    attributes(pill.plate, {x: cursor, y: y - 21, width: pill.width});
+    const shift = pill.icon === undefined ? 0 : 11;
+    attributes(pill.text, {x: cursor + pill.width / 2 + shift, y});
+    pill.icon?.setAttribute("transform", `translate(${cursor + 20} ${y - 6})`);
+    cursor += pill.width + 8;
   }
-  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
-    + "the address to drive the table with the mouse.";
 }
 
 function createCard(
-  parent: SVGGElement, entry: TableEntry, index: number, call: string,
+  parent: SVGGElement, entry: TableEntry, index: number, call: string, voice: Voice,
   open: (entry: TableEntry) => void,
 ): CardView {
+  const copy = entryCopy(voice, entry.id);
   const group = svg("g", {
     class: "hub-card", role: "button", tabindex: 0,
     // A finger has no click: it opens the card it rests on, and the card fills while it does.
     "data-dwell": `app:${entry.id}`,
     // What the table is, for the visitor who wants more than the card says.
-    "data-info": entry.about,
+    "data-info": voice.say(copy.about),
   }, parent);
   const plate = svg("rect", {class: "hub-card-plate", rx: 18}, group);
   const badge = svg("circle", {class: "hub-card-badge", r: 17}, group);
   const number = svg("text", {class: "hub-card-number", "text-anchor": "middle"}, group);
   number.textContent = String(index + 1);
   const title = svg("text", {class: "hub-card-title"}, group);
-  title.textContent = entry.title;
-  const lines = wrapText(entry.blurb, COLUMNS, LINES).map(text => {
+  title.textContent = copy.title;
+  const lines = wrapText(voice.say(copy.blurb), COLUMNS, LINES).map(text => {
     const element = svg("text", {class: "hub-card-line"}, group);
     element.textContent = text;
     return element;
@@ -181,7 +235,10 @@ function placeCard(card: CardView, box: CardBox): void {
 }
 
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
-  host.progress("Loading the bodies...");
+  const voice = host.voice;
+  const copy = voice.pick(HUB_TEXT);
+  const kit = words(voice);
+  host.progress(copy.loadingBodies);
   // The figures are the ones the circulation is drawn on: the bodies of the pkpdsim physiology,
   // and they come with that export.
   const anatomy = await loadAnatomy(
@@ -193,11 +250,10 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const head = svg("g", {class: "hub-head"}, scene);
   const heading = svg("text", {
     class: "hub-heading", "text-anchor": "middle",
-    "data-info": "Every table here is one model of the human body of pkpdsim. The objects on "
-      + "the glass are its parameters, and the model is solved again while you turn them.",
+    "data-info": voice.say(copy.headingInfo),
   }, head);
-  heading.textContent = HEADING;
-  const motivation = MOTIVATION.map(text => {
+  heading.textContent = copy.heading;
+  const motivation = copy.motivation[voice.level].map(text => {
     const line = svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head);
     line.textContent = text;
     return line;
@@ -206,6 +262,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
   const row = svg("g", {class: "hub-row"}, scene);
+  const switches = svg("g", {class: "hub-switches"}, scene);
   const foot = svg("g", {class: "hub-foot"}, scene);
   const statusDot = svg("circle", {class: "hub-status-dot", r: 4}, foot);
   const statusText = svg("text", {class: "hub-status"}, foot);
@@ -221,10 +278,36 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   });
   // What a visitor is invited to do, which depends on what the page is driven by.
   const call = !tracker.tracker
-    ? "Click to open"
-    : tracker.discovered ? "Touch or click to open" : "Touch to open";
+    ? copy.clickToOpen
+    : tracker.discovered ? copy.bothToOpen : copy.touchToOpen;
   const cards: CardView[] = TABLES.map(
-    (entry, index) => createCard(row, entry, index, call, open));
+    (entry, index) => createCard(row, entry, index, call, voice, open));
+  // The two switches of the landing page: which language it speaks, and how much it says.
+  const languages = createPills(
+    switches,
+    languageOptions().map(option => ({
+      id: option.id, label: option.label,
+      info: option.id === voice.locale ? option.label : `${kit.languageSwitch}: ${option.label}`,
+    })),
+    "lang", voice.locale, id => chooseQuery("lang", id, ""));
+  const levels = createPills(
+    switches,
+    LEVELS.map(level => ({
+      id: level, label: kit.levelNames[level], info: kit.levelInfo[level],
+    })),
+    "level", voice.level, id => chooseQuery("level", id, "adult"));
+  // Whoever cannot read this yet presses play and is read to instead.
+  const speech = speechFor(voice);
+  const spoken = `${copy.heading}. ${copy.motivation[voice.level].join(" ")}`;
+  const reader = createPills(
+    switches, [{id: "read", label: kit.speak, info: voice.say(kit.speakInfo), play: true}],
+    "speak", "", () => speech.toggle(spoken));
+  const readerPill = reader[0];
+  speech.listen(() => {
+    if (readerPill === undefined) return;
+    readerPill.group.setAttribute("data-speaking", String(speech.speaking()));
+    readerPill.text.textContent = speech.speaking() ? kit.speakStop : kit.speak;
+  });
   const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
 
   const bodies: readonly BodyView[] = (["male", "female"] as const).flatMap(sex => {
@@ -233,9 +316,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const group = svg("g", {
       class: "hub-body", "data-selected": String(sex === chosen), "data-dwell": `sex:${sex}`,
       role: "button", tabindex: 0,
-      "data-info": sex === "male"
-        ? "The male reference body of pkpdsim. Touch it, and every table is solved for him."
-        : "The female reference body of pkpdsim. Touch it, and every table is solved for her.",
+      "data-info": voice.say(copy.bodyInfo[sex]),
     }, figures);
     const halo = svg("rect", {class: "hub-body-halo", rx: 26}, group);
     const art = svg("g", {class: "body-art"}, group);
@@ -243,7 +324,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     // as it comes.
     art.innerHTML = body.svg;
     const label = svg("text", {class: "hub-body-label", "text-anchor": "middle"}, group);
-    label.textContent = sex === "male" ? "Man" : "Woman";
+    label.textContent = sex === "male" ? kit.male : kit.female;
     group.addEventListener("click", () => chooseQuery("sex", sex, "male"));
     group.addEventListener("keydown", event => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -260,14 +341,15 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     return TABLES.flatMap(entry => {
       if (seen.has(entry.organ)) return [];
       seen.add(entry.organ);
+      const about = voice.say(entryCopy(voice, entry.id).about);
       const hit = svg("circle", {
         class: "hub-organ-hit", r: ORGAN_HIT.min, "data-dwell": `app:${entry.id}`,
-        "data-info": entry.about,
+        "data-info": about,
       }, organs);
       hit.addEventListener("click", () => open(entry));
       return [{
         entry, view, organ: entry.organ,
-        disc: svg("circle", {class: "hub-organ", r: 15, "data-info": entry.about}, organs),
+        disc: svg("circle", {class: "hub-organ", r: 15, "data-info": about}, organs),
         hit, centre: {x: 0, y: 0}, reach: ORGAN_HIT.min as number,
       }];
     });
@@ -279,7 +361,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   // What a card, a body or an organ is, and the hold which opens it: both are the one layer.
   createInfo(host.surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ]);
+  ], voice);
 
   const draw = (): void => {
     const boxes = cardBoxes(viewport, TABLES.length);
@@ -350,6 +432,11 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const [index, line] of motivation.entries()) {
       attributes(line, {x: viewport.width / 2, y: HEAD.top + 44 + index * HEAD.line});
     }
+    // The switches sit in the corner opposite the status, out of the way of the cards, with
+    // the button which reads the page aloud above them.
+    placePills(reader, viewport.width - CARD.margin, viewport.height - 88);
+    placePills(languages, viewport.width - CARD.margin, viewport.height - 52);
+    placePills(levels, viewport.width - CARD.margin, viewport.height - 16);
     attributes(statusDot, {cx: CARD.margin + 6, cy: viewport.height - 44});
     attributes(statusText, {x: CARD.margin + 18, y: viewport.height - 40});
     attributes(credit, {x: CARD.margin + 18, y: viewport.height - 22});
@@ -359,7 +446,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const view of bodies) {
       view.group.setAttribute("data-selected", String(view.sex === chosen));
     }
-    const hint = hintFor(tracker, status.state);
+    const hint = hintFor(voice, tracker, status.state);
     statusText.textContent = status.source;
     statusText.setAttribute("data-info", status.detail === "" ? hint : status.detail);
     foot.setAttribute("data-state", status.state);

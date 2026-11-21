@@ -8,7 +8,8 @@
  */
 
 import {attributes, svg} from "@pkpdsim-tui/tui-kit";
-import type {Box} from "@pkpdsim-tui/tui-kit";
+import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
+import {LIVER_TEXT} from "./text.ts";
 
 const CENTRE = {x: 50, y: 48} as const;
 /** The three zones, from the corners inwards: periportal, intermediate, pericentral. */
@@ -41,7 +42,8 @@ export interface Lobule {
   update(perLobule: number): void;
 }
 
-export function createLobule(parent: SVGSVGElement): Lobule {
+export function createLobule(parent: SVGSVGElement, voice: Voice): Lobule {
+  const copy = voice.pick(LIVER_TEXT).lobule;
   const root = svg("g", {class: "lobule"}, parent);
   const inner = svg("g", {class: "lobule-inner"}, root);
 
@@ -59,8 +61,7 @@ export function createLobule(parent: SVGSVGElement): Lobule {
     const y = CENTRE.y + 32 * Math.sin(angle);
     svg("circle", {
       class: "lobule-triad", cx: x, cy: y, r: 3.4,
-      "data-info": "A portal triad: a branch of the portal vein, a branch of the hepatic artery "
-        + "and a bile duct, which lie together at every corner of the hexagon.",
+      "data-info": voice.say(copy.triad),
     }, inner);
     svg("path", {
       class: "lobule-flow",
@@ -72,18 +73,17 @@ export function createLobule(parent: SVGSVGElement): Lobule {
   }
   svg("circle", {
     class: "lobule-central", cx: CENTRE.x, cy: CENTRE.y, r: 5,
-    "data-info": "The central vein. The blood of the whole hexagon leaves here, on its way back "
-      + "to the heart.",
+    "data-info": voice.say(copy.central),
   }, inner);
 
   const label = (text: string, x: number, y: number, extra = ""): void => {
     const element = svg("text", {class: `lobule-label ${extra}`, x, y}, inner);
     element.textContent = text;
   };
-  label("One lobule", 50, 6, "lobule-label--title");
-  label("The oxygen falls from the corners to the middle", 50, 12, "lobule-label--subtitle");
-  label("Zone 1, where the blood arrives", 50, 86, "lobule-label--zone");
-  label("zone 3", 50, 39, "lobule-label--centre");
+  label(copy.title, 50, 6, "lobule-label--title");
+  label(voice.say(copy.subtitle), 50, 12, "lobule-label--subtitle");
+  label(copy.zone1, 50, 86, "lobule-label--zone");
+  label(copy.zone3, 50, 39, "lobule-label--centre");
   const flow = svg("text", {class: "lobule-flow-value", x: 50, y: 95}, inner);
 
   return {
@@ -95,7 +95,7 @@ export function createLobule(parent: SVGSVGElement): Lobule {
     },
 
     update(perLobule: number): void {
-      flow.textContent = `${perLobule.toFixed(2)} microlitres a minute`;
+      flow.textContent = copy.flow(perLobule.toFixed(2));
       attributes(inner, {"data-flow": perLobule.toFixed(2)});
     },
   };
