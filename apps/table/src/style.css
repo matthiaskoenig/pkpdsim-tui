@@ -1,0 +1,98 @@
+/* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
+@import "@pkpdsim-tui/tui-kit/table.css";
+
+/* The body: the cards of the tables at the two long edges, and the organs they point at. */
+.hub-card {
+  cursor: pointer;
+}
+
+.hub-card-plate {
+  fill: var(--panel);
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+  transition: fill 120ms linear, stroke 120ms linear;
+}
+
+.hub-card:hover .hub-card-plate,
+.hub-card:focus-visible .hub-card-plate,
+.hub-card[data-active="true"] .hub-card-plate {
+  fill: rgba(39, 179, 172, 0.16);
+  stroke: var(--accent);
+}
+
+.hub-card:focus {
+  outline: none;
+}
+
+.hub-card-badge {
+  fill: var(--accent);
+}
+
+.hub-card-number {
+  font-size: 19px;
+  font-weight: 650;
+  fill: #04201f;
+}
+
+.hub-card-title {
+  font-size: 20px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+
+.hub-card-line {
+  font-size: 15px;
+  fill: var(--ink-dim);
+}
+
+.hub-card-call {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: var(--accent);
+  opacity: 0.75;
+}
+
+/* The line from a card to the organ its table is about. */
+.hub-link {
+  fill: none;
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 7;
+}
+
+.hub-organ {
+  fill: rgba(39, 179, 172, 0.22);
+  stroke: var(--accent);
+  stroke-width: 2;
+  transition: fill 120ms linear;
+}
+
+.hub-organ[data-active="true"] {
+  fill: rgba(39, 179, 172, 0.55);
+}
+
+.hub-organ-number {
+  font-size: 17px;
+  font-weight: 650;
+  fill: var(--ink);
+  pointer-events: none;
+}
+
+/* A smaller table, a laptop or a window beside the simulator: the cards take less room. */
+@media (max-height: 820px) {
+  .hub-card-title {
+    font-size: 18px;
+  }
+
+  .hub-card-line {
+    font-size: 14px;
+  }
+}
+
+/* A finger is wider than the dot it aims at, so the organ opens from around it. */
+.hub-organ-hit {
+  fill: transparent;
+  cursor: pointer;
+}

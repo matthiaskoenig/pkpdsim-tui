@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
   "license": "MIT",
-  "author": "Matthias K\u00f6nig",
+  "author": "Matthias König",
   "repository": {
     "type": "git",
     "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
@@ -18,19 +18,19 @@
     "apps/*"
   ],
   "scripts": {
-    "dev:cardiovascular": "npm run dev --workspace @pkpdsim-tui/cardiovascular -- --port 5173 --strictPort",
-    "dev:lobes": "npm run dev --workspace @pkpdsim-tui/lobes -- --port 5174 --strictPort",
-    "dev:glimepiride": "npm run dev --workspace @pkpdsim-tui/glimepiride -- --port 5175 --strictPort",
+    "dev": "node scripts/dev.mjs",
+    "dev:app": "node scripts/dev.mjs --no-simulator",
+    "dev:cardiovascular": "node scripts/dev.mjs --app cardiovascular",
+    "dev:lobes": "node scripts/dev.mjs --app lobes",
+    "dev:glimepiride": "node scripts/dev.mjs --app glimepiride",
     "build": "npm run build --workspaces --if-present",
-    "preview:cardiovascular": "npm run preview --workspace @pkpdsim-tui/cardiovascular -- --port 4173 --strictPort",
-    "preview:lobes": "npm run preview --workspace @pkpdsim-tui/lobes -- --port 4174 --strictPort",
-    "preview:glimepiride": "npm run preview --workspace @pkpdsim-tui/glimepiride -- --port 4175 --strictPort",
+    "preview": "node scripts/dev.mjs --preview",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "sync": "node scripts/sync-assets.mjs",
-    "export:glimepiride": "uv run python scripts/export_model.py --sbml ${GLIMEPIRIDE_MODEL:-../glimepiride-model/models/glimepiride_body_flat.xml} --output apps/glimepiride/public/assets/solver",
+    "export:glimepiride": "uv run python scripts/export_model.py --sbml ${GLIMEPIRIDE_MODEL:-../glimepiride-model/models/glimepiride_body_flat.xml} --output apps/table/public/assets/glimepiride/solver",
     "docs": "uv run zensical serve",
     "docs:build": "uv run zensical build --clean --strict"
   },

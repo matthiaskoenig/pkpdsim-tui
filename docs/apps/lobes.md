@@ -71,11 +71,14 @@ npm run sync
 npm run dev:lobes
 ```
 
+The table is the second card on the body at `http://localhost:5173/`, and `?app=lobes` opens it directly.
+
 | Address | What it does |
 | --- | --- |
-| `http://localhost:5174/` | On the mouse: keys 1 to 4 place an object, dragging moves it, the wheel turns the dial, backspace lifts it, escape clears the table |
-| `http://localhost:5174/?tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
-| `http://localhost:5174/?tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
-| `http://localhost:5174/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
-| `http://localhost:5174/?sex=female` | The female reference body, for the human liver |
-| `http://localhost:5174/?species=rat` | The rat liver, with its five lobes, instead of the human one; `?species=mouse` for the mouse |
+| `http://localhost:5173/?app=lobes` | On the mouse: keys 1 to 4 place an object, dragging moves it, the wheel turns the dial, backspace lifts it, escape goes back to the body |
+| `http://localhost:5173/?app=lobes&tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
+| `http://localhost:5173/?app=lobes&tuio=/tuio` | On the tracker behind the one port of `npm run dev`, which is what `http://localhost:5173/simulator/?table=lobes` opens |
+| `http://localhost:5173/?app=lobes&tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
+| `http://localhost:5173/?app=lobes&tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
+| `http://localhost:5173/?app=lobes&sex=female` | The female reference body, for the human liver |
+| `http://localhost:5173/?app=lobes&species=rat` | The rat liver, with its five lobes, instead of the human one; `?species=mouse` for the mouse |

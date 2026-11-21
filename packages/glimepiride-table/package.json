@@ -1,0 +1,16 @@
+{
+  "name": "@pkpdsim-tui/glimepiride-table",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The glimepiride table: the dose, the genotype and the organs of one individual as objects",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/core-runtime": "*",
+    "@pkpdsim-tui/glimepiride-sim": "*",
+    "@pkpdsim-tui/tui-kit": "*",
+    "@pkpdsim-tui/tuio-input": "*"
+  }
+}

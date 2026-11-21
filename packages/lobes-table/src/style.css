@@ -1,5 +1,4 @@
 /* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
-@import "@pkpdsim-tui/tui-kit/table.css";
 
 /* The segments of the liver. */
 .liver-blocks {

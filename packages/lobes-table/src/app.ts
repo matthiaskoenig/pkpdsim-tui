@@ -3,12 +3,9 @@
  * operation on a dial. Every number comes from the compiled liver of pkpdsim, solved in a Web
  * Worker while the objects stay on the table.
  *
- * Query parameters:
- *   ?tuio             a tracker on ws://localhost:3333
- *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
- *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
- *   ?species=rat      a rat or a mouse liver instead of the human one
- *   ?sex=female       the female body, for the human liver
+ * The application starts this table for `?app=lobes`, with the body of `?sex` and the liver of
+ * `?species` (`rat` or `mouse` instead of the human one); the tracker and the surface are the
+ * ones of the application, see `apps/table`.
  */
 
 import {createSolver, fetchSolverAssets, loadCoreHost, sampleAt, toSeries} from "@pkpdsim-tui/core-runtime";
@@ -21,7 +18,7 @@ import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
   chooseQuery, createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
 } from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup} from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {
   createMockTableInput, createTuioTableInput, trackerOptions, valueFromAngle,
 } from "@pkpdsim-tui/tuio-input";
@@ -35,34 +32,27 @@ import {createLiverScene, plotBox} from "./scene.ts";
 import {instrumentsOn, statesFrom} from "./plan.ts";
 import {DAY_MARKER, lobeRoles} from "./roles.ts";
 import {LOBE_ABOUT, LOBE_TITLE, LOBE_TRIES, lobeReading} from "./audience.ts";
+import "./style.css";
 
 const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns the dial, backspace lifts it.";
 const TABLE_HINT = "Put a clamp or the scalpel on a segment. The dial winds the days.";
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
 
-function element<T extends Element>(id: string): T {
-  const found = document.getElementById(id);
-  if (found === null) throw new Error(`The page has no element "${id}".`);
-  return found as unknown as T;
-}
-
-
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
   if (state === "connected") return TABLE_HINT;
-  return `Start a TUIO ${tracker.version} tracker on port ${tracker.port}, or drop "?tuio" from `
+  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
     + "the address to drive the table with the mouse.";
 }
 
-async function start(): Promise<void> {
-  const boot = element<HTMLElement>("boot");
-  const message = element<HTMLElement>("boot-message");
-  const parameters = new URLSearchParams(window.location.search);
-  const assets = new URL("./assets/", window.location.href);
+/** The lobed liver table, on the surface of the application. */
+export async function startLobesTable(host: TableHost): Promise<void> {
+  const parameters = host.parameters;
+  const assets = host.assets;
   const runtime = new URL("runtime/", assets);
 
-  message.textContent = "Loading the lobed liver...";
+  host.progress("Loading the lobed liver...");
   const wanted = parameters.get("species") ?? "human";
   // The female liver is exported for the human only, so another species is the one body there is.
   const sex = parameters.get("sex") === "female" && wanted === "human" ? "female" : "male";
@@ -97,23 +87,24 @@ async function start(): Promise<void> {
   const roles = lobeRoles(days);
   const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: "days"};
 
-  message.textContent = "Starting the solver...";
-  const host = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
+  host.progress("Starting the solver...");
+  const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
   const solver: Solver = await createSolver({
-    host, key: `lobes-${species}`,
+    host: core, key: `lobes-${species}`,
     assets: await fetchSolverAssets(solverBase, {runtimeBase: runtime}),
   });
 
-  const surface = element<HTMLElement>("surface");
-  const root = element<SVGSVGElement>("scene");
+  const surface = host.surface;
+  const root = host.scene;
   const scene = createLiverScene(root, lobes);
   const plot = createPlot(root, LOBE_TRACES);
   const readout = createReadout<Sample>(root, LOBE_STATS);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"), {
+  const chrome = createChrome(host.chrome, {
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
-      if (group === "species") chooseQuery("species", option, "human");
+      else if (group === "species") chooseQuery("species", option, "human");
+      else host.choose(group, option);
     },
   });
 
@@ -212,7 +203,7 @@ async function start(): Promise<void> {
     chrome.update({
       title: LOBE_TITLE, about: LOBE_ABOUT, tries: LOBE_TRIES,
       reading: lobeReading(lobes, states, day, sample, reference),
-      choices: bodies,
+      choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {
         if (role.mode === "position") {
@@ -260,17 +251,6 @@ async function start(): Promise<void> {
   resize();
   input.connect();
 
-  message.textContent = "Solving the intact liver...";
+  host.progress("Solving the intact liver...");
   await solve(intactStates(lobes), true);
-  boot.hidden = true;
 }
-
-void start().catch((error: unknown) => {
-  const boot = document.getElementById("boot");
-  const message = document.getElementById("boot-message");
-  if (boot !== null) boot.classList.add("boot--error");
-  if (message !== null) {
-    message.textContent = error instanceof Error ? error.message : String(error);
-  }
-  console.error(error);
-});

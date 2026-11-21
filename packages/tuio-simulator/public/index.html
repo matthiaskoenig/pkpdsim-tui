@@ -46,11 +46,13 @@
     </div>
     <div class="bar-row fields">
       <label class="grow" for="app">Application
-        <input id="app" type="url" list="apps" placeholder="http://localhost:5173" spellcheck="false" autocomplete="off">
+        <input id="app" type="text" inputmode="url" list="apps" placeholder="/?app=cardiovascular" spellcheck="false" autocomplete="off">
         <datalist id="apps">
-          <option value="http://localhost:5173">Cardiovascular circulation</option>
-          <option value="http://localhost:5174">Lobed liver</option>
-          <option value="http://localhost:5175">Glimepiride</option>
+          <option value="/">The body: every table</option>
+          <option value="/?app=cardiovascular">Cardiovascular circulation</option>
+          <option value="/?app=lobes">Lobed liver</option>
+          <option value="/?app=glimepiride">Glimepiride</option>
+          <option value="http://localhost:5173/">A table application on another machine</option>
         </datalist>
       </label>
       <button id="load" type="button">Show it under the surface</button>

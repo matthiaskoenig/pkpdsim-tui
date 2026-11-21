@@ -265,6 +265,11 @@ body {
   font-size: 0.85rem;
 }
 
+/* The exported anatomogram paths carry their own fills; a table only dims them a little. */
+.body-art {
+  opacity: 0.92;
+}
+
 .boot {
   position: absolute;
   inset: 0;

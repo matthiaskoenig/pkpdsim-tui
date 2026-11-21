@@ -1,0 +1,16 @@
+{
+  "name": "@pkpdsim-tui/cardiovascular-table",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The cardiovascular table: the resistances of the circulation and the beat of the heart as objects on an anatomy",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/cardio-sim": "*",
+    "@pkpdsim-tui/core-runtime": "*",
+    "@pkpdsim-tui/tui-kit": "*",
+    "@pkpdsim-tui/tuio-input": "*"
+  }
+}

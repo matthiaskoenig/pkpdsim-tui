@@ -6,7 +6,9 @@ import {
   applyTuioObject, emptySnapshot, removeTuioObject, sensorFromDim, withSensor,
 } from "./snapshot.ts";
 import type {TuioObjectLike} from "./snapshot.ts";
-import {DEFAULT_TUIO_HOST, DEFAULT_TUIO_PORT, WebsocketTuioReceiver} from "./receiver.ts";
+import {
+  DEFAULT_TUIO_HOST, DEFAULT_TUIO_PATH, DEFAULT_TUIO_PORT, WebsocketTuioReceiver,
+} from "./receiver.ts";
 import type {TableInput, TableListener, TableSnapshot, TableStatus} from "./types.ts";
 
 /** The versions of TUIO an application can be pointed at. */
@@ -28,6 +30,8 @@ export interface TuioTableInputOptions {
   readonly host?: string;
   readonly port?: number;
   readonly secure?: boolean;
+  /** The path of the WebSocket, "/" for a tracker which listens on a port of its own. */
+  readonly path?: string;
   /** Which version the tracker speaks. The two are different protocols, not two dialects. */
   readonly version?: TuioVersion;
   /** The clock of the snapshots, so a test or a recording can supply its own. */
@@ -88,7 +92,7 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   };
 
   const receiver = new WebsocketTuioReceiver({
-    host, port, secure: options.secure ?? false,
+    host, port, secure: options.secure ?? false, path: options.path ?? DEFAULT_TUIO_PATH,
     onOpen: () => setStatus({state: "connected", source: receiver.url, detail: ""}),
     // What to do about it is the business of the application, which knows how it was started.
     onClose: () => setStatus({

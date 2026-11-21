@@ -3,11 +3,8 @@
  * one individual are objects on the surface, and the plasma course of glimepiride and of its
  * metabolites answers while a hand is still on them.
  *
- * Query parameters:
- *   ?tuio             a tracker on ws://localhost:3333
- *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
- *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
- *   ?sex=female       the female reference body instead of the male one
+ * The application starts this table for `?app=glimepiride`, with the body of `?sex`; the tracker
+ * and the surface are the ones of the application, see `apps/table`.
  */
 
 import {
@@ -22,7 +19,7 @@ import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {
   chooseQuery, createChrome, createPlot, createReadout, createTokenLayer, formatNumber,
 } from "@pkpdsim-tui/tui-kit";
-import type {Box, ChoiceGroup} from "@pkpdsim-tui/tui-kit";
+import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {
   createMockTableInput, createTuioTableInput, trackerOptions,
   unassignedMarkers, valuesFromTokens,
@@ -39,6 +36,7 @@ import {glimepirideRoles} from "./roles.ts";
 import {
   GLIMEPIRIDE_ABOUT, GLIMEPIRIDE_TITLE, GLIMEPIRIDE_TRIES, glimepirideReading,
 } from "./audience.ts";
+import "./style.css";
 
 const MOUSE_HINT = "Keys 1 to 6 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
@@ -47,17 +45,11 @@ const SETTLE = 140;
 const BAND = 132;
 const GAP = 26;
 
-function element<T extends Element>(id: string): T {
-  const found = document.getElementById(id);
-  if (found === null) throw new Error(`The page has no element "${id}".`);
-  return found as unknown as T;
-}
-
 
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
   if (state === "connected") return TABLE_HINT;
-  return `Start a TUIO ${tracker.version} tracker on port ${tracker.port}, or drop "?tuio" from `
+  return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
     + "the address to drive the table with the mouse.";
 }
 
@@ -76,16 +68,15 @@ function plotBox(viewport: {width: number; height: number}): Box {
   };
 }
 
-async function start(): Promise<void> {
-  const boot = element<HTMLElement>("boot");
-  const message = element<HTMLElement>("boot-message");
-  const parameters = new URLSearchParams(window.location.search);
-  const solverBase = new URL("./assets/solver/", window.location.href);
+/** The glimepiride table, on the surface of the application. */
+export async function startGlimepirideTable(host: TableHost): Promise<void> {
+  const parameters = host.parameters;
+  const solverBase = new URL("solver/", host.assets);
 
-  message.textContent = "Starting the solver...";
-  const host = await loadCoreHost(new URL("sbmlsim-core.js", solverBase));
+  host.progress("Starting the solver...");
+  const core = await loadCoreHost(new URL("sbmlsim-core.js", solverBase));
   const solver: Solver = await createSolver({
-    host, key: "glimepiride", assets: await fetchSolverAssets(solverBase),
+    host: core, key: "glimepiride", assets: await fetchSolverAssets(solverBase),
   });
 
   const hours = GLIMEPIRIDE_SIMULATION.end / 60;
@@ -98,15 +89,16 @@ async function start(): Promise<void> {
   }];
   const axis = {max: GLIMEPIRIDE_SIMULATION.end, tick: 600, scale: 1 / 60, unit: "h"};
 
-  const surface = element<HTMLElement>("surface");
-  const root = element<SVGSVGElement>("scene");
+  const surface = host.surface;
+  const root = host.scene;
   const pathway = createPathway(root);
   const plot = createPlot(root, GLIMEPIRIDE_TRACES);
   const readout = createReadout<GlimepirideReadout>(root, GLIMEPIRIDE_STATS);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"), {
+  const chrome = createChrome(host.chrome, {
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
+      else host.choose(group, option);
     },
   });
 
@@ -227,7 +219,7 @@ async function start(): Promise<void> {
     chrome.update({
       title: GLIMEPIRIDE_TITLE, about: GLIMEPIRIDE_ABOUT, tries: GLIMEPIRIDE_TRIES,
       reading: glimepirideReading(individual, sex, current, reference_readout, reference),
-      choices: bodies,
+      choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {
         if (role.id === "hour") return `${formatNumber(hour, 1)} h`;
@@ -266,17 +258,6 @@ async function start(): Promise<void> {
   resize();
   input.connect();
 
-  message.textContent = "Solving the reference individual...";
+  host.progress("Solving the reference individual...");
   await solve(reference, true);
-  boot.hidden = true;
 }
-
-void start().catch((error: unknown) => {
-  const boot = document.getElementById("boot");
-  const message = document.getElementById("boot-message");
-  if (boot !== null) boot.classList.add("boot--error");
-  if (message !== null) {
-    message.textContent = error instanceof Error ? error.message : String(error);
-  }
-  console.error(error);
-});

@@ -11,12 +11,15 @@
  * on screen, so the objects sit on the picture they drive, as they do on the glass of a table.
  *
  * The angle and the packing of the sensor come from the modules of the simulator itself, served
- * under `/shared/`, so that the page and the frames it causes agree on both.
+ * under `shared/` beside the page, so that the page and the frames it causes agree on both.
+ * Everything the page asks for is relative to itself, so it works behind a path as well: the
+ * development server of the table serves it under `/simulator/`, which is what puts the whole
+ * table on one port.
  */
 
-import {degreesOf, radiansOf, wrapAngle} from "/shared/angle.mjs";
-import {clampSensor, DEFAULT_SENSOR} from "/shared/sensor.mjs";
-import {DEFAULT_SETTINGS, normalizeSettings} from "/shared/protocol.mjs";
+import {degreesOf, radiansOf, wrapAngle} from "./shared/angle.mjs";
+import {clampSensor, DEFAULT_SENSOR} from "./shared/sensor.mjs";
+import {DEFAULT_SETTINGS, normalizeSettings} from "./shared/protocol.mjs";
 
 /** How far the wheel turns a token, in degrees, and the finer step of the shift key. */
 const COARSE_STEP = 5;
@@ -31,6 +34,13 @@ const PICKER_IDS = 16;
 /** How close in time and in pixels two right clicks are one right double click. */
 const DOUBLE_MS = 500;
 const DOUBLE_PX = 16;
+
+/**
+ * Where an application reaches the tracker when it came through the same server as this page:
+ * the development server of the table proxies this path to the tracker, so the application, its
+ * models and the tracker are one address and one forwarded port.
+ */
+const TRACKER_PATH = "/tuio";
 
 /** Where the page keeps what was typed into it, so a reload is not a fresh start. */
 const STORE_KEY = "pkpdsim-tui-simulator";
@@ -202,11 +212,17 @@ function turnToken(key, degrees) {
 function appAddress(raw) {
   const url = new URL(raw, window.location.href);
   if (settings.transport === "websocket") {
-    url.searchParams.set("tuio", `${window.location.hostname}:${settings.port}`);
+    // An application on the origin of this page came through the same server as the page, which
+    // carries the tracker at `TRACKER_PATH`: one port serves the table and the surface that
+    // drives it. An application somewhere else is given the host and the port of the tracker.
+    const sameServer = url.origin === window.location.origin;
+    url.searchParams.set(
+      "tuio", sameServer ? TRACKER_PATH : `${window.location.hostname}:${settings.port}`);
     if (settings.version === "2.0") url.searchParams.delete("tuio-version");
     else url.searchParams.set("tuio-version", settings.version);
-    // A colon is legal in a query and is what a person reads, so the address stays readable.
-    url.search = url.searchParams.toString().replaceAll("%3A", ":");
+    // A colon and a slash are legal in a query and are what a person reads, so the address of
+    // the tracker stays readable in the address bar of the application.
+    url.search = url.searchParams.toString().replaceAll("%3A", ":").replaceAll("%2F", "/");
   }
   return url.href;
 }
@@ -594,10 +610,26 @@ function connect() {
   });
 }
 
+/**
+ * The application the address of this page asks for: `?table=cardiovascular` is a table of the
+ * application beside this page, and anything which looks like an address is taken as one.
+ */
+function wantedApp() {
+  const wanted = new URL(window.location.href).searchParams.get("table");
+  if (wanted === null || wanted.trim() === "") return "";
+  const value = wanted.trim();
+  if (value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+  return value === "overview" ? "/" : `/?app=${encodeURIComponent(value)}`;
+}
+
 recall();
 versionField.value = settings.version;
 transportField.value = settings.transport;
 portField.value = String(settings.port);
+const asked = wantedApp();
+if (asked !== "") appUrl = asked;
 appField.value = appUrl;
 setMarker(0);
 resize();
