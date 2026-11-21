@@ -171,8 +171,10 @@ export function createInfo(
   // page rather than when the surface reports a change.
   if (fingers !== undefined) {
     const watch = (now: number): void => {
-      layer.follow(fingers(), now);
+      // The next frame is asked for first, so that one frame which throws, on a table which
+      // is still starting or a surface which went away, does not stop the clock for good.
       window.requestAnimationFrame(watch);
+      layer.follow(fingers(), now);
     };
     window.requestAnimationFrame(watch);
   }

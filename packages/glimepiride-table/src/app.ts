@@ -85,7 +85,6 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     root, visibleStats(glimepirideStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -103,6 +102,12 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   let viewport = {width: window.innerWidth, height: window.innerHeight};
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
+
+  // The note layer reads the fingers of the tracker out of the snapshot, on the clock of
+  // the page, so it is built once there is one. Built before the input is opened, its
+  // first frame fell into the wait for the tracker and read a snapshot which did not
+  // exist yet, and the layer died with it.
+  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   let series: Series = {};
   let baseline: Series = {};
   let solving = true;
