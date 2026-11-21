@@ -9,6 +9,9 @@ import type {TableSnapshot, TableToken, TokenRole} from "@pkpdsim-tui/tuio-input
 import {clamp, describeArc} from "./format.ts";
 import {createGlyph} from "./glyph.ts";
 import type {Glyph, TokenGlyph} from "./glyph.ts";
+import {createMirror} from "./mirror.ts";
+import type {MirroredObject} from "./mirror.ts";
+import type {Voice} from "./voice.ts";
 import {attributes, svg} from "./svg.ts";
 import type {Viewport} from "./types.ts";
 
@@ -114,13 +117,21 @@ function buildToken(parent: SVGGElement): TokenElements {
   };
 }
 
-export function createTokenLayer(parent: SVGSVGElement): TokenLayer {
+/**
+ * The objects of a table. `table` is the application they belong to: with it the layer tells
+ * whatever embeds the table what is on the surface, which is how the TUIO simulator draws an
+ * object as the thing it stands for.
+ */
+export function createTokenLayer(
+  parent: SVGSVGElement, table?: {readonly voice: Voice; readonly title: string},
+): TokenLayer {
   const root = svg("g", {class: "layer layer--tokens"}, parent);
   const touches = svg("g", {class: "layer layer--touches"}, root);
   const elements = new Map<number, TokenElements>();
   const touchElements = new Map<number, SVGCircleElement>();
+  const mirror = table === undefined ? null : createMirror(table.voice, table.title);
 
-  const describeToken = (token: TableToken, state: TokenLayerUpdate): void => {
+  const describeToken = (token: TableToken, state: TokenLayerUpdate): MirroredObject => {
     let visual = elements.get(token.sessionId);
     if (visual === undefined) {
       visual = buildToken(root);
@@ -145,8 +156,16 @@ export function createTokenLayer(parent: SVGSVGElement): TokenLayer {
     // other half of the ring stays empty instead of promising a value that does not exist.
     visual.track.setAttribute("d", !dial ? "" : trackOf(role));
     visual.detent.setAttribute("opacity", dial ? "1" : "0");
-    // The table is read from one side, so the card stands upright wherever the object is.
-    visual.card.setAttribute("transform", `translate(0 ${-RING_RADIUS - 16})`);
+    // The table is read from one side, so the card stands upright wherever the object is, and
+    // it stays on the table: an object at the top edge carries its card below it, and one at
+    // the side has it pushed back in rather than drawn off the glass.
+    const above = y - RING_RADIUS - 16 - CARD_HEIGHT > 0;
+    const shift = clamp(
+      x, CARD_WIDTH / 2 + 12, Math.max(CARD_WIDTH / 2 + 12, state.viewport.width - CARD_WIDTH / 2 - 12),
+    ) - x;
+    visual.card.setAttribute("transform", above
+      ? `translate(${shift.toFixed(1)} ${-RING_RADIUS - 16})`
+      : `translate(${shift.toFixed(1)} ${RING_RADIUS + 16 + CARD_HEIGHT})`);
     visual.glyph.update(card.glyph);
     visual.ring.setAttribute("class",
       card.kind === "unassigned" ? "token-ring token-ring--unassigned" : "token-ring");
@@ -158,11 +177,20 @@ export function createTokenLayer(parent: SVGSVGElement): TokenLayer {
     // A finger which rests on an object opens the sentence behind it, like one on a panel.
     if (card.info === undefined || card.info === "") visual.group.removeAttribute("data-info");
     else visual.group.setAttribute("data-info", card.info);
+    return {
+      marker: token.marker, session: token.sessionId, kind: card.kind, title: card.title,
+      value: card.value, note: card.note,
+      ...(card.glyph === undefined ? {} : {glyph: {kind: card.glyph.kind, level: card.glyph.level}}),
+    };
   };
 
   return {
     update(state: TokenLayerUpdate): void {
-      for (const token of state.snapshot.tokens.values()) describeToken(token, state);
+      const mirrored: MirroredObject[] = [];
+      for (const token of state.snapshot.tokens.values()) {
+        mirrored.push(describeToken(token, state));
+      }
+      mirror?.post(mirrored.sort((left, right) => left.marker - right.marker));
       for (const [sessionId, visual] of elements) {
         if (state.snapshot.tokens.has(sessionId)) continue;
         visual.group.remove();

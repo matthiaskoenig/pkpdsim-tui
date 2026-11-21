@@ -18,6 +18,7 @@
  */
 
 import {degreesOf, radiansOf, wrapAngle} from "./shared/angle.mjs";
+import {createGlyph} from "./glyph.mjs";
 import {clampSensor, DEFAULT_SENSOR} from "./shared/sensor.mjs";
 import {DEFAULT_SETTINGS, normalizeSettings} from "./shared/protocol.mjs";
 
@@ -42,6 +43,19 @@ const DOUBLE_PX = 16;
  */
 const TRACKER_PATH = "/tuio";
 
+/**
+ * What the table under the surface calls its objects. The application posts what it reads on
+ * every change, so the surface can draw an object as the thing it stands for and say what the
+ * table made of the last turn.
+ */
+const MIRROR_SOURCE = "pkpdsim-tui";
+
+/** How far a touch travels before it is a finger moving and not a finger at rest, in pixels. */
+const DRAG_PX = 6;
+
+/** How many actions the rail keeps. */
+const HISTORY = 60;
+
 /** Where the page keeps what was typed into it, so a reload is not a fresh start. */
 const STORE_KEY = "pkpdsim-tui-simulator";
 
@@ -65,11 +79,17 @@ const portField = document.getElementById("port");
 const appField = document.getElementById("app");
 const picker = document.getElementById("picker");
 const pickerGrid = document.getElementById("picker-grid");
+const historyList = document.getElementById("history");
+const historyEmpty = document.getElementById("history-empty");
 
 const sensor = {...DEFAULT_SENSOR};
 const tokens = new Map();
 const pointers = new Map();
 const rendered = new Map();
+/** What the table under the surface says about each object, by the id of the object. */
+let mirror = new Map();
+/** The entry of the history which the next one of the same kind is folded into. */
+let folding = null;
 
 let settings = {...DEFAULT_SETTINGS};
 let sessions = new Map();
@@ -142,6 +162,57 @@ function recall() {
   }
 }
 
+/* What has happened, in the rail: every action of the surface, and what the table made of it. */
+
+function clockOf(date = new Date()) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+    + `:${String(date.getSeconds()).padStart(2, "0")}`;
+}
+
+/**
+ * One line of the history. `fold` is a name under which repeated actions become one line that
+ * is rewritten, so that turning an object does not bury everything else.
+ */
+function note(kind, text, fold = "") {
+  if (fold !== "" && folding !== null && folding.fold === fold) {
+    folding.text.textContent = text;
+    folding.time.textContent = clockOf();
+    return;
+  }
+  const item = document.createElement("li");
+  item.dataset.kind = kind;
+  const time = document.createElement("span");
+  time.className = "history-time";
+  time.textContent = clockOf();
+  const body = document.createElement("span");
+  body.className = "history-text";
+  body.textContent = text;
+  item.append(time, body);
+  historyList.prepend(item);
+  while (historyList.childElementCount > HISTORY) historyList.lastElementChild.remove();
+  historyEmpty.hidden = true;
+  folding = fold === "" ? null : {fold, text: body, time};
+}
+
+function forget() {
+  historyList.replaceChildren();
+  historyEmpty.hidden = false;
+  folding = null;
+}
+
+/** What an object is called by the table under the surface, or its number alone. */
+function nameOf(marker) {
+  const object = mirror.get(marker);
+  return object === undefined || object.kind === "unassigned"
+    ? `Object ${marker}`
+    : `Object ${marker} ${object.title}`;
+}
+
+/** Where a position on the surface is, in the per cents a person can point at. */
+function spotOf(position) {
+  return `${Math.round(position.x * 100)}%, ${Math.round(position.y * 100)}%`;
+}
+
 /* The state and what it causes: one render and one message per animation frame, however many
    events the mouse produced in between. */
 
@@ -184,13 +255,16 @@ function addToken(position, marker = markerOf()) {
   tokens.set(key, {key, marker, x: position.x, y: position.y, angle: 0});
   // The field names the next object, so placing one counts it up, as the Unity simulator does.
   setMarker(marker + 1);
+  note("place", `${nameOf(marker)} put down at ${spotOf(position)}`);
   publish();
 }
 
 function addPointer(position) {
   named += 1;
   const key = `pointer-${named}`;
-  pointers.set(key, {key, x: position.x, y: position.y, radius: POINTER_RADIUS, press: 0.5});
+  pointers.set(key, {
+    key, x: position.x, y: position.y, radius: POINTER_RADIUS, press: 0.5, kind: "hold",
+  });
   publish();
   return key;
 }
@@ -199,8 +273,59 @@ function turnToken(key, degrees) {
   const token = tokens.get(key);
   if (token === undefined) return;
   token.angle = wrapAngle(token.angle + radiansOf(degrees));
+  note("turn", `${nameOf(token.marker)} turned to ${degreesOf(token.angle).toFixed(0)}°`,
+    `turn:${key}`);
   publish();
 }
+
+/* What the table under the surface says about the objects on it. */
+
+/**
+ * The table posts what it reads whenever it changes, and the surface takes it as the names and
+ * the pictures of its objects. A change of a value is the answer of the table to the last turn,
+ * so it goes into the history: the surface says what was done, the table says what came of it.
+ */
+function takeMirror(message) {
+  const next = new Map();
+  for (const object of Array.isArray(message.objects) ? message.objects : []) {
+    if (typeof object?.marker !== "number") continue;
+    next.set(object.marker, object);
+  }
+  for (const [marker, object] of next) {
+    const before = mirror.get(marker);
+    if (object.kind === "unassigned") {
+      if (before === undefined) note("reading", `${nameOf(marker)} reads nothing on this table`);
+      continue;
+    }
+    if (before !== undefined && before.value === object.value && before.title === object.title) {
+      continue;
+    }
+    const tail = object.note === "" ? "" : ` · ${object.note}`;
+    note("reading", `${object.title} ${object.value}${tail}`, `reading:${marker}`);
+  }
+  mirror = next;
+  render();
+}
+
+window.addEventListener("message", event => {
+  const message = event.data;
+  if (message === null || typeof message !== "object") return;
+  if (message.source !== MIRROR_SOURCE) return;
+  // Only the table which is under this surface says what is on it.
+  if (frame.contentWindow !== null && event.source !== frame.contentWindow) return;
+  if (message.type === "objects") takeMirror(message);
+});
+
+/** A table which has just been put under the surface is asked what is already on it. */
+function greetApp() {
+  frame.contentWindow?.postMessage({source: MIRROR_SOURCE, type: "hello"}, "*");
+}
+
+frame.addEventListener("load", () => {
+  mirror = new Map();
+  greetApp();
+  render();
+});
 
 /* The application under the surface. */
 
@@ -242,6 +367,7 @@ function showApp(raw) {
   }
   appUrl = address;
   appField.value = address;
+  note("app", `The table under the surface is ${address}`);
   frame.src = href;
   frame.hidden = false;
   surfaceBox.classList.add("has-app");
@@ -265,15 +391,22 @@ function tokenNode(key) {
   const notch = element("line", {class: "token-notch", x1: 0, y1: 0, x2: 0, y2: 0});
   const grip = element("circle", {class: "token-grip", cx: 0, cy: 0, r: 1});
   dial.append(notch, grip);
+  // The picture of the object turns with it, as a print on a wooden token would.
+  const face = element("g", {class: "token-face"});
+  const glyph = createGlyph(face);
+  // The number of the object is printed at its foot, where the picture does not cover it.
+  const badge = element("circle", {class: "token-badge", cx: 0, cy: 0, r: 1});
   const marker = element("text", {class: "token-marker", y: 0});
+  const name = element("text", {class: "token-name", y: 0});
+  const value = element("text", {class: "token-value", y: 0});
   const readout = element("text", {class: "token-readout", y: 0});
-  group.append(body, dial, marker, readout);
+  group.append(body, dial, face, badge, marker, name, value, readout);
   tokenLayer.append(group);
-  return {group, body, dial, notch, grip, marker, readout};
+  return {group, body, dial, notch, grip, face, glyph, badge, marker, name, value, readout};
 }
 
 function pointerNode(key) {
-  const group = element("g", {class: "pointer", "data-key": key});
+  const group = element("g", {class: "pointer", "data-key": key, "data-kind": "hold"});
   const halo = element("circle", {class: "pointer-halo", r: 1});
   const core = element("circle", {class: "pointer-core", r: 1});
   group.append(halo, core);
@@ -297,26 +430,47 @@ function render() {
     }
     const degrees = degreesOf(token.angle);
     const session = sessions.get(`token:${token.key}`);
+    const reading = mirror.get(token.marker);
+    const known = reading !== undefined && reading.kind !== "unassigned";
     node.group.setAttribute(
       "transform",
       `translate(${(token.x * box.width).toFixed(2)} ${(token.y * box.height).toFixed(2)})`,
     );
+    node.group.dataset.kind = reading === undefined ? "unknown" : reading.kind;
     node.body.setAttribute("r", String(radius));
     node.dial.setAttribute("transform", `rotate(${degrees.toFixed(2)})`);
     node.notch.setAttribute("y1", String(-radius * 0.2));
     node.notch.setAttribute("y2", String(-radius * 0.92));
     node.grip.setAttribute("cy", String(-radius * 0.92));
     node.grip.setAttribute("r", String(radius * 0.12));
-    node.marker.setAttribute("y", String(radius * 0.22));
+    // The picture of the object fills the ring and turns with it; the number steps aside for it.
+    node.face.setAttribute("transform", `rotate(${degrees.toFixed(2)})`);
+    node.glyph.update(known ? reading.glyph : undefined, radius / 36);
+    const picture = known && reading.glyph !== undefined && reading.glyph !== null;
+    node.badge.setAttribute("opacity", picture ? "1" : "0");
+    node.badge.setAttribute("cy", String(radius * 0.74));
+    node.badge.setAttribute("r", String(radius * 0.32));
+    node.marker.setAttribute("y", String(picture ? radius * 0.87 : radius * 0.22));
+    node.marker.setAttribute("font-size", String(picture ? radius * 0.4 : radius * 0.62));
     node.marker.textContent = String(token.marker);
-    // The readout sits under the token, and above it at the near edge, where it would be cut off.
-    const below = token.y * box.height + radius + 20 < box.height;
-    node.readout.setAttribute("y", String(below ? radius + 16 : -radius - 8));
+    // What the object is and what it is set to, under it and upright: the table is read from
+    // one side, and a label at an angle reads as a mistake. The card of the table itself stands
+    // above the object, so the two do not sit on each other.
+    const lines = known ? 3 : 1;
+    const below = token.y * box.height + radius + 16 * lines + 8 < box.height;
+    const first = below ? radius + 17 : -radius - 9 - 16 * (lines - 1);
+    node.name.setAttribute("y", String(first));
+    node.name.textContent = known ? reading.title : "";
+    node.value.setAttribute("y", String(known ? first + 16 : first));
+    node.value.textContent = known ? reading.value : "";
+    node.readout.setAttribute("y", String(known ? first + 32 : first));
     node.readout.textContent = `${degrees.toFixed(0)}° · `
       + `<${token.x.toFixed(3)}, ${token.y.toFixed(3)}>`
       + (session === undefined ? "" : ` · s${session}`);
     // The surface is a picture, so every token says what it is.
-    node.group.setAttribute("aria-label", `Object ${token.marker}, ${node.readout.textContent}`);
+    node.group.setAttribute("aria-label", known
+      ? `Object ${token.marker}, ${reading.title}, ${reading.value}, ${node.readout.textContent}`
+      : `Object ${token.marker}, ${node.readout.textContent}`);
   }
   for (const pointer of pointers.values()) {
     let node = rendered.get(pointer.key);
@@ -328,6 +482,7 @@ function render() {
       "transform",
       `translate(${(pointer.x * box.width).toFixed(2)} ${(pointer.y * box.height).toFixed(2)})`,
     );
+    node.group.dataset.kind = pointer.kind ?? "hold";
     node.halo.setAttribute("r", String(pointer.radius * box.height));
     node.core.setAttribute("r", String(clamp(radius * 0.18, 4, 9)));
   }
@@ -436,7 +591,9 @@ table.addEventListener("pointerdown", event => {
     // The middle button lifts a token off the table, as it does in the Unity simulator.
     event.preventDefault();
     if (key !== null) {
+      const lifted = tokens.get(key);
       tokens.delete(key);
+      if (lifted !== undefined) note("lift", `${nameOf(lifted.marker)} taken off the table`);
       publish();
     }
     return;
@@ -447,9 +604,14 @@ table.addEventListener("pointerdown", event => {
   if (key !== null) {
     const token = tokens.get(key);
     if (token === undefined) return;
-    drag = {kind: "token", key, dx: token.x - position.x, dy: token.y - position.y};
+    drag = {
+      kind: "token", key, dx: token.x - position.x, dy: token.y - position.y, moved: false,
+    };
   } else {
-    drag = {kind: "pointer", key: addPointer(position), dx: 0, dy: 0, at: event.timeStamp};
+    drag = {
+      kind: "pointer", key: addPointer(position), dx: 0, dy: 0, at: event.timeStamp,
+      from: position, moved: false,
+    };
   }
   // The capture keeps a drag that leaves the surface, and is nothing to insist on when the
   // pointer is already gone.
@@ -467,6 +629,18 @@ table.addEventListener("pointermove", event => {
   if (object === undefined) return;
   object.x = clamp(position.x + drag.dx);
   object.y = clamp(position.y + drag.dy);
+  if (drag.kind === "pointer") {
+    // A finger which has travelled is a finger moving across the glass, and no longer one at
+    // rest. The two are different things to a table, so they are different colours here.
+    const far = Math.hypot(
+      (position.x - drag.from.x) * box.width, (position.y - drag.from.y) * box.height) > DRAG_PX;
+    if (far) {
+      drag.moved = true;
+      object.kind = "drag";
+    }
+  } else {
+    drag.moved = true;
+  }
   publish();
 });
 
@@ -475,17 +649,29 @@ function endDrag(event) {
   const ended = drag;
   drag = null;
   if (ended.kind !== "pointer") {
+    const token = tokens.get(ended.key);
+    if (ended.moved && token !== undefined) {
+      note("move", `${nameOf(token.marker)} moved to ${spotOf(token)}`, `move:${ended.key}`);
+    }
     publish();
     return;
   }
   // A touch exists for as long as the button is down, which is what a finger does, except for
   // a tap: that one is held a moment longer, so that a table can take it as a choice.
   const held = (event?.timeStamp ?? 0) - ended.at;
+  const touch = pointers.get(ended.key);
+  const where = touch === undefined ? "" : ` at ${spotOf(touch)}`;
   if (event === undefined || held > TAP_MS) {
+    note(ended.moved ? "drag" : "hold",
+      ended.moved ? `Finger dragged${where}` : `Finger held${where} for ${Math.round(held)} ms`);
     pointers.delete(ended.key);
     publish();
     return;
   }
+  // A tap is held on the glass a moment longer, so the table can take it as a choice, and it
+  // is a tap from now on: a different thing from a finger at rest, and a different colour.
+  if (touch !== undefined) touch.kind = "tap";
+  note("tap", `Tap${where}`);
   const key = ended.key;
   taps.set(key, window.setTimeout(() => {
     taps.delete(key);
@@ -573,8 +759,11 @@ document.getElementById("clear").addEventListener("click", () => {
   tokens.clear();
   pointers.clear();
   drag = null;
+  note("clear", "The surface was cleared");
   publish();
 });
+
+document.getElementById("forget").addEventListener("click", forget);
 
 /* The surface alone, for a demonstration: the stage carries the table and the picker. */
 const fullscreenButton = document.getElementById("fullscreen");

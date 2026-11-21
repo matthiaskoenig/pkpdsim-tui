@@ -39,6 +39,12 @@ const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const PAGE_ROOT = join(ROOT, "public");
 const SHARED_ROOT = join(ROOT, "src");
 const SHARED_PREFIX = "/shared/";
+/**
+ * The surface draws the objects of a table as the things they stand for, which is the picture
+ * the table itself draws: the plain JavaScript of the kit, which both of them read.
+ */
+const KIT_ROOT = resolve(ROOT, "..", "tui-kit", "src");
+const KIT_PREFIX = "/kit/";
 
 const CONTENT_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -103,8 +109,11 @@ function parseOptions(argv) {
 function fileOf(url) {
   const path = decodeURIComponent(new URL(url, "http://localhost").pathname);
   const shared = path.startsWith(SHARED_PREFIX);
-  const root = shared ? SHARED_ROOT : PAGE_ROOT;
-  const relative = shared ? path.slice(SHARED_PREFIX.length) : path.slice(1);
+  const kit = path.startsWith(KIT_PREFIX);
+  const root = shared ? SHARED_ROOT : kit ? KIT_ROOT : PAGE_ROOT;
+  const relative = shared
+    ? path.slice(SHARED_PREFIX.length)
+    : kit ? path.slice(KIT_PREFIX.length) : path.slice(1);
   const file = resolve(root, relative === "" ? "index.html" : relative);
   if (file !== root && !file.startsWith(root + sep)) return null;
   if (!(extname(file) in CONTENT_TYPES)) return null;

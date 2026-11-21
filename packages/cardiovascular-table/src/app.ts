@@ -114,7 +114,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const scene = createScene(root, body, reference, voice);
   const readout = createReadout<CardioReadout>(root, stats);
   const pulse = createPulse(root, voice);
-  const tokenLayer = createTokenLayer(root);
+  const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));

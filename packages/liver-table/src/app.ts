@@ -65,7 +65,7 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   const lobule = createLobule(root, voice);
   const chapters = createChapters(root, voice);
   const readout = createReadout<PressureSolution>(root, stats);
-  const tokenLayer = createTokenLayer(root);
+  const tokenLayer = createTokenLayer(root, host);
   createInfo(surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
   ]);

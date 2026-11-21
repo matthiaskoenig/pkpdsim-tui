@@ -78,7 +78,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   const plot = createPlot(root, perfusionTraces(voice));
   const readout = createReadout<PerfusionReadout>(
     root, visibleStats(perfusionStats(voice), voice));
-  const tokenLayer = createTokenLayer(root);
+  const tokenLayer = createTokenLayer(root, host);
   createInfo(surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
   ]);

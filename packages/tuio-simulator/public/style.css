@@ -13,7 +13,12 @@
   --table: #0d141d;
   --table-line: rgba(126, 160, 196, 0.34);
   --token: #27b3ac;
+  --token-unknown: #e8a33d;
   --pointer: #4d8bf0;
+  /* The three things a finger does, which a table tells apart and so does this surface. */
+  --tap: #27b3ac;
+  --hold: #e8a33d;
+  --drag: #4d8bf0;
   --accent: #27b3ac;
   --warn: #e8a33d;
   --error: #e2574c;
@@ -349,9 +354,80 @@ button.ghost {
   fill: var(--token);
 }
 
+.token-badge {
+  fill: var(--surface);
+  stroke: var(--token);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.token[data-kind="unassigned"] .token-badge,
+.token[data-kind="unknown"] .token-badge {
+  stroke: var(--token-unknown);
+}
+
 .token-marker {
   fill: var(--ink);
   font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* An object whose number no table reads is not the same object as one that drives something. */
+.token[data-kind="unassigned"] .token-body,
+.token[data-kind="unknown"] .token-body {
+  fill: rgba(232, 163, 61, 0.1);
+  stroke: var(--token-unknown);
+  stroke-dasharray: 5 5;
+}
+
+.token[data-kind="unassigned"] .token-notch,
+.token[data-kind="unknown"] .token-notch {
+  stroke: var(--token-unknown);
+}
+
+.token[data-kind="unassigned"] .token-grip,
+.token[data-kind="unknown"] .token-grip {
+  fill: var(--token-unknown);
+}
+
+/* The picture of the object: what the table says this one is. */
+.token-face {
+  pointer-events: none;
+}
+
+.token-glyph-line path,
+.token-glyph-wall {
+  fill: none;
+  stroke: var(--token);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.token-glyph-fill path {
+  fill: rgba(39, 179, 172, 0.45);
+  stroke: none;
+}
+
+.token-glyph-hand {
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.token-name {
+  fill: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.token-value {
+  fill: var(--accent);
+  font-size: 0.86rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-anchor: middle;
@@ -371,12 +447,25 @@ button.ghost {
 }
 
 .pointer-halo {
-  fill: rgba(77, 139, 240, 0.18);
-  stroke: rgba(77, 139, 240, 0.6);
+  fill: color-mix(in srgb, var(--pointer) 18%, transparent);
+  stroke: color-mix(in srgb, var(--pointer) 60%, transparent);
 }
 
 .pointer-core {
   fill: var(--pointer);
+}
+
+/* A tap, a finger at rest and a finger moving are three different things, and three colours. */
+.pointer[data-kind="tap"] {
+  --pointer: var(--tap);
+}
+
+.pointer[data-kind="hold"] {
+  --pointer: var(--hold);
+}
+
+.pointer[data-kind="drag"] {
+  --pointer: var(--drag);
 }
 
 /* What the gestures are, so the page says it itself. */
@@ -421,4 +510,114 @@ button.ghost {
   .fields {
     margin-left: 0;
   }
+}
+
+/* What each colour of a touch means, beside the gestures which make them. */
+.legend {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend .swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background: var(--hold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hold) 22%, transparent);
+}
+
+.legend li[data-kind="tap"] .swatch {
+  background: var(--tap);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tap) 22%, transparent);
+}
+
+.legend li[data-kind="drag"] .swatch {
+  background: var(--drag);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--drag) 22%, transparent);
+}
+
+/* What has happened: every action of the surface, newest first. */
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+button.small {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.history {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.history li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border-left: 3px solid var(--panel-line);
+  border-radius: 0 4px 4px 0;
+  background: rgba(126, 160, 196, 0.06);
+  color: var(--ink);
+}
+
+.history-time {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.history li[data-kind="tap"] {
+  border-left-color: var(--tap);
+}
+
+.history li[data-kind="hold"] {
+  border-left-color: var(--hold);
+}
+
+.history li[data-kind="drag"] {
+  border-left-color: var(--drag);
+}
+
+.history li[data-kind="place"],
+.history li[data-kind="lift"],
+.history li[data-kind="move"],
+.history li[data-kind="turn"] {
+  border-left-color: var(--token);
+}
+
+.history li[data-kind="reading"] {
+  border-left-color: var(--accent);
+  background: rgba(39, 179, 172, 0.12);
+}
+
+.history li[data-kind="clear"],
+.history li[data-kind="app"] {
+  border-left-color: var(--ink-dim);
+}
+
+.history-empty {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
 }

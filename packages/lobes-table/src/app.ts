@@ -93,7 +93,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const scene = createLiverScene(root, lobes, voice);
   const plot = createPlot(root, lobeTraces(voice));
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
-  const tokenLayer = createTokenLayer(root);
+  const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
