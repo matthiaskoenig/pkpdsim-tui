@@ -10,7 +10,7 @@ import {formatNumber} from "@pkpdsim-tui/tui-kit";
 import type {Sample} from "./cards.ts";
 import {shortName} from "./scene.ts";
 
-export const LOBE_TITLE = "The liver";
+export const LOBE_TITLE = "The lobed liver";
 
 /** The note behind the title: what this table is, for the visitor who asks. */
 export const LOBE_ABOUT = "A liver is built of eight pieces, each with its own blood supply. A "

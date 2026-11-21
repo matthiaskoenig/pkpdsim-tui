@@ -26,6 +26,12 @@ Everything a table draws is upright for the people standing at the edge the pane
 
 That is a decision about what these tables are for. A booth has a front, and the room that a second, upside down copy of every number would take goes to the body instead. A table that people are meant to stand around on every side would want the mirrored copies back, which is a layout change in `packages/tui-kit`: the panel, the band and the card of an object are each drawn in one place.
 
+## Choosing, and going back
+
+A table has no click, so everything which is pressed rather than turned is pressed by **resting a finger on it**: a card on the landing page, the organ the card points at, a switch in the panel, or **Back**, which every table carries above its title and which returns to the landing page. The element fills while the finger is on it, so that holding is visibly doing something, and lifting the finger before it is full cancels it. A hand sweeping across the glass opens nothing.
+
+The landing page carries no panel: a heading, two lines of what the table is for, the two reference bodies and the five tables around them. Touching a body is what every table is then solved for. What a card is, and what a body is, waits behind it as a note.
+
 ## What a visitor is told
 
 Each table says the little that is needed at a glance, and keeps the rest behind the thing it belongs to. Hovering a number, an object, an organ or a card with a mouse, or resting a finger on it for a moment at the table, opens a note that says what it is: what a portal pressure means, what the object in somebody's hand does, how much blood an organ is getting.

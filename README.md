@@ -11,15 +11,17 @@ The interactive examples of the pkpdsim documentation run in a browser with slid
 
 Every application also runs without a table, on a mouse and the keyboard, so it can be developed and shown anywhere.
 
-## One application, several tables
+## One application, five tables
 
-Everything here is one application: it opens on the human body, with a card for every table it carries along the edge the visitors stand at, and a touch on a card or on the organ it points at opens that table. One build, one address, one port.
+Everything here is one application: it opens on the two reference bodies of pkpdsim, a man and a woman, with the tables arranged around them, and a touch on a card or on the organ it points at opens that table. Touching a body is what every table is then solved for, and **Back** in the panel of a table returns to them. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
 | Cardiovascular circulation | `?app=cardiovascular` | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
+| The liver | `?app=liver` | prototype | Why the body needs a liver: its two blood supplies as two objects, what one lobule of it is served with, and the way into the three liver tables which follow it. |
 | Lobed liver | `?app=lobes` | prototype | A clamp on a segment of the liver is a portal vein ligation, the scalpel is a resection, and a dial winds the five days of the regeneration that follows. |
 | Glimepiride | `?app=glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial, on the whole body model of glimepiride. |
+| Machine perfusion | `?app=perfusion` | prototype | A liver kept alive outside the body: the pump, the oxygen and the temperature of the circuit, and a dial through the six hours of the perfusion. |
 
 ## Quick start
 
@@ -31,8 +33,8 @@ npm run dev           # the application and the TUIO simulator, both on http://l
 
 | Address | What it is |
 | --- | --- |
-| `http://localhost:5173/` | the body, from which every table is opened |
-| `http://localhost:5173/?app=cardiovascular` | one table directly; `lobes` and `glimepiride` are the other two |
+| `http://localhost:5173/` | the two bodies, from which every table is opened |
+| `http://localhost:5173/?app=cardiovascular` | one table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/simulator/` | the simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | the same, opened on one table |
 
@@ -59,8 +61,9 @@ The documentation explains the protocol, the simulator and the table: `npm run d
 | `packages/cardio-sim` | the steady pressure network of the cardiovascular model of pkpdsim and the loaders of its exported reference data |
 | `packages/lobes-sim` | the lobed liver: the states of a segment, the parameters they change and the request that solves them |
 | `packages/glimepiride-sim` | the glimepiride individual, the request that solves them and the pharmacokinetics of the result |
+| `packages/perfusion-sim` | the machine perfusion: the settings of the machine, the parameters they are, and the request that solves six hours of it |
 | `packages/tuio-simulator` | the TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
-| `packages/cardiovascular-table`, `packages/lobes-table`, `packages/glimepiride-table` | the three tables: what each one draws, which object does what on it, and what it says about itself |
+| `packages/cardiovascular-table`, `packages/liver-table`, `packages/lobes-table`, `packages/glimepiride-table`, `packages/perfusion-table` | the five tables: what each one draws, which object does what on it, and what it says about itself |
 | `apps/table` | the one application: the body, the tables behind it, and the development server that carries the simulator |
 | `scripts/sync-assets.mjs` | copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
 | `scripts/export_model.py` | compiles an SBML model that comes from its own repository into the WebAssembly an application runs |

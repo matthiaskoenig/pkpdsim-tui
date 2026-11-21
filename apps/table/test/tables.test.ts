@@ -29,14 +29,15 @@ describe("the table of a query", () => {
     expect(selectedTable(query("app=kidney"))).toBe(OVERVIEW);
   });
 
-  it("gives every table an id, a card and a folder of assets of its own", () => {
+  it("gives every table an id, a card and a folder of assets", () => {
     const ids = TABLES.map(entry => entry.id);
     expect(new Set(ids).size).toBe(TABLES.length);
-    expect(new Set(TABLES.map(entry => entry.assets)).size).toBe(TABLES.length);
     expect(ids).not.toContain(OVERVIEW);
     for (const entry of TABLES) {
+      // Two tables may read the same export, as the liver and the circulation do.
       expect(entry.assets.endsWith("/")).toBe(true);
       expect(entry.label.length).toBeGreaterThan(0);
+      expect(entry.blurb.length).toBeGreaterThan(10);
       expect(entry.about.length).toBeGreaterThan(20);
       // The card points at an organ the body is marked at, which is one the table is about.
       expect(entry.organs).toContain(entry.organ);

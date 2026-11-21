@@ -50,42 +50,57 @@
         <datalist id="apps">
           <option value="/">The body: every table</option>
           <option value="/?app=cardiovascular">Cardiovascular circulation</option>
+          <option value="/?app=liver">The liver</option>
           <option value="/?app=lobes">Lobed liver</option>
           <option value="/?app=glimepiride">Glimepiride</option>
+          <option value="/?app=perfusion">Machine perfusion</option>
           <option value="http://localhost:5173/">A table application on another machine</option>
         </datalist>
       </label>
       <button id="load" type="button">Show it under the surface</button>
       <button id="unload" type="button" class="ghost">Hide it</button>
       <button id="clear" type="button" class="ghost">Clear surface</button>
+      <button id="fullscreen" type="button" class="ghost">Full screen</button>
     </div>
   </header>
 
-  <main class="stage" id="stage">
-    <div class="surface" id="surface">
-      <iframe class="app" id="frame" title="The table application under the surface" hidden></iframe>
-      <svg id="table" class="table" role="application" aria-label="The surface of the table">
-        <g id="pointers"></g>
-        <g id="tokens"></g>
-      </svg>
-    </div>
-    <div class="picker" id="picker" hidden role="dialog" aria-label="The object to place">
-      <p class="picker-title">Place object</p>
-      <div class="picker-grid" id="picker-grid"></div>
-    </div>
-  </main>
+  <div class="work">
+    <aside class="rail">
+      <h2>Objects</h2>
+      <ul class="gestures">
+        <li><b>Double click</b> empty space places the next object</li>
+        <li><b>Right double click</b> picks which object to place</li>
+        <li><b>Drag</b> an object moves it</li>
+        <li><b>Scroll</b> over an object turns it, with <b>shift</b> for finer steps</li>
+        <li><b>Middle click</b> an object removes it</li>
+      </ul>
+      <h2>Touches</h2>
+      <ul class="gestures">
+        <li><b>Click</b> empty space is a tap: the finger stays down long enough for the table to take it as a choice</li>
+        <li><b>Hold</b> the button on one spot is a finger resting there</li>
+        <li><b>Drag</b> empty space is a finger moving across the glass</li>
+      </ul>
+      <h2>Choosing and going back</h2>
+      <p>A table opens when a finger rests on something for a moment. On the body, tap a card or the organ it points at. In a table, a finger held on a number, an object or an organ opens the note which says what it is.</p>
+      <p><b>Back</b> in the panel of a table returns to the body, and so does the table switch beside it.</p>
+      <h2>The surface</h2>
+      <p class="counts" id="counts"></p>
+    </aside>
 
-  <footer class="help">
-    <ul class="gestures">
-      <li><b>Drag</b> empty space is a touch</li>
-      <li><b>Double click</b> places the next object</li>
-      <li><b>Right double click</b> picks which object to place</li>
-      <li><b>Drag</b> an object moves it</li>
-      <li><b>Scroll</b> over an object turns it, with <b>shift</b> for finer steps</li>
-      <li><b>Middle click</b> an object removes it</li>
-    </ul>
-    <p class="counts" id="counts"></p>
-  </footer>
+    <main class="stage" id="stage">
+      <div class="surface" id="surface">
+        <iframe class="app" id="frame" title="The table application under the surface" hidden></iframe>
+        <svg id="table" class="table" role="application" aria-label="The surface of the table">
+          <g id="pointers"></g>
+          <g id="tokens"></g>
+        </svg>
+      </div>
+      <div class="picker" id="picker" hidden role="dialog" aria-label="The object to place">
+        <p class="picker-title">Place object</p>
+        <div class="picker-grid" id="picker-grid"></div>
+      </div>
+    </main>
+  </div>
 
   <noscript>The control surface of the simulator needs JavaScript.</noscript>
   <script type="module" src="./control.mjs"></script>

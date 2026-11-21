@@ -35,7 +35,7 @@ export const TABLES: readonly TableEntry[] = [
     id: "cardiovascular",
     label: "Circulation",
     title: "The circulation",
-    blurb: "Narrow a vessel or change the beat.",
+    blurb: "How the blood reaches every organ.",
     about: "The heart pushes five to six litres of blood through the body every minute. Narrow "
       + "the vessels of an organ or change the beat, and watch the pressures and the flows of "
       + "the whole body settle somewhere new.",
@@ -45,10 +45,23 @@ export const TABLES: readonly TableEntry[] = [
     load: async () => (await import("@pkpdsim-tui/cardiovascular-table")).startCardiovascularTable,
   },
   {
-    id: "lobes",
+    id: "liver",
     label: "Liver",
+    title: "The liver",
+    blurb: "Why the body needs a liver.",
+    about: "Everything the gut absorbs passes the liver before it reaches the rest of the body. "
+      + "See where its two blood supplies come from, what happens along one sinusoid, and what "
+      + "the liver does to a drug.",
+    organ: "li",
+    organs: ["li", "si"],
+    assets: "cardiovascular/",
+    load: async () => (await import("@pkpdsim-tui/liver-table")).startLiverTable,
+  },
+  {
+    id: "lobes",
+    label: "Lobes",
     title: "The lobed liver",
-    blurb: "Cut a piece away and watch it grow back.",
+    blurb: "Cut a piece away, watch it grow back.",
     about: "A liver is built of eight pieces, each with its own blood supply. Clamp them or cut "
       + "them away, and see how much of its work the rest can still do, and how it grows back "
       + "over the days which follow.",
@@ -61,13 +74,26 @@ export const TABLES: readonly TableEntry[] = [
     id: "glimepiride",
     label: "Glimepiride",
     title: "One tablet, two people",
-    blurb: "Follow one tablet through two bodies.",
+    blurb: "What the liver does to a tablet.",
     about: "Swallow a tablet of a diabetes drug and follow it through the gut, the liver and "
       + "the kidneys. Change who the person is, and the same tablet does something else.",
     organ: "si",
     organs: ["si", "li", "ki"],
     assets: "glimepiride/",
     load: async () => (await import("@pkpdsim-tui/glimepiride-table")).startGlimepirideTable,
+  },
+  {
+    id: "perfusion",
+    label: "Perfusion",
+    title: "The liver on the machine",
+    blurb: "A liver kept alive outside the body.",
+    about: "A liver taken out of the body stays alive on a machine which pumps warm, oxygen "
+      + "rich fluid through it. Set the pump, the oxygen and the temperature, and watch what "
+      + "the organ makes of them.",
+    organ: "li",
+    organs: ["li"],
+    assets: "perfusion/",
+    load: async () => (await import("@pkpdsim-tui/perfusion-table")).startPerfusionTable,
   },
 ];
 

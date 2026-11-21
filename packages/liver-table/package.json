@@ -1,0 +1,15 @@
+{
+  "name": "@pkpdsim-tui/liver-table",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The liver table: the two blood supplies of the liver, one lobule, and the way into the tables which follow it",
+  "exports": {
+    ".": "./src/app.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/cardio-sim": "*",
+    "@pkpdsim-tui/tui-kit": "*",
+    "@pkpdsim-tui/tuio-input": "*"
+  }
+}

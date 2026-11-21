@@ -1,7 +1,60 @@
 /* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
 @import "@pkpdsim-tui/tui-kit/table.css";
 
-/* The body: the cards of the tables at the two long edges, and the organs they point at. */
+/* The heading of the landing page: what the whole table is for, before anything is touched. */
+.hub-heading {
+  font-size: 52px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+  fill: var(--ink);
+  pointer-events: auto;
+  cursor: help;
+}
+
+.hub-motivation {
+  font-size: 21px;
+  fill: var(--ink-dim);
+}
+
+/* The two reference bodies, which are also the switch of the body every table is solved for. */
+.hub-body {
+  cursor: pointer;
+}
+
+.hub-body[data-selected="false"] {
+  opacity: 0.58;
+}
+
+.hub-body-halo {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2;
+  transition: fill 140ms linear, stroke 140ms linear;
+}
+
+.hub-body[data-selected="true"] .hub-body-halo {
+  fill: rgba(39, 179, 172, 0.07);
+  stroke: rgba(39, 179, 172, 0.42);
+}
+
+.hub-body:hover .hub-body-halo,
+.hub-body[data-arming="true"] .hub-body-halo {
+  fill: rgba(39, 179, 172, 0.14);
+  stroke: var(--accent);
+}
+
+.hub-body-label {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  fill: var(--ink-dim);
+}
+
+.hub-body[data-selected="true"] .hub-body-label {
+  fill: var(--accent);
+}
+
+/* The card of a table, around the bodies. */
 .hub-card {
   cursor: pointer;
 }
@@ -15,7 +68,7 @@
 
 .hub-card:hover .hub-card-plate,
 .hub-card:focus-visible .hub-card-plate,
-.hub-card[data-active="true"] .hub-card-plate {
+.hub-card[data-arming="true"] .hub-card-plate {
   fill: rgba(39, 179, 172, 0.16);
   stroke: var(--accent);
 }
@@ -54,6 +107,25 @@
   opacity: 0.75;
 }
 
+/* The bar which fills while a finger rests on a card, so that holding is visibly doing something. */
+.hub-card-arm {
+  fill: var(--accent);
+  transform: scaleX(0);
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.hub-card[data-arming="true"] .hub-card-arm {
+  animation: dwell-sweep 620ms linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-card[data-arming="true"] .hub-card-arm {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
 /* The line from a card to the organ its table is about. */
 .hub-link {
   fill: none;
@@ -67,21 +139,56 @@
   stroke: var(--accent);
   stroke-width: 2;
   transition: fill 120ms linear;
-}
-
-.hub-organ[data-active="true"] {
-  fill: rgba(39, 179, 172, 0.55);
-}
-
-.hub-organ-number {
-  font-size: 17px;
-  font-weight: 650;
-  fill: var(--ink);
   pointer-events: none;
 }
 
-/* A smaller table, a laptop or a window beside the simulator: the cards take less room. */
+/* A finger is wider than the dot it aims at, so the organ opens from around it. */
+.hub-organ-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.hub-organ-hit[data-arming="true"] + .hub-organ,
+.hub-organ-hit:hover {
+  fill: rgba(39, 179, 172, 0.5);
+}
+
+/* What drives the table and whom the anatomy is from: small, at the foot, out of the way. */
+.hub-status {
+  font-size: 12px;
+  fill: var(--ink-dim);
+  pointer-events: auto;
+  cursor: help;
+}
+
+.hub-status-dot {
+  fill: var(--ink-dim);
+}
+
+.hub-foot[data-state="connected"] .hub-status-dot {
+  fill: var(--accent);
+}
+
+.hub-foot[data-state="error"] .hub-status-dot {
+  fill: #e2725b;
+}
+
+.hub-credit {
+  font-size: 10px;
+  fill: var(--ink-dim);
+  opacity: 0.6;
+}
+
+/* A smaller table, a laptop or a window beside the simulator: the heading and the cards shrink. */
 @media (max-height: 820px) {
+  .hub-heading {
+    font-size: 40px;
+  }
+
+  .hub-motivation {
+    font-size: 18px;
+  }
+
   .hub-card-title {
     font-size: 18px;
   }
@@ -89,10 +196,4 @@
   .hub-card-line {
     font-size: 14px;
   }
-}
-
-/* A finger is wider than the dot it aims at, so the organ opens from around it. */
-.hub-organ-hit {
-  fill: transparent;
-  cursor: pointer;
 }

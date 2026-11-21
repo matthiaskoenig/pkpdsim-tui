@@ -57,11 +57,15 @@ export interface ChromeUpdate {
   readonly credit: string;
   /** The switches of the table, which are touched rather than turned. */
   readonly choices?: readonly ChoiceGroup[];
+  /** The way out of this table, empty on the page a table is left for. */
+  readonly back?: string;
 }
 
 export interface ChromeOptions {
   /** What a touch on a choice does, which only the application knows. */
   readonly onChoose?: (group: string, option: string) => void;
+  /** What the way out does, which only the application knows. */
+  readonly onBack?: () => void;
 }
 
 export interface Chrome {
@@ -84,6 +88,8 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
         `data-group="${escapeHtml(group.id)}"`,
         `data-choice="${escapeHtml(option.id)}"`,
         `aria-pressed="${option.id === group.selected}"`,
+        // A table has no click: a finger which rests on a switch presses it.
+        `data-dwell="${escapeHtml(group.id)}:${escapeHtml(option.id)}"`,
         unavailable === "" ? "" : `disabled title="${escapeHtml(unavailable)}"`,
       ].filter(attribute => attribute !== "").join(" ");
       return `<button ${attributes}>${escapeHtml(option.label)}</button>`;
@@ -135,7 +141,11 @@ function panelHtml(state: ChromeUpdate): string {
   const tries = state.tries.length === 0
     ? ""
     : `<ul class="tries">${state.tries.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>`;
+  const back = state.back === undefined || state.back === "" ? "" : `<button class="back"`
+    + ` type="button" data-dwell="back" data-info="Leave this table. The body is where every`
+    + ` table is opened from.">${escapeHtml(state.back)}</button>`;
   return `
+    ${back}
     <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<i class="info-dot" aria-hidden="true">i</i></h1>
     <p class="reading">${escapeHtml(state.reading)}</p>
     ${tries}
@@ -160,6 +170,10 @@ export function createChrome(container: HTMLElement, options: ChromeOptions = {}
   panel.addEventListener("click", event => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+    if (target.closest(".back") !== null) {
+      options.onBack?.();
+      return;
+    }
     const choice = target.closest(".choice");
     if (!(choice instanceof HTMLButtonElement) || choice.disabled) return;
     const group = choice.dataset["group"];

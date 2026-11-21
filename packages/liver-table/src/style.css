@@ -1,0 +1,190 @@
+/* The two supplies, drawn as a schematic. */
+.supply-vessel {
+  fill: none;
+  stroke-linecap: round;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.supply-vessel--artery {
+  stroke: #d2544f;
+}
+
+.supply-vessel--portal {
+  stroke: #8f6fd0;
+}
+
+.supply-vessel--hepatic {
+  stroke: #4d8bf0;
+}
+
+.supply-organ {
+  stroke: var(--panel-line);
+  stroke-width: 0.6;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.supply-organ--heart {
+  fill: rgba(210, 84, 79, 0.75);
+}
+
+.supply-organ--gut {
+  fill: rgba(143, 111, 208, 0.6);
+}
+
+.supply-organ--liver {
+  fill: rgba(150, 92, 62, 0.85);
+}
+
+.supply-name {
+  font-size: 3px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.supply-name--centre {
+  text-anchor: middle;
+}
+
+.supply-name--organ {
+  font-size: 4.2px;
+  text-anchor: middle;
+  fill: #f3e3d8;
+}
+
+.supply-value {
+  font-size: 2.7px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+  text-anchor: middle;
+}
+
+.supply-value--end {
+  text-anchor: middle;
+}
+
+.supply-share {
+  font-size: 2.7px;
+  fill: #f3e3d8;
+  text-anchor: middle;
+  opacity: 0.85;
+}
+
+/* One lobule: the hexagon, its three zones and the vessels at its corners. */
+.lobule-zone {
+  stroke: rgba(243, 227, 216, 0.25);
+  stroke-width: 0.5;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.lobule-zone[data-zone="1"] {
+  fill: rgba(210, 84, 79, 0.42);
+}
+
+.lobule-zone[data-zone="2"] {
+  fill: rgba(143, 111, 208, 0.42);
+}
+
+.lobule-zone[data-zone="3"] {
+  fill: rgba(77, 139, 240, 0.42);
+}
+
+.lobule-triad {
+  fill: #d2544f;
+  stroke: #8f6fd0;
+  stroke-width: 1.4;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.lobule-flow {
+  fill: none;
+  stroke: rgba(243, 227, 216, 0.55);
+  stroke-width: 0.7;
+  stroke-dasharray: 2 2;
+}
+
+.lobule-central {
+  fill: #4d8bf0;
+  stroke: var(--panel);
+  stroke-width: 1;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.lobule-label {
+  font-size: 2.9px;
+  fill: var(--ink-dim);
+  text-anchor: middle;
+}
+
+.lobule-label--title {
+  font-size: 4.2px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+
+.lobule-label--centre {
+  font-size: 2.4px;
+  fill: #eef4ff;
+}
+
+.lobule-label--subtitle {
+  font-size: 2.6px;
+  fill: var(--ink-dim);
+  opacity: 0.85;
+}
+
+.lobule-flow-value {
+  font-size: 2.9px;
+  font-weight: 600;
+  fill: var(--accent);
+  text-anchor: middle;
+}
+
+/* Where the story goes on: the three tables after this one. */
+.chapter {
+  cursor: pointer;
+}
+
+.chapter-plate {
+  fill: var(--panel);
+  stroke: var(--panel-line);
+  stroke-width: 1.4;
+  transition: fill 120ms linear, stroke 120ms linear;
+}
+
+.chapter:hover .chapter-plate,
+.chapter:focus-visible .chapter-plate,
+.chapter[data-arming="true"] .chapter-plate {
+  fill: rgba(39, 179, 172, 0.16);
+  stroke: var(--accent);
+}
+
+.chapter:focus {
+  outline: none;
+}
+
+.chapter-title {
+  font-size: 18px;
+  font-weight: 650;
+  fill: var(--ink);
+}
+
+.chapter-line {
+  font-size: 14px;
+  fill: var(--ink-dim);
+}
+
+.chapter-arm {
+  fill: var(--accent);
+  transform: scaleX(0);
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.chapter[data-arming="true"] .chapter-arm {
+  animation: dwell-sweep 620ms linear forwards;
+}

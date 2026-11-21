@@ -9,7 +9,7 @@ export {
 export {createGlyph} from "./glyph.ts";
 export type {Glyph, GlyphKind, TokenGlyph} from "./glyph.ts";
 export type {TableApp, TableHost} from "./host.ts";
-export {createInfo, pointerPoints} from "./info.ts";
+export {createInfo, pointerPoints, tokenPoints} from "./info.ts";
 export type {InfoLayer, InfoPoint} from "./info.ts";
 export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";

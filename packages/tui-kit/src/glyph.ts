@@ -11,7 +11,7 @@ import {attributes, clear, svg} from "./svg.ts";
 /** What an object is. Each one is drawn in a box of 52 pixels around the centre of the ring. */
 export type GlyphKind =
   | "vessel" | "heart" | "tablet" | "enzyme" | "liver" | "kidney" | "body" | "clamp" | "scalpel"
-  | "clock";
+  | "clock" | "pump" | "bubble" | "thermometer";
 
 export interface TokenGlyph {
   readonly kind: GlyphKind;
@@ -47,6 +47,18 @@ const ICONS: Record<GlyphKind, readonly string[]> = {
   ],
   scalpel: ["M -17 12 L 5 -14 L 13 -9 L -9 17 Z", "M -9 17 L -19 20 L -17 12 Z"],
   clock: ["M 0 -19 A 19 19 0 1 1 0 19 A 19 19 0 1 1 0 -19 Z"],
+  pump: [
+    "M 0 -19 A 19 19 0 1 1 0 19 A 19 19 0 1 1 0 -19 Z",
+    "M 0 -11 A 11 11 0 0 1 11 0 L 0 0 Z",
+    "M 0 11 A 11 11 0 0 1 -11 0 L 0 0 Z",
+  ],
+  bubble: [
+    "M -2 -18 A 10 10 0 1 1 -2 2 A 10 10 0 1 1 -2 -18 Z",
+    "M 9 6 A 6 6 0 1 1 9 18 A 6 6 0 1 1 9 6 Z",
+  ],
+  thermometer: [
+    "M -5 -20 a 5 5 0 0 1 10 0 v 23 a 8 8 0 1 1 -10 0 z",
+  ],
 };
 
 /** The walls and the lumen of a vessel whose opening is `level`. */

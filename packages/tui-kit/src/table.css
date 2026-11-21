@@ -165,6 +165,7 @@ body {
 .choice-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin: 0 0 0.6rem;
 }
@@ -178,6 +179,7 @@ body {
 
 .choice-options {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
   padding: 0.15rem;
   border: 1px solid var(--panel-line);
@@ -568,4 +570,67 @@ body {
 
 .scene[data-solving="true"] .layer--plot {
   opacity: 0.72;
+}
+
+/* The way out of a table. It stands above the title, where a hand looks for it. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.back::before {
+  content: "\2190";
+  font-size: 1.05em;
+}
+
+.back:hover {
+  color: var(--ink);
+  background: rgba(126, 160, 196, 0.14);
+}
+
+/* A finger holds on a switch instead of clicking it, and the switch fills while it does. */
+[data-arming="true"] {
+  background-image: linear-gradient(rgba(0, 173, 165, 0.35), rgba(0, 173, 165, 0.35));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0 100%;
+  animation: dwell-fill 620ms linear forwards;
+}
+
+/* The sweep of a card or a switch which a finger is holding, in the scene as well as the panel. */
+@keyframes dwell-sweep {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes dwell-fill {
+  from {
+    background-size: 0 100%;
+  }
+
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-arming="true"] {
+    animation: none;
+    background-size: 100% 100%;
+  }
 }

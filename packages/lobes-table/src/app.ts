@@ -103,6 +103,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else if (group === "species") chooseQuery("species", option, "human");
@@ -200,6 +201,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     chrome.update({
       title: LOBE_TITLE, about: LOBE_ABOUT, tries: LOBE_TRIES,
       reading: lobeReading(lobes, states, day, sample, reference),
+      back: "Back to the body",
       choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {

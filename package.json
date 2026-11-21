@@ -23,6 +23,8 @@
     "dev:cardiovascular": "node scripts/dev.mjs --app cardiovascular",
     "dev:lobes": "node scripts/dev.mjs --app lobes",
     "dev:glimepiride": "node scripts/dev.mjs --app glimepiride",
+    "dev:liver": "node scripts/dev.mjs --app liver",
+    "dev:perfusion": "node scripts/dev.mjs --app perfusion",
     "build": "npm run build --workspaces --if-present",
     "preview": "node scripts/dev.mjs --preview",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
@@ -31,6 +33,7 @@
     "typecheck": "tsc --noEmit",
     "sync": "node scripts/sync-assets.mjs",
     "export:glimepiride": "uv run python scripts/export_model.py --sbml ${GLIMEPIRIDE_MODEL:-../glimepiride-model/models/glimepiride_body_flat.xml} --output apps/table/public/assets/glimepiride/solver",
+    "export:perfusion": "uv run python scripts/export_model.py --sbml ${PERFUSION_MODEL:-../pkpdsim/models/rat_liver_nmp_flat.xml} --output apps/table/public/assets/perfusion/solver",
     "docs": "uv run zensical serve",
     "docs:build": "uv run zensical build --clean --strict"
   },

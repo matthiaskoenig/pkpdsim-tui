@@ -1,48 +1,48 @@
 /**
- * The body: what the application shows while no table is open. One figure of the pkpdsim
- * physiology, a card per table along the edge the people stand at, and a line from every card
- * to the organ its table is about. A finger on a card, or on the organ it points at, opens that
- * table. The card says the little a visitor needs to choose; what the table is waits behind the
- * card as a note.
+ * The landing page: the two reference bodies of pkpdsim, the tables arranged around them, and a
+ * heading which says what the whole thing is for. It carries no panel; what a card or a body is
+ * waits behind it as a note, for the visitor who asks.
+ *
+ * A card is opened by holding a finger on it, by touching the organ it points at, or with the
+ * mouse. The body a visitor touches is the body every table is then solved for.
  */
 
 import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
 import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
-import {
-  attributes, chooseQuery, createChrome, createInfo, formatNumber, pointerPoints, svg,
-} from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup, TableApp, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
+import {attributes, chooseQuery, createInfo, pointerPoints, svg, tokenPoints} from "@pkpdsim-tui/tui-kit";
+import type {TableApp, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
 import {OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
 import {wrapText} from "./wrap.ts";
 
-const MOUSE_HINT = "Click a card to open its table. Escape brings you back here.";
-const TABLE_HINT = "Hold a finger on a card to open its table.";
-const BOTH_HINT = "Hold a finger on a card, or click it, to open its table.";
-/** How long a finger rests on a card before it opens, so that a hand passing over opens nothing. */
-const DWELL = 320;
-/** The card at the edge of the table, in pixels. */
-const CARD = {height: 136, gap: 26, margin: 26, minWidth: 236, maxWidth: 352} as const;
-/** The air above the body, which the cards do not take. */
-const TOP_GAP = 30;
-/** How much of the room between the cards and the top edge the body takes. */
-const BODY_SHARE = 0.94;
-/** A small number as it is spoken, for the sentence which counts the tables. */
-const COUNTS = ["No", "One", "Two", "Three", "Four", "Five", "Six"];
-const PADDING = 20;
-/** How much of a sentence a card holds: characters on a line at its narrowest, and lines. */
-const COLUMNS = 34;
+/** What the table is for, in the two lines under the heading. */
+const HEADING = "The body on the table";
+const MOTIVATION = [
+  "Five working models of the human body, solved while you move the objects on the glass.",
+  "How the blood reaches every organ, what the liver does with it, and where a tablet goes.",
+];
+/** The card of a table, in pixels. */
+const CARD = {height: 132, gap: 22, margin: 28, minWidth: 250, maxWidth: 360} as const;
+/** The room the heading takes at the top. */
+const HEAD = {top: 78, line: 34, bottom: 34} as const;
+const PADDING: number = 20;
+/** How much of a sentence a card holds: characters on a line, and lines. */
+const COLUMNS = 32;
 const LINES = 2;
-/** How far the body stays away from the cards. */
-const BODY_GAP = 26;
+/** How far the bodies stay away from the cards. */
+const BODY_GAP = 34;
+/** Between the two bodies, in pixels. */
+const BODY_SPLIT = 90;
+/** How much of the room between the heading and the cards a body takes. */
+const BODY_SHARE = 0.96;
 /**
  * How close to the organ of a table a finger has to be to open it, in pixels. The organs of the
  * body are a few centimetres apart, so a mark never reaches further than halfway to its
  * neighbour: the heart, the liver and the gut stay three targets.
  */
-const ORGAN_HIT = {max: 34, min: 13} as const;
+const ORGAN_HIT = {max: 30, min: 13} as const;
 
 interface CardBox {
   readonly x: number;
@@ -51,7 +51,7 @@ interface CardBox {
   readonly height: number;
 }
 
-/** One card, in one of the two rows: the elements which move when the table is resized. */
+/** One card: the elements which move when the surface is resized. */
 interface CardView {
   readonly entry: TableEntry;
   readonly group: SVGGElement;
@@ -61,27 +61,56 @@ interface CardView {
   readonly title: SVGTextElement;
   readonly lines: readonly SVGTextElement[];
   readonly call: SVGTextElement;
-  /** Where the card is on the surface, which is where a finger of the tracker meets it. */
+  readonly arm: SVGRectElement;
   box: CardBox;
 }
 
-/** The boxes of the near row, left to right, centred on the long edge. */
-function cardBoxes(viewport: Viewport, count: number): readonly CardBox[] {
-  const room = viewport.width - 2 * CARD.margin - (count - 1) * CARD.gap;
-  const width = Math.min(CARD.maxWidth, Math.max(CARD.minWidth, room / count));
-  const total = count * width + (count - 1) * CARD.gap;
-  const left = (viewport.width - total) / 2;
-  const y = viewport.height - CARD.margin - CARD.height;
-  return Array.from({length: count}, (_unused, index) => ({
-    x: left + index * (width + CARD.gap), y, width, height: CARD.height,
-  }));
+/** One of the two bodies on the surface, which is also the switch of the reference body. */
+interface BodyView {
+  readonly sex: "male" | "female";
+  readonly body: Body;
+  readonly group: SVGGElement;
+  readonly art: SVGGElement;
+  readonly label: SVGTextElement;
+  readonly halo: SVGRectElement;
+  layout: {scale: number; left: number; top: number};
 }
 
-/** Where the body is drawn: the room above the row of cards. */
-function bodyLayout(viewport: Viewport, body: Body): {scale: number; left: number; top: number} {
-  const room = viewport.height - (CARD.margin + CARD.height + BODY_GAP) - TOP_GAP;
-  const scale = (Math.max(room, 120) * BODY_SHARE) / body.height;
-  return {scale, left: viewport.width / 2, top: TOP_GAP + (room - body.height * scale) / 2};
+/**
+ * Where the cards sit: two at each side of the bodies and one below them, so that the tables
+ * surround the people rather than lining up at one edge.
+ */
+function cardBoxes(viewport: Viewport, count: number): readonly CardBox[] {
+  const width = Math.min(
+    CARD.maxWidth, Math.max(CARD.minWidth, Math.round(viewport.width * 0.19)));
+  const height = CARD.height;
+  const left = CARD.margin;
+  const right = viewport.width - CARD.margin - width;
+  const top = HEAD.top + HEAD.line * MOTIVATION.length + HEAD.bottom;
+  const second = top + height + CARD.gap;
+  const bottom = viewport.height - CARD.margin - height;
+  const slots: readonly {x: number; y: number}[] = [
+    {x: left, y: top}, {x: right, y: top},
+    {x: right, y: second}, {x: left, y: second},
+    {x: Math.round((viewport.width - width) / 2), y: bottom},
+  ];
+  return Array.from({length: count}, (_unused, index) => {
+    const slot = slots[index % slots.length] ?? {x: left, y: top};
+    return {x: slot.x, y: slot.y, width, height};
+  });
+}
+
+/** The room the bodies have: between the columns of cards, under the heading. */
+function bodyBox(viewport: Viewport, boxes: readonly CardBox[]): CardBox {
+  const width = boxes[0]?.width ?? CARD.minWidth;
+  const top = HEAD.top + HEAD.line * MOTIVATION.length + HEAD.bottom;
+  const bottom = viewport.height - CARD.margin - CARD.height - BODY_GAP;
+  return {
+    x: CARD.margin + width + BODY_GAP,
+    y: top,
+    width: viewport.width - 2 * (CARD.margin + width + BODY_GAP),
+    height: Math.max(200, bottom - top),
+  };
 }
 
 function anchorOf(body: Body, id: string): {x: number; y: number} {
@@ -89,18 +118,14 @@ function anchorOf(body: Body, id: string): {x: number; y: number} {
   return anchor === undefined ? {x: 0, y: body.height / 2} : {x: anchor[0], y: anchor[1]};
 }
 
-function inside(box: CardBox, x: number, y: number): boolean {
-  return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
-}
-
-function within(point: {x: number; y: number}, x: number, y: number, radius: number): boolean {
-  return (point.x - x) ** 2 + (point.y - y) ** 2 <= radius ** 2;
-}
-
-/** What a person at the table should do, which depends on how the page was started. */
+/** What a person at the table should do, which depends on what the page is driven by. */
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
-  if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
+  if (!tracker.tracker) return "Click a card to open its table.";
+  if (state === "connected") {
+    return tracker.discovered
+      ? "Hold a finger on a card, or click it, to open its table."
+      : "Hold a finger on a card to open its table.";
+  }
   return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
     + "the address to drive the table with the mouse.";
 }
@@ -110,7 +135,9 @@ function createCard(
   open: (entry: TableEntry) => void,
 ): CardView {
   const group = svg("g", {
-    class: "hub-card", "data-active": "false", role: "button", tabindex: 0,
+    class: "hub-card", role: "button", tabindex: 0,
+    // A finger has no click: it opens the card it rests on, and the card fills while it does.
+    "data-dwell": `app:${entry.id}`,
     // What the table is, for the visitor who wants more than the card says.
     "data-info": entry.about,
   }, parent);
@@ -127,6 +154,7 @@ function createCard(
   });
   const opener = svg("text", {class: "hub-card-call"}, group);
   opener.textContent = call;
+  const arm = svg("rect", {class: "hub-card-arm", height: 4}, group);
   group.addEventListener("click", () => open(entry));
   group.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -134,7 +162,7 @@ function createCard(
     open(entry);
   });
   return {
-    entry, group, plate, badge, number, title, lines, call: opener,
+    entry, group, plate, badge, number, title, lines, call: opener, arm,
     box: {x: 0, y: 0, width: 0, height: 0},
   };
 }
@@ -149,27 +177,40 @@ function placeCard(card: CardView, box: CardBox): void {
     attributes(line, {x: box.x + PADDING, y: box.y + PADDING + 50 + index * 20});
   }
   attributes(card.call, {x: box.x + PADDING, y: box.y + box.height - PADDING + 4});
+  attributes(card.arm, {x: box.x, y: box.y + box.height - 4, width: box.width});
 }
 
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
-  host.progress("Loading the body...");
-  // The figure is the one the circulation is drawn on: it is the body of the pkpdsim physiology,
-  // and it comes with that export.
+  host.progress("Loading the bodies...");
+  // The figures are the ones the circulation is drawn on: the bodies of the pkpdsim physiology,
+  // and they come with that export.
   const anatomy = await loadAnatomy(
     new URL("cardiovascular/cardiovascular-anatomy.json", host.assets));
-  const sex = host.parameters.get("sex") === "female" ? "female" : "male";
-  const body = anatomy.bodies[sex] ?? Object.values(anatomy.bodies)[0];
-  if (body === undefined) throw new Error("The anatomy holds no body.");
+  const chosen = host.parameters.get("sex") === "female" ? "female" : "male";
 
   const root = host.scene;
   const scene = svg("g", {class: "hub"}, root);
-  const art = svg("g", {class: "body-art"}, scene);
-  // The exported body carries its own fills and is generated by pkpdsim, so it is inserted as
-  // it comes.
-  art.innerHTML = body.svg;
+  const head = svg("g", {class: "hub-head"}, scene);
+  const heading = svg("text", {
+    class: "hub-heading", "text-anchor": "middle",
+    "data-info": "Every table here is one model of the human body of pkpdsim. The objects on "
+      + "the glass are its parameters, and the model is solved again while you turn them.",
+  }, head);
+  heading.textContent = HEADING;
+  const motivation = MOTIVATION.map(text => {
+    const line = svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head);
+    line.textContent = text;
+    return line;
+  });
+  const figures = svg("g", {class: "hub-bodies"}, scene);
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
   const row = svg("g", {class: "hub-row"}, scene);
+  const foot = svg("g", {class: "hub-foot"}, scene);
+  const statusDot = svg("circle", {class: "hub-status-dot", r: 4}, foot);
+  const statusText = svg("text", {class: "hub-status"}, foot);
+  const credit = svg("text", {class: "hub-credit"}, foot);
+  credit.textContent = anatomy.attribution;
 
   const open = (entry: TableEntry): void => {
     chooseQuery("app", entry.id, OVERVIEW);
@@ -185,151 +226,143 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const cards: CardView[] = TABLES.map(
     (entry, index) => createCard(row, entry, index, call, open));
   const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
-  const subjects = new Set(TABLES.map(entry => entry.organ));
-  const marks = TABLES.map(entry => {
-    // An organ another table is about already carries that table's number, so it is marked once.
-    const marked = entry.organs.filter(organ => organ === entry.organ || !subjects.has(organ));
-    return {
-      entry,
-      organs: marked,
-      discs: marked.map(organ => svg("circle", {
-        class: "hub-organ", "data-primary": String(organ === entry.organ),
-        "data-info": entry.about,
-      }, organs)),
-      number: svg("text", {class: "hub-organ-number", "text-anchor": "middle"}, organs),
-      // A finger is wider than the dot it aims at, so the organ is opened from around it.
-      hit: svg("circle", {
-        class: "hub-organ-hit", r: ORGAN_HIT.min, "data-info": entry.about,
-      }, organs),
-      centre: {x: 0, y: 0},
-      reach: ORGAN_HIT.min,
-    };
-  });
-  for (const mark of marks) {
-    mark.hit.addEventListener("click", () => open(mark.entry));
-  }
-  for (const [index, mark] of marks.entries()) mark.number.textContent = String(index + 1);
 
-  const bodies: readonly ChoiceGroup[] = [{
-    id: "sex", label: "Body", selected: sex,
-    options: [{id: "male", label: "Male"}, {id: "female", label: "Female"}],
-  }];
-  const chrome = createChrome(host.chrome, {
-    onChoose: (group, option) => {
-      if (group === "sex") chooseQuery("sex", option, "male");
-      else host.choose(group, option);
-    },
+  const bodies: readonly BodyView[] = (["male", "female"] as const).flatMap(sex => {
+    const body = anatomy.bodies[sex];
+    if (body === undefined) return [];
+    const group = svg("g", {
+      class: "hub-body", "data-selected": String(sex === chosen), "data-dwell": `sex:${sex}`,
+      role: "button", tabindex: 0,
+      "data-info": sex === "male"
+        ? "The male reference body of pkpdsim. Touch it, and every table is solved for him."
+        : "The female reference body of pkpdsim. Touch it, and every table is solved for her.",
+    }, figures);
+    const halo = svg("rect", {class: "hub-body-halo", rx: 26}, group);
+    const art = svg("g", {class: "body-art"}, group);
+    // The exported body carries its own fills and is generated by pkpdsim, so it is inserted
+    // as it comes.
+    art.innerHTML = body.svg;
+    const label = svg("text", {class: "hub-body-label", "text-anchor": "middle"}, group);
+    label.textContent = sex === "male" ? "Man" : "Woman";
+    group.addEventListener("click", () => chooseQuery("sex", sex, "male"));
+    group.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      chooseQuery("sex", sex, "male");
+    });
+    return [{sex, body, group, art, label, halo, layout: {scale: 1, left: 0, top: 0}}];
+  });
+  if (bodies.length === 0) throw new Error("The anatomy holds no body.");
+
+  /** One disc per organ a table is about, on each body: the organ is the table it belongs to. */
+  const marks = bodies.flatMap(view => {
+    const seen = new Set<string>();
+    return TABLES.flatMap(entry => {
+      if (seen.has(entry.organ)) return [];
+      seen.add(entry.organ);
+      const hit = svg("circle", {
+        class: "hub-organ-hit", r: ORGAN_HIT.min, "data-dwell": `app:${entry.id}`,
+        "data-info": entry.about,
+      }, organs);
+      hit.addEventListener("click", () => open(entry));
+      return [{
+        entry, view, organ: entry.organ,
+        disc: svg("circle", {class: "hub-organ", r: 15, "data-info": entry.about}, organs),
+        hit, centre: {x: 0, y: 0}, reach: ORGAN_HIT.min as number,
+      }];
+    });
   });
 
   let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
-  // What a table is: the note opens where a visitor hovers a card or rests a finger on it.
-  createInfo(host.surface, () => pointerPoints(snapshot, viewport));
-  /** Which card each finger is on, and since when, so that a card opens on a rest and not a sweep. */
-  const dwelling = new Map<number, {entry: TableEntry; since: number}>();
-  let active = "";
-
-  const describe = (): string => `The ${sex} reference body of pkpdsim, `
-    + `${formatNumber(body.height, 0)} cm tall. `
-    + `${COUNTS[TABLES.length] ?? String(TABLES.length)} tables sit on it.`;
+  // What a card, a body or an organ is, and the hold which opens it: both are the one layer.
+  createInfo(host.surface, () => [
+    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
+  ]);
 
   const draw = (): void => {
-    const layout = bodyLayout(viewport, body);
-    const placed: {centre: {x: number; y: number}; reach: number; hit: SVGCircleElement}[] = [];
-    art.setAttribute("transform", `translate(${layout.left} ${layout.top}) scale(${layout.scale})`);
     const boxes = cardBoxes(viewport, TABLES.length);
     for (const [index, card] of cards.entries()) {
       const box = boxes[index];
-      if (box === undefined) continue;
-      placeCard(card, box);
+      if (box !== undefined) placeCard(card, box);
     }
-    for (const [index, mark] of marks.entries()) {
-      const box = boxes[index];
-      if (box === undefined) continue;
-      for (const [at, organ] of mark.organs.entries()) {
-        const disc = mark.discs[at];
-        if (disc === undefined) continue;
-        const anchor = anchorOf(body, organ);
-        const point = {
-          x: layout.left + anchor.x * layout.scale, y: layout.top + anchor.y * layout.scale,
-        };
-        attributes(disc, {cx: point.x, cy: point.y, r: organ === mark.entry.organ ? 17 : 9});
-        if (organ === mark.entry.organ) {
-          mark.centre = point;
-          attributes(mark.hit, {cx: point.x, cy: point.y});
-          placed.push(mark);
-          attributes(mark.number, {x: point.x, y: point.y + 6});
-          leaders[index]?.setAttribute("d",
-            `M ${box.x + box.width / 2} ${box.y} L ${point.x} ${point.y + 20}`);
-        }
-      }
+    // The two bodies share the room between the columns of cards, side by side.
+    const room = bodyBox(viewport, boxes);
+    const tallest = Math.max(...bodies.map(view => view.body.height));
+    const scale = (room.height * BODY_SHARE) / tallest;
+    const widths = bodies.map(view => view.art.getBBox().width * scale);
+    const total = widths.reduce((sum, width) => sum + width, 0) + (bodies.length - 1) * BODY_SPLIT;
+    let cursor = room.x + (room.width - total) / 2;
+    for (const [index, view] of bodies.entries()) {
+      const width = widths[index] ?? 0;
+      const bounds = view.art.getBBox();
+      const left = cursor - bounds.x * scale;
+      const top = room.y + (room.height - view.body.height * scale) / 2;
+      view.layout = {scale, left, top};
+      view.art.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
+      attributes(view.halo, {
+        x: cursor - 18, y: top - 14, width: width + 36, height: view.body.height * scale + 48,
+      });
+      attributes(view.label, {x: cursor + width / 2, y: top + view.body.height * scale + 34});
+      cursor += width + BODY_SPLIT;
     }
-    for (const mark of placed) {
-      const gap = placed
-        .filter(other => other !== mark)
+
+    for (const mark of marks) {
+      const anchor = anchorOf(mark.view.body, mark.organ);
+      const {scale: s, left, top} = mark.view.layout;
+      mark.centre = {x: left + anchor.x * s, y: top + anchor.y * s};
+      attributes(mark.disc, {cx: mark.centre.x, cy: mark.centre.y});
+      attributes(mark.hit, {cx: mark.centre.x, cy: mark.centre.y});
+    }
+    for (const mark of marks) {
+      const gaps = marks
+        .filter(other => other !== mark && other.view === mark.view)
         .map(other => Math.hypot(other.centre.x - mark.centre.x, other.centre.y - mark.centre.y));
-      const room = gap.length === 0 ? ORGAN_HIT.max : Math.min(...gap) / 2;
-      mark.reach = Math.max(ORGAN_HIT.min, Math.min(ORGAN_HIT.max, room));
+      mark.reach = Math.max(
+        ORGAN_HIT.min, Math.min(ORGAN_HIT.max, gaps.length === 0 ? ORGAN_HIT.max : Math.min(...gaps) / 2));
       mark.hit.setAttribute("r", String(mark.reach));
     }
+    // A card points at its organ in the body it is nearest to, so that no line crosses a figure.
+    // The organ itself is marked in both of them.
+    for (const [index, card] of cards.entries()) {
+      const leader = leaders[index];
+      if (leader === undefined) continue;
+      const from = {
+        x: card.box.x + card.box.width / 2, y: card.box.y + card.box.height / 2,
+      };
+      const target = marks
+        .filter(mark => mark.organ === card.entry.organ)
+        .map(mark => ({mark, gap: Math.hypot(mark.centre.x - from.x, mark.centre.y - from.y)}))
+        .sort((a, b) => a.gap - b.gap)[0]?.mark;
+      if (target === undefined) {
+        leader.removeAttribute("d");
+        continue;
+      }
+      const edge = target.centre.x < from.x ? card.box.x : card.box.x + card.box.width;
+      const start = card.box.y > target.centre.y + 60
+        ? {x: card.box.x + card.box.width / 2, y: card.box.y}
+        : {x: edge, y: card.box.y + card.box.height / 2};
+      leader.setAttribute("d", `M ${start.x} ${start.y} L ${target.centre.x} ${target.centre.y}`);
+    }
+
+    attributes(heading, {x: viewport.width / 2, y: HEAD.top});
+    for (const [index, line] of motivation.entries()) {
+      attributes(line, {x: viewport.width / 2, y: HEAD.top + 44 + index * HEAD.line});
+    }
+    attributes(statusDot, {cx: CARD.margin + 6, cy: viewport.height - 44});
+    attributes(statusText, {x: CARD.margin + 18, y: viewport.height - 40});
+    attributes(credit, {x: CARD.margin + 18, y: viewport.height - 22});
   };
 
   const update = (): void => {
-    for (const card of cards) {
-      card.group.setAttribute("data-active", String(card.entry.id === active));
+    for (const view of bodies) {
+      view.group.setAttribute("data-selected", String(view.sex === chosen));
     }
-    for (const mark of marks) {
-      for (const disc of mark.discs) {
-        disc.setAttribute("data-active", String(mark.entry.id === active));
-      }
-    }
-    chrome.update({
-      title: "pkpdsim on the table",
-      about: "Every table here is one model of the human body of pkpdsim, solved while you move "
-        + "the objects on the table.",
-      reading: describe(),
-      tries: [
-        "Hold a finger on a card, or on the organ it points at, to open that table.",
-        "The body switch holds everywhere: all three tables are solved for the same person.",
-      ],
-      status, roles: [], value: () => "", live: new Set<string>(), unassigned: [],
-      notice: "", hint: hintFor(tracker, status.state), credit: anatomy.attribution,
-      choices: [...host.choices, ...bodies],
-    });
-  };
-
-  /**
-   * A finger or an object which rests on a card, or on the organ the card points at, opens that
-   * table; one which passes over only lights it up.
-   */
-  const follow = (now: number): void => {
-    const live = new Set<number>();
-    let hot = "";
-    for (const touch of [...snapshot.pointers.values(), ...snapshot.tokens.values()]) {
-      const x = touch.x * viewport.width;
-      const y = touch.y * viewport.height;
-      const found = cards.find(card => inside(card.box, x, y))?.entry
-        ?? marks.find(mark => within(mark.centre, x, y, mark.reach))?.entry;
-      if (found === undefined) continue;
-      live.add(touch.sessionId);
-      const seen = dwelling.get(touch.sessionId);
-      if (seen === undefined || seen.entry.id !== found.id) {
-        dwelling.set(touch.sessionId, {entry: found, since: now});
-      } else if (now - seen.since >= DWELL) {
-        open(found);
-        return;
-      }
-      hot = found.id;
-    }
-    for (const sessionId of [...dwelling.keys()]) {
-      if (!live.has(sessionId)) dwelling.delete(sessionId);
-    }
-    if (hot !== active) {
-      active = hot;
-      update();
-    }
-    window.requestAnimationFrame(follow);
+    const hint = hintFor(tracker, status.state);
+    statusText.textContent = status.source;
+    statusText.setAttribute("data-info", status.detail === "" ? hint : status.detail);
+    foot.setAttribute("data-state", status.state);
   };
 
   const resize = (): void => {
@@ -348,5 +381,4 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   resize();
   update();
   input.connect();
-  window.requestAnimationFrame(follow);
 };

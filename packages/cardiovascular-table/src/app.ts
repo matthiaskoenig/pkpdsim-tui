@@ -122,6 +122,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   // with the mouse or with a finger resting on it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else host.choose(group, option);
@@ -220,6 +221,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     chrome.update({
       title: CARDIO_TITLE, about: CARDIO_ABOUT, tries: CARDIO_TRIES,
       reading: cardioReading(heartControls, sex, summary, referenceSummary),
+      back: "Back to the body",
       choices: [...host.choices, ...bodies],
       status, roles: CARDIOVASCULAR_ROLES, notice,
       value: role => {

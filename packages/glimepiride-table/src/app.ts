@@ -95,6 +95,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   // What a number, an object or a station is: the note opens where a visitor asks for it.
   createInfo(surface, () => pointerPoints(snapshot, viewport));
   const chrome = createChrome(host.chrome, {
+    onBack: () => host.back(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else host.choose(group, option);
@@ -213,6 +214,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     chrome.update({
       title: GLIMEPIRIDE_TITLE, about: GLIMEPIRIDE_ABOUT, tries: GLIMEPIRIDE_TRIES,
       reading: glimepirideReading(individual, sex, current, reference_readout, reference),
+      back: "Back to the body",
       choices: [...host.choices, ...bodies],
       status, roles, notice,
       value: role => {

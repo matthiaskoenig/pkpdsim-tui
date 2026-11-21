@@ -10,10 +10,13 @@
 | `packages/cardio-sim` | The steady pressure network of the cardiovascular model and the loaders of the exported data |
 | `packages/lobes-sim` | The lobed liver: the states of a segment, the parameters they change and the request that solves them |
 | `packages/glimepiride-sim` | The glimepiride individual, the request that solves them and the pharmacokinetics of the result |
+| `packages/perfusion-sim` | The machine perfusion: the settings of the machine, the parameters they are, and the request that solves six hours of it |
 | `packages/tuio-simulator` | The TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
 | `packages/cardiovascular-table` | The cardiovascular table: its scene, its objects, its cards and what it says about itself |
+| `packages/liver-table` | The liver table: the two supplies, one lobule, and the way into the tables which follow it |
 | `packages/lobes-table` | The lobed liver table |
 | `packages/glimepiride-table` | The glimepiride table |
+| `packages/perfusion-table` | The machine perfusion table |
 | `apps/table` | The one application: the body, the tables behind it, the assets of each of them, and the development server that carries the simulator |
 | `scripts/dev.mjs` | Starts the application and the simulator on one port |
 | `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into `apps/table/public/assets/<table>` |
@@ -28,6 +31,7 @@ The repository is an npm workspace. The packages ship TypeScript source and are 
 npm install
 npm run sync          # the exported models and data of a pkpdsim checkout
 npm run export:glimepiride  # compiles the glimepiride model of its own repository
+npm run export:perfusion    # compiles a machine perfusion model built with pkpdsim
 npm run dev           # the application and the simulator, both on http://localhost:5173
 npm run dev:app       # the application alone, for a real table or another tracker
 npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
@@ -43,6 +47,37 @@ npm run docs:build    # this site, strict
 `npm run sync` reads the checkout named by `--pkpdsim`, then by the environment variable `PKPDSIM_DIR`, then the sibling directory `../pkpdsim`. What it copies is gitignored, so a clone stays small, and `--list` prints what each application needs.
 
 A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one or at the path in `GLIMEPIRIDE_MODEL`. The script knows nothing about a model, so the next one is another line in `package.json`.
+
+The model of the [machine perfusion table](apps/perfusion.md) is built from the perfusion library of pkpdsim, in a pkpdsim checkout, and then compiled here. The definition is the one of its documentation, a rat liver with four zones in a normothermic circuit:
+
+```python
+# not executed
+from pathlib import Path
+
+from pkpdsim.pbpk.values import Value
+from pkpdsim.perfusion import (
+    Circuit, CoreParameters, LiverOrgan, Perfusate, PerfusionDefinition, build,
+)
+from pkpdsim.perfusion.units import PU
+from pkpdsim.species import Species
+
+definition = PerfusionDefinition(
+    sid="rat_liver_nmp",
+    name="rat liver in a normothermic machine perfusion",
+    species=Species.RAT,
+    organ=LiverOrgan.default(zones=4),
+    circuit=Circuit.default(),
+    perfusate=Perfusate.default(),
+    temperature=Value(37.0, PU.degC, "ModelChoice", "a normothermic perfusion"),
+    core=CoreParameters.default(),
+)
+assert definition.validate() == []
+flat = build(definition, Path("models"))  # models/rat_liver_nmp_flat.xml
+```
+
+```bash
+PERFUSION_MODEL=../pkpdsim/models/rat_liver_nmp_flat.xml npm run export:perfusion
+```
 
 A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface which drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`. The flags of `scripts/dev.mjs` move the ports (`--port`, `--page-port`, `--tuio-port`), leave the simulator out (`--no-simulator`) or serve the build (`--preview`).
 
@@ -62,7 +97,8 @@ Everything that carries logic is a pure function and is tested without a socket:
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
 6. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
-7. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
+7. Anything a visitor presses rather than turns carries `data-dwell="<name>"` and a click handler. The note layer of `createInfo` watches the fingers of the tracker, fires the click when one has rested on it for a moment, and marks the element with `data-arming` while it does, which is what the element fills from. The name and not the element is the identity of a target, because a panel is redrawn under a finger which is resting on it.
+8. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
 
 ## Conventions
 
