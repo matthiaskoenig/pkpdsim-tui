@@ -3,6 +3,9 @@ import {
   describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "../src/format.ts";
+import {cardRotation, trackSpan} from "../src/tokens.ts";
+import {ABSOLUTE_SPAN} from "@pkpdsim-tui/tuio-input";
+import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 
 describe("polarPoint", () => {
   it("measures degrees clockwise from up", () => {
@@ -81,5 +84,45 @@ describe("vesselWidth and organRadius", () => {
     expect(organRadius(0)).toBe(1.1);
     expect(organRadius(1)).toBeCloseTo(3.5, 9);
     expect(organRadius(100)).toBe(7);
+  });
+});
+
+describe("cardRotation", () => {
+  it("turns a card to the nearest edge of the table", () => {
+    expect(cardRotation(0.5, 0.9)).toBe(0);
+    expect(cardRotation(0.5, 0.1)).toBe(180);
+    expect(cardRotation(0.1, 0.5)).toBe(90);
+    expect(cardRotation(0.9, 0.5)).toBe(-90);
+  });
+
+  it("faces the near edge in the middle of the table", () => {
+    expect(cardRotation(0.5, 0.5)).toBe(0);
+  });
+
+  it("picks one edge in a corner", () => {
+    expect([0, 90]).toContain(cardRotation(0.08, 0.92));
+  });
+});
+
+describe("trackSpan", () => {
+  const role = (min: number, max: number, reference: number): TokenRole => ({
+    id: "r", label: "r", description: "", unit: "", markers: [1],
+    min, max, reference, mode: "absolute", scale: "linear", turns: 1,
+  });
+
+  it("covers both halves of the dial when the reference sits between the ends", () => {
+    const {start, end} = trackSpan(role(0, 10, 5));
+    expect(start).toBeCloseTo(-ABSOLUTE_SPAN * 180, 6);
+    expect(end).toBeCloseTo(ABSOLUTE_SPAN * 180, 6);
+  });
+
+  it("covers one half when the reference is one end of the range", () => {
+    expect(trackSpan(role(0, 10, 0)).start).toBeCloseTo(0, 6);
+    expect(trackSpan(role(0, 10, 10)).end).toBeCloseTo(0, 6);
+  });
+
+  it("gives a relative dial the whole span, because it has no stop", () => {
+    const {start, end} = trackSpan({...role(0, 10, 10), mode: "relative"});
+    expect(end - start).toBeCloseTo(2 * ABSOLUTE_SPAN * 180, 6);
   });
 });

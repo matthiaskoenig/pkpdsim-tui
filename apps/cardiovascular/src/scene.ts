@@ -6,8 +6,7 @@
  */
 
 import type {Body, PressureReference, PressureSolution} from "@pkpdsim-tui/cardio-sim";
-import {organRadius, perfusionColor, vesselWidth} from "./format.ts";
-import {attributes, line, svg} from "./svg.ts";
+import {attributes, line, organRadius, perfusionColor, svg, vesselWidth} from "@pkpdsim-tui/tui-kit";
 
 export interface Viewport {
   readonly width: number;

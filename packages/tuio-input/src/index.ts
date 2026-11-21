@@ -21,3 +21,4 @@ export type {
   SensorSize, TableInput, TableInputState, TableListener, TablePointer, TableSnapshot, TableStatus,
   TableToken,
 } from "./types.ts";
+export {unassignedMarkers, valuesFromTokens, winningTokens} from "./surface.ts";

@@ -16,11 +16,11 @@ import {
   createMockTableInput, createTuioTableInput, DEFAULT_TUIO_HOST, DEFAULT_TUIO_PORT,
 } from "@pkpdsim-tui/tuio-input";
 import type {TableInput, TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
-import {createChrome} from "./chrome.ts";
-import {CARDIOVASCULAR_ROLES, controlsFromTokens, unassignedMarkers, winningTokens} from "./roles.ts";
-import {createReadout} from "./readout.ts";
+import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
+import {createChrome, createReadout, createTokenLayer, formatFactor} from "@pkpdsim-tui/tui-kit";
+import {CARDIOVASCULAR_STATS, cardFor} from "./cards.ts";
+import {CARDIOVASCULAR_ROLES, controlsFromTokens} from "./roles.ts";
 import {createScene} from "./scene.ts";
-import {createTokenLayer} from "./tokens.ts";
 
 const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
@@ -77,7 +77,7 @@ async function start(): Promise<void> {
   const surface = element<HTMLElement>("surface");
   const root = element<SVGSVGElement>("scene");
   const scene = createScene(root, body, reference);
-  const readout = createReadout(root);
+  const readout = createReadout(root, CARDIOVASCULAR_STATS);
   const tokenLayer = createTokenLayer(root);
   const chrome = createChrome(element<HTMLElement>("chrome"));
 
@@ -115,9 +115,16 @@ async function start(): Promise<void> {
     }
     scene.update(solution, reference);
     readout.update(solution, baseline);
-    tokenLayer.update({snapshot, roles: CARDIOVASCULAR_ROLES, origins, solution, viewport});
+    tokenLayer.update({
+      snapshot, roles: CARDIOVASCULAR_ROLES, viewport,
+      card: (token, role) => cardFor(token, role, solution, origins),
+    });
     chrome.update({
-      status, roles: CARDIOVASCULAR_ROLES, controls, notice,
+      status, roles: CARDIOVASCULAR_ROLES, notice,
+      value: role => {
+        const live = controls[role.id as keyof typeof controls];
+        return live === undefined ? "-" : formatFactor(live);
+      },
       live: new Set(winningTokens(CARDIOVASCULAR_ROLES, snapshot.tokens).keys()),
       unassigned: unassignedMarkers(CARDIOVASCULAR_ROLES, snapshot.tokens),
       hint: hintFor(usesTracker, tracker.port, status.state),

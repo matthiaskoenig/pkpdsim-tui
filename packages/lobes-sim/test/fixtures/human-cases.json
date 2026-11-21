@@ -1,0 +1,170 @@
+{
+  "lobes": [
+    {
+      "token": "sg1",
+      "name": "segment I (caudate lobe)",
+      "mass_fraction": 0.04,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg2",
+      "name": "segment II (left lateral superior)",
+      "mass_fraction": 0.069,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg3",
+      "name": "segment III (left lateral inferior)",
+      "mass_fraction": 0.095,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg4",
+      "name": "segment IV (left medial)",
+      "mass_fraction": 0.136,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg5",
+      "name": "segment V (right anterior inferior)",
+      "mass_fraction": 0.13,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg6",
+      "name": "segment VI (right posterior inferior)",
+      "mass_fraction": 0.079,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg7",
+      "name": "segment VII (right posterior superior)",
+      "mass_fraction": 0.19,
+      "source": "ModelChoice"
+    },
+    {
+      "token": "sg8",
+      "name": "segment VIII (right anterior superior)",
+      "mass_fraction": 0.261,
+      "source": "Mise2014"
+    }
+  ],
+  "cases": {
+    "intact": {
+      "label": "intact",
+      "changes": {},
+      "kind": "intact",
+      "lobes": []
+    },
+    "right_pvl": {
+      "label": "right pvl",
+      "changes": {
+        "g_po_sg5": 0.0,
+        "g_po_sg6": 0.0,
+        "g_po_sg7": 0.0,
+        "g_po_sg8": 0.0
+      },
+      "kind": "PortalLigation",
+      "lobes": [
+        "sg5",
+        "sg6",
+        "sg7",
+        "sg8"
+      ]
+    },
+    "right_hepatectomy": {
+      "label": "right hepatectomy",
+      "changes": {
+        "g_ha_sg5": 0.0,
+        "g_po_sg5": 0.0,
+        "f_present_sg5": 0.0,
+        "g_ha_sg6": 0.0,
+        "g_po_sg6": 0.0,
+        "f_present_sg6": 0.0,
+        "g_ha_sg7": 0.0,
+        "g_po_sg7": 0.0,
+        "f_present_sg7": 0.0,
+        "g_ha_sg8": 0.0,
+        "g_po_sg8": 0.0,
+        "f_present_sg8": 0.0
+      },
+      "kind": "Resection",
+      "lobes": [
+        "sg5",
+        "sg6",
+        "sg7",
+        "sg8"
+      ]
+    },
+    "left_hepatectomy": {
+      "label": "left hepatectomy",
+      "changes": {
+        "g_ha_sg2": 0.0,
+        "g_po_sg2": 0.0,
+        "f_present_sg2": 0.0,
+        "g_ha_sg3": 0.0,
+        "g_po_sg3": 0.0,
+        "f_present_sg3": 0.0,
+        "g_ha_sg4": 0.0,
+        "g_po_sg4": 0.0,
+        "f_present_sg4": 0.0
+      },
+      "kind": "Resection",
+      "lobes": [
+        "sg2",
+        "sg3",
+        "sg4"
+      ]
+    },
+    "extended_right_hepatectomy": {
+      "label": "extended right hepatectomy",
+      "changes": {
+        "g_ha_sg4": 0.0,
+        "g_po_sg4": 0.0,
+        "f_present_sg4": 0.0,
+        "g_ha_sg5": 0.0,
+        "g_po_sg5": 0.0,
+        "f_present_sg5": 0.0,
+        "g_ha_sg6": 0.0,
+        "g_po_sg6": 0.0,
+        "f_present_sg6": 0.0,
+        "g_ha_sg7": 0.0,
+        "g_po_sg7": 0.0,
+        "f_present_sg7": 0.0,
+        "g_ha_sg8": 0.0,
+        "g_po_sg8": 0.0,
+        "f_present_sg8": 0.0
+      },
+      "kind": "Resection",
+      "lobes": [
+        "sg4",
+        "sg5",
+        "sg6",
+        "sg7",
+        "sg8"
+      ]
+    },
+    "pvl_sg8": {
+      "label": "pvl sg8",
+      "changes": {
+        "g_po_sg8": 0.0
+      },
+      "kind": "PortalLigation",
+      "lobes": [
+        "sg8"
+      ]
+    },
+    "resection_sg8": {
+      "label": "resection sg8",
+      "changes": {
+        "g_ha_sg8": 0.0,
+        "g_po_sg8": 0.0,
+        "f_present_sg8": 0.0
+      },
+      "kind": "Resection",
+      "lobes": [
+        "sg8"
+      ]
+    }
+  }
+}

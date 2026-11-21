@@ -11,8 +11,8 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 | Application | State | What the objects do |
 | --- | --- | --- |
 | [Cardiovascular circulation](apps/cardiovascular.md) | prototype | Four resistance objects on an anatomy: hepatic, systemic, portal and renal. |
-| Liver lobes | planned | A clamp on a portal branch is a portal vein ligation, a cut is a hepatectomy. |
-| Glimepiride | planned | A dose object and a patient object on the digital twin of the glimepiride model. |
+| [Lobed liver](apps/lobes.md) | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
+| [Glimepiride](apps/glimepiride.md) | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
 
 ## Quick start
 
@@ -24,7 +24,7 @@ npm run sync      # copies the exported models and reference data of a pkpdsim c
 npm run dev
 ```
 
-The application opens on `http://localhost:5173`. Without a table it runs on the mouse: keys 1 to 4 place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
+The cardiovascular application opens on `http://localhost:5173`; `npm run dev:lobes` and `npm run dev:glimepiride` open the other two on 5174 and 5175. Without a table they run on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
 
 To drive it from objects instead, start the simulator this repository carries, in a second terminal:
 
@@ -47,7 +47,9 @@ Touches stay for what touches are good at: moving a panel, scrubbing a time cour
 
 ## What runs the model
 
-Nothing in this repository solves a PBPK model of its own. The models, their compiled form, their runtime and their reference solutions are exported by pkpdsim and copied in by `npm run sync`, so what the table shows is what the SBML says. For the cardiovascular circulation the steady pressure network has an exact algebraic reduction, which is why the anatomy answers while a hand is still on an object.
+Nothing in this repository solves a PBPK model of its own. The models, their compiled form, their runtime and their reference solutions are exported by pkpdsim and copied in by `npm run sync`, so what the table shows is what the SBML says. A model that comes from its own repository, like glimepiride, is compiled here by `scripts/export_model.py` with the same release of sbmlsim-core, and nothing else about it is this repository's.
+
+Two kinds of model meet on these tables. The steady pressure network of the circulation has an exact algebraic reduction, so the anatomy answers within a frame, while the lobed liver and glimepiride are integrated with SUNDIALS IDA in a Web Worker on the compiled SBML: the objects stay where they are, the table says it is solving, and the answer replaces the one before it.
 
 ## License
 

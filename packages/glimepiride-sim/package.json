@@ -1,0 +1,13 @@
+{
+  "name": "@pkpdsim-tui/glimepiride-sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The glimepiride model as a table application needs it: the individual, the request that solves them, and the pharmacokinetics of the result",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pkpdsim-tui/core-runtime": "*"
+  }
+}

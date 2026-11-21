@@ -4,14 +4,13 @@
  * turned around, so nobody has to walk around the table to read it.
  */
 
-import type {PressureControls} from "@pkpdsim-tui/cardio-sim";
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
-import {formatFactor} from "./format.ts";
 
 export interface ChromeUpdate {
   readonly status: TableStatus;
   readonly roles: readonly TokenRole[];
-  readonly controls: PressureControls;
+  /** What the legend shows beside a role, which only the application knows. */
+  readonly value: (role: TokenRole) => string;
   /** The roles an object is currently carrying. */
   readonly live: ReadonlySet<string>;
   /** The markers on the surface that no role claims. */
@@ -20,7 +19,7 @@ export interface ChromeUpdate {
   readonly notice: string;
   /** How to drive the table without a tracker. */
   readonly hint: string;
-  /** The attribution the anatomy is published under, which its licence asks for. */
+  /** An attribution a licence of the application asks for, empty when there is none. */
   readonly credit: string;
 }
 
@@ -34,23 +33,12 @@ function escapeHtml(value: string): string {
   }[character] ?? character));
 }
 
-function controlOf(controls: PressureControls, id: string): number | undefined {
-  const values: Record<string, number> = {
-    hepatic: controls.hepatic, systemic: controls.systemic,
-    portal: controls.portal, renal: controls.renal,
-  };
-  return values[id];
-}
-
 function panelHtml(state: ChromeUpdate): string {
-  const items = state.roles.map(role => {
-    const value = controlOf(state.controls, role.id);
-    return `<li data-live="${state.live.has(role.id)}">`
-      + `<span class="marker">${role.markers[0] ?? "?"}</span>`
-      + `<span>${escapeHtml(role.label)}</span>`
-      + `<span class="value">${value === undefined ? "-" : escapeHtml(formatFactor(value))}</span>`
-      + "</li>";
-  }).join("");
+  const items = state.roles.map(role => `<li data-live="${state.live.has(role.id)}">`
+    + `<span class="marker">${role.markers.join("/")}</span>`
+    + `<span>${escapeHtml(role.label)}</span>`
+    + `<span class="value">${escapeHtml(state.value(role))}</span>`
+    + "</li>").join("");
   const unassigned = state.unassigned.length === 0
     ? ""
     : `<p class="hint">Unknown ${state.unassigned.length === 1 ? "marker" : "markers"} `
@@ -70,7 +58,7 @@ function panelHtml(state: ChromeUpdate): string {
     ${unassigned}
     ${notice}
     <p class="hint">${escapeHtml(state.hint)}</p>
-    <p class="hint credit">${escapeHtml(state.credit)}</p>
+    ${state.credit === "" ? "" : `<p class="hint credit">${escapeHtml(state.credit)}</p>`}
   `;
 }
 

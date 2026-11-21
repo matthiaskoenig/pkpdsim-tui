@@ -5,7 +5,7 @@
 
 import {defaultControls} from "@pkpdsim-tui/cardio-sim";
 import type {PressureControls, PressureReference} from "@pkpdsim-tui/cardio-sim";
-import {roleForMarker, valueFromAngle} from "@pkpdsim-tui/tuio-input";
+import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 
 /**
@@ -37,21 +37,6 @@ export const CARDIOVASCULAR_ROLES: readonly TokenRole[] = [
   },
 ];
 
-/** The token of each role, where the object put down last wins. */
-export function winningTokens(
-  roles: readonly TokenRole[],
-  tokens: ReadonlyMap<number, TableToken>,
-): Map<string, TableToken> {
-  const winners = new Map<string, TableToken>();
-  for (const token of tokens.values()) {
-    const role = roleForMarker(roles, token.marker);
-    if (role === undefined) continue;
-    const current = winners.get(role.id);
-    if (current === undefined || token.sessionId > current.sessionId) winners.set(role.id, token);
-  }
-  return winners;
-}
-
 /**
  * The controls of the model under the objects on the surface. A role without an object keeps the
  * reference value, so lifting an object is how a control is undone. `origins` holds the
@@ -64,13 +49,7 @@ export function controlsFromTokens(
   origins: ReadonlyMap<number, number> = new Map(),
 ): PressureControls {
   const base = defaultControls(reference);
-  const values = new Map<string, number>();
-  for (const [id, token] of winningTokens(roles, tokens)) {
-    const role = roleForMarker(roles, token.marker);
-    if (role === undefined) continue;
-    const angle = role.mode === "absolute" ? token.angle : token.turn;
-    values.set(id, valueFromAngle(role, angle, origins.get(token.sessionId) ?? 0));
-  }
+  const values = valuesFromTokens(roles, tokens, origins);
   return {
     hepatic: values.get("hepatic") ?? base.hepatic,
     systemic: values.get("systemic") ?? base.systemic,
@@ -79,16 +58,4 @@ export function controlsFromTokens(
     arterial: base.arterial,
     venous: base.venous,
   };
-}
-
-/** The markers on the surface that no role claims, so the table can say so instead of ignoring them. */
-export function unassignedMarkers(
-  roles: readonly TokenRole[],
-  tokens: ReadonlyMap<number, TableToken>,
-): number[] {
-  const unknown = new Set<number>();
-  for (const token of tokens.values()) {
-    if (roleForMarker(roles, token.marker) === undefined) unknown.add(token.marker);
-  }
-  return [...unknown].sort((left, right) => left - right);
 }

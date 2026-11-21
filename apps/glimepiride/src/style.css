@@ -1,0 +1,40 @@
+/* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
+@import "@pkpdsim-tui/tui-kit/table.css";
+
+/* The way the drug takes through the individual. */
+.station-plate {
+  fill: rgba(18, 26, 36, 0.78);
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+}
+
+.station[data-changed="true"] .station-plate {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.station-label {
+  fill: var(--ink-dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.station-value {
+  fill: var(--ink);
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.station-note {
+  fill: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.pathway-arrow {
+  fill: none;
+  stroke: var(--panel-line);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

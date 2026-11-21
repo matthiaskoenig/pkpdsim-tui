@@ -8,11 +8,13 @@ import {signedAngle, TWO_PI} from "./angle.ts";
 export type RoleScale = "linear" | "log";
 
 /**
- * How the angle of a token becomes a value. `absolute` makes the orientation of the object the
+ * Where the value of a token comes from. `absolute` makes the orientation of the object the
  * value, so a printed arrow points at it and a person reads the state off the table.
  * `relative` starts at the reference wherever the object was put down and follows the twist.
+ * `position` is an object whose place on the table is what it says, like an instrument that acts
+ * on whatever lies under it: it has no dial, and turning it means nothing.
  */
-export type RoleMode = "absolute" | "relative";
+export type RoleMode = "absolute" | "relative" | "position";
 
 /** What a token does, and over which values. */
 export interface TokenRole {
@@ -82,6 +84,9 @@ export function offsetOfValue(role: TokenRole, value: number): number {
  * down, and is ignored by an absolute role.
  */
 export function valueFromAngle(role: TokenRole, angle: number, origin = 0): number {
+  if (role.mode === "position") {
+    throw new RangeError(`Role ${role.id} carries its value in its position, not in its angle.`);
+  }
   const offset = role.mode === "absolute"
     ? signedAngle(angle) / (ABSOLUTE_SPAN * Math.PI)
     : 2 * (angle - origin) / (TWO_PI * role.turns);

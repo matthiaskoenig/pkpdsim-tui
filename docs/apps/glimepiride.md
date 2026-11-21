@@ -1,0 +1,72 @@
+# Glimepiride
+
+One individual on the table, and six objects that say who they are.
+
+The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiride-model), a whole body PBPK model of the sulfonylurea glimepiride and of its two metabolites M1 and M2. A tablet is swallowed, the liver turns glimepiride into M1 with CYP2C9, M1 becomes M2, and the kidneys clear both into the urine. Every dial on this table is one of the things that make two people respond differently to the same tablet.
+
+## The objects
+
+| Marker | Object | What it changes | Range | Reference |
+| --- | --- | --- | --- | --- |
+| 1 | Dose | The tablet that is swallowed | 0 to 8 mg | 4 mg |
+| 2 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
+| 3 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
+| 4 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
+| 5 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 75 kg |
+| 8 | Hours after the dose | Winds the fifty hours of the course, from the end back to the tablet | 0 to 50 h | the end |
+
+Every object of the individual is a dial, and its angle is the value: pointing away from the person is the reference individual, turning it to the right raises the value and to the left lowers it. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half. Lifting an object puts that property back to the reference.
+
+Three of the dials say in words what they are set to, because that is how a clinician reads them: the CYP2C9 dial names the genotype it is nearest to (`*1/*1`, `*1/*2`, `*2/*2`, `*1/*3`, `*2/*3`, `*3/*3`, from the allele activities of the marimo application of the model), the cirrhosis dial names the Child-Pugh class, and the kidney dial names the stage of impairment.
+
+The hours object is relative, like the day dial of the [lobed liver](lobes.md): it starts at the end of the course wherever it is put down, and winding it back walks towards the moment of the dose. It solves nothing, it only moves the moment the table is read at.
+
+## What the table shows
+
+Across the top, the way the drug takes through the individual: the tablet, the liver with its CYP2C9 and its Child-Pugh class, the plasma, the kidneys with their clearance and the urine with what has arrived in it. A station the objects moved away from the reference is outlined.
+
+The six numbers at the near and the far edge, with the change against the reference individual under each one:
+
+| Number | What it is |
+| --- | --- |
+| Plasma now | The plasma concentration of glimepiride at the hour the dial points at, in uM |
+| Peak plasma | The highest plasma concentration of the course |
+| Time of the peak | When it is reached, in hours after the dose |
+| Half life | The half life of the terminal part of the course, from a straight line through its logarithm |
+| Exposure | The area under the course over the fifty hours that were simulated |
+| M1 and M2 in urine | What has arrived in the urine at the end of the course, in umole |
+
+The plot is the plasma course of glimepiride, M1 and M2. The three are read in the same unit and therefore share one scale, so their heights can be compared, and the same individual at the reference is drawn behind them as a dashed line.
+
+## Things to try
+
+- **The poor metabolizer.** Turn the CYP2C9 dial down to `*3/*3`. Glimepiride is cleared more slowly, the peak and the exposure rise, the half life lengthens and less M1 and M2 reach the urine: the dose that is right for a wild type individual is too much for this one.
+- **The cirrhotic liver.** Turn the cirrhosis dial to CPT C. The liver loses functional mass and perfusion at once, and the parent accumulates.
+- **The failing kidney.** Turn the clearance dial down to severe. Glimepiride itself hardly notices, because it leaves through the liver, but M1 and M2 stay in the plasma and little arrives in the urine.
+- **Two things at once.** Put the poor metabolizer and the cirrhotic liver on the table together and wind the hour dial back through the first hours: this is the patient a label warns about.
+
+## Where the numbers come from
+
+The model is the SBML of its own repository, compiled here by `scripts/export_model.py` with the same release of sbmlsim-core that pkpdsim exports its examples with, so a model exported here and one exported there run on the same runtime:
+
+```bash
+npm run export:glimepiride            # expects a glimepiride-model checkout beside this one
+GLIMEPIRIDE_MODEL=/path/to/glimepiride_body_flat.xml npm run export:glimepiride
+```
+
+The individual becomes five parameters of that model (`PODOSE_gli`, `LI__f_cyp2c9`, `f_cirrhosis`, `KI__f_renal_function`, `BW`), which are set before the initial values are resolved, because that is how an oral dose is given: the tablet is in the intestine when the clock starts. The creatinine clearance is the one control that is not a parameter, the model takes the fraction of the renal function that is left, and a clearance above the reference does not make the kidneys clear more than they can.
+
+The pharmacokinetics are arithmetic on the solved course and nothing else: the peak and its time are the largest value of the curve, the exposure is the trapezoid area under the window that was simulated rather than an extrapolation to infinity, and the half life is the slope of a straight line through the logarithm of its last third.
+
+## Run it
+
+```bash
+npm run export:glimepiride
+npm run dev:glimepiride
+```
+
+| Address | What it does |
+| --- | --- |
+| `http://localhost:5175/` | On the mouse: keys 1 to 6 place an object, dragging moves it, the wheel turns it, backspace lifts it, escape clears the table |
+| `http://localhost:5175/?tuio` | On a tracker at `ws://localhost:3343`, which is the [simulator](../simulator.md) |
+| `http://localhost:5175/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
