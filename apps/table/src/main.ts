@@ -137,6 +137,20 @@ async function start(): Promise<void> {
     },
     choose,
     back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
+    // A table starts again by loading itself again: the models come from the cache of the
+    // browser, and nothing of the last visitor survives a reload, which is what makes it a
+    // reset and not an undo. The language, the level and the tracker are of the booth and not
+    // of the visitor, so they stay.
+    reset: () => {
+      const kept = new URLSearchParams();
+      for (const key of ["app", "lang", "level", "tuio", "tuio-version"]) {
+        const value = parameters.get(key);
+        if (value !== null) kept.set(key, value);
+      }
+      const query = kept.toString();
+      window.location.href = query === "" ? window.location.pathname
+        : `${window.location.pathname}?${query}`;
+    },
   };
 
   // A table is left by opening another one, which reloads the page: nothing of a table has to be

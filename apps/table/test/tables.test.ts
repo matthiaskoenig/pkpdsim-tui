@@ -2,8 +2,11 @@
 
 import {describe, expect, it} from "vitest";
 
+import {angleForValue, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import {createVoice, LEVELS, LOCALES, say} from "@pkpdsim-tui/tui-kit";
-import {entryCopy, OVERVIEW, selectedTable, TABLES, tableOf} from "../src/tables.ts";
+import {
+  entryCopy, OVERVIEW, selectedTable, TABLES, tableAtDial, tableOf, TOPIC_MARKER, topicRole,
+} from "../src/tables.ts";
 import {HUB_TEXT} from "../src/text.ts";
 import {wrapText} from "../src/wrap.ts";
 
@@ -113,5 +116,35 @@ describe("the sentence of a card", () => {
   it("is nothing at all for nothing at all", () => {
     expect(wrapText("", 20)).toEqual([]);
     expect(wrapText("   ", 20)).toEqual([]);
+  });
+});
+
+describe("the object which picks a table", () => {
+  const voice = createVoice("en", "adult");
+  const role = topicRole(voice);
+
+  it("reads the first marker of the surface", () => {
+    expect(role.markers).toEqual([TOPIC_MARKER]);
+    expect(TOPIC_MARKER).toBe(0);
+  });
+
+  it("points at the middle table at its detent, and at the ends at its stops", () => {
+    expect(tableAtDial(valueFromAngle(role, 0)).id).toBe(TABLES[2]?.id);
+    // Half a turn either way is the same angle, so the stops are read just inside it.
+    expect(tableAtDial(valueFromAngle(role, -2.9)).id).toBe(TABLES[0]?.id);
+    expect(tableAtDial(valueFromAngle(role, 2.9)).id).toBe(TABLES[TABLES.length - 1]?.id);
+  });
+
+  it("walks through every table, in the order of the ring", () => {
+    const walked = TABLES.map(
+      (_entry, index) => tableAtDial(valueFromAngle(role, angleForValue(role, index))).id);
+    expect(walked).toEqual(TABLES.map(entry => entry.id));
+  });
+
+  it("stays on a table whatever a hand does to the object", () => {
+    for (const angle of [-8, -3.2, -0.01, 0.01, 1.7, 9]) {
+      expect(TABLES.some(entry => entry.id === tableAtDial(valueFromAngle(role, angle)).id))
+        .toBe(true);
+    }
   });
 });

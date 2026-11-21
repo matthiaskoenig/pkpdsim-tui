@@ -1,10 +1,11 @@
 /**
- * The landing page: the two reference bodies of pkpdsim, the tables arranged around them, and a
- * heading which says what the whole thing is for. It carries no panel; what a card or a body is
- * waits behind it as a note, for the visitor who asks.
+ * The landing page: the two reference bodies of pkpdsim side by side, the five tables on a ring
+ * around them, and a heading which says what the whole thing is for. It carries no panel: what
+ * a table is stands in the box at the right, for the card a visitor is pointing at.
  *
- * A card is opened by holding a finger on it, by touching the organ it points at, or with the
- * mouse. The body a visitor touches is the body every table is then solved for.
+ * A card is opened by holding a finger on it, by touching the organ it points at, with the
+ * mouse, or with the first object of the surface: marker 0 is the table switch, its angle walks
+ * around the ring, and holding it still on a table opens that one.
  */
 
 import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
@@ -12,12 +13,15 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, ICONS, pointerPoints, reportStatus, speechFor, svg,
+  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, reportStatus, svg,
   tokenPoints, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
-import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
+import {
+  ABOUT, entryCopy, OVERVIEW, TABLES, tableAtDial, TOPIC_MARKER, topicRole,
+} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
 import {wrapText} from "./wrap.ts";
@@ -39,8 +43,10 @@ const TITLE_LINES = 2;
 const BODY_SHARE = 0.62;
 /** What the figure keeps clear of the cards above and below it, in pixels. */
 const BODY_GAP = 54;
-/** The column the settings of the landing page stand in, along the right edge. */
-const SETTINGS_COLUMN = 470;
+/** The column the box at the right stands in: what the table a visitor is pointing at is. */
+const INFO = {width: 400, margin: 28, top: 168, lines: 7, columns: 42} as const;
+/** How long the object of the table switch is held still before that table opens, in ms. */
+const HOLD = 1500;
 /**
  * Where the cards sit on the ring around the figure, in degrees, clockwise from the top. One
  * body in the middle and the tables around it says what the collection is: five ways of looking
@@ -75,20 +81,32 @@ interface CardView {
   box: CardBox;
 }
 
-/** The one figure in the middle, which every table is about and which the switch changes. */
+/** One of the two figures in the middle: the woman and the man the tables are solved on. */
 interface BodyView {
   readonly sex: "male" | "female";
   readonly body: Body;
   readonly art: SVGGElement;
+  readonly name: SVGTextElement;
   layout: {scale: number; left: number; top: number};
+  marks: OrganMark[];
 }
 
-/** The room the figure and the ring of cards share: everything under the heading, left of the
- * settings. */
+/** One organ of one body: the disc a card points at, and the circle a finger has to find. */
+interface OrganMark {
+  readonly entry: TableEntry;
+  readonly organ: string;
+  readonly disc: SVGCircleElement;
+  readonly hit: SVGCircleElement;
+  centre: {x: number; y: number};
+  reach: number;
+}
+
+/** The room the bodies and the ring of cards share: everything under the heading, left of the
+ * box which says what a table is. */
 function stageOf(viewport: Viewport): CardBox {
   const top = HEAD.top + HEAD.line * MOTIVATION_LINES + HEAD.bottom;
-  // The settings stand open at the right on the landing page, and the ring keeps clear of them.
-  const column = viewport.width > 1180 ? SETTINGS_COLUMN : CARD.margin;
+  // The box at the right says what the table under the object is, and the ring keeps clear of it.
+  const column = viewport.width > 1180 ? INFO.width + 2 * INFO.margin : CARD.margin;
   return {
     x: CARD.margin,
     y: top,
@@ -139,90 +157,20 @@ function hintFor(voice: Voice, tracker: TrackerOptions, state: TableStatus["stat
   return words(voice).waitingHint(tracker.version, tracker.address);
 }
 
-/** One switch of the landing page, which has no panel to put it in. */
-interface Pill {
-  readonly group: SVGGElement;
-  readonly plate: SVGRectElement;
-  readonly text: SVGTextElement;
-  /** The triangle of the pill which reads the page aloud, for the pills which have one. */
-  readonly icon: SVGPathElement | undefined;
-  readonly width: number;
-}
-
-/**
- * The language and the level, as two rows of pills in the corner. The landing page carries no
- * panel, and these are the two things a visitor has to be able to change before they have read
- * anything: the switches of a table are in its panel instead.
- */
-function createPills(
-  parent: SVGGElement,
-  entries: readonly {id: string; label: string; info: string; play?: boolean}[],
-  group: string, selected: string, choose: (id: string) => void,
-): readonly Pill[] {
-  return entries.map(entry => {
-    const pill = svg("g", {
-      class: "hub-pill", role: "button", tabindex: 0,
-      "data-selected": String(entry.id === selected),
-      "data-dwell": `${group}:${entry.id}`, "data-info": entry.info,
-    }, parent);
-    const plate = svg("rect", {class: "hub-pill-plate", rx: 15, height: 30}, pill);
-    // A play button is a triangle wherever it is, so a visitor who cannot read the word knows it.
-    const icon = entry.play !== true
-      ? undefined
-      : svg("path", {class: "hub-pill-icon", d: "M -4 -6 L 7 0 L -4 6 Z"}, pill);
-    const text = svg("text", {class: "hub-pill-text", "text-anchor": "middle"}, pill);
-    text.textContent = entry.label;
-    pill.addEventListener("click", () => choose(entry.id));
-    pill.addEventListener("keydown", event => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      choose(entry.id);
-    });
-    // A pill is as wide as its word, which differs in three languages.
-    const width = Math.max(78, entry.label.length * 10 + 28) + (entry.play === true ? 24 : 0);
-    return {group: pill, plate, text, icon, width};
-  });
-}
-
-/** How wide a row of pills is, so that a row can be centred on something. */
-function pillRun(pills: readonly Pill[]): number {
-  return pills.reduce((sum, pill) => sum + pill.width, 0) + Math.max(0, pills.length - 1) * 8;
-}
-
-/** A column of pills, one under the other, which is how the body switch stands beside a body. */
-function placeStack(pills: readonly Pill[], left: number, top: number): void {
-  const width = Math.max(...pills.map(pill => pill.width));
-  for (const [index, pill] of pills.entries()) {
-    const y = top + index * 38;
-    attributes(pill.plate, {x: left, y: y - 21, width});
-    attributes(pill.text, {x: left + width / 2, y});
-  }
-}
-
-function placePills(pills: readonly Pill[], right: number, y: number): void {
-  const total = pills.reduce((sum, pill) => sum + pill.width, 0) + (pills.length - 1) * 8;
-  let cursor = right - total;
-  for (const pill of pills) {
-    attributes(pill.plate, {x: cursor, y: y - 21, width: pill.width});
-    const shift = pill.icon === undefined ? 0 : 11;
-    attributes(pill.text, {x: cursor + pill.width / 2 + shift, y});
-    pill.icon?.setAttribute("transform", `translate(${cursor + 20} ${y - 6})`);
-    cursor += pill.width + 8;
-  }
-}
-
 function createCard(
-  parent: SVGGElement, entry: TableEntry, index: number, call: string, voice: Voice,
-  open: (entry: TableEntry) => void,
+  parent: SVGGElement, entry: TableEntry, call: string, voice: Voice,
+  open: (entry: TableEntry) => void, point: (entry: TableEntry | undefined) => void,
 ): CardView {
   const copy = entryCopy(voice, entry.id);
   const group = svg("g", {
     class: "hub-card", role: "button", tabindex: 0,
     // A finger has no click: it opens the card it rests on, and the card fills while it does.
     "data-dwell": `app:${entry.id}`,
-    // What the table is, for the visitor who wants more than the card says.
-    "data-info": voice.say(copy.about),
   }, parent);
+  // What the table is, for the visitor who wants more than the card says: it stands in the box
+  // at the right, which is one place to read rather than a note wherever the hand is.
+  group.addEventListener("pointerenter", () => point(entry));
+  group.addEventListener("pointerleave", () => point(undefined));
   const plate = svg("rect", {class: "hub-card-plate", rx: 18}, group);
   const badge = svg("circle", {class: "hub-card-badge", r: 22}, group);
   // The picture of the table, which is the object a visitor will have in their hand on it.
@@ -281,7 +229,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   // and they come with that export.
   const anatomy = await loadAnatomy(
     new URL("cardiovascular/cardiovascular-anatomy.json", host.assets));
-  const chosen = host.parameters.get("sex") === "female" ? "female" : "male";
 
   const root = host.scene;
   const scene = svg("g", {class: "hub"}, root);
@@ -300,7 +247,17 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
   const row = svg("g", {class: "hub-row"}, scene);
-  const switches = svg("g", {class: "hub-switches"}, scene);
+  // The box at the right: what the table under the hand, or under the object, is about. It is
+  // the one place a visitor reads, so a card and an organ say it there rather than each in a
+  // note of its own.
+  const box = svg("g", {class: "hub-info"}, scene);
+  const boxPlate = svg("rect", {class: "hub-info-plate", rx: 18}, box);
+  const boxTitle = svg("text", {class: "hub-info-title"}, box);
+  const boxPicture = svg("g", {class: "hub-info-picture"}, box);
+  const boxIcon = svg("path", {class: "hub-info-icon"}, boxPicture);
+  const boxLines = Array.from(
+    {length: INFO.lines}, () => svg("text", {class: "hub-info-line"}, box));
+  const boxCall = svg("text", {class: "hub-info-call"}, box);
   // The foot of the page: whose laboratory this is, and the square a visitor points a phone at.
   const foot = svg("g", {class: "hub-foot"}, scene);
   const lab = svg("g", {
@@ -330,78 +287,123 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     chooseQuery("app", entry.id, OVERVIEW);
   };
 
+  const roles = [topicRole(voice)];
   const {input, tracker} = await openTableInput({
-    parameters: host.parameters, element: host.surface, markers: [],
+    parameters: host.parameters, element: host.surface, markers: [TOPIC_MARKER],
   });
   // What a visitor is invited to do, which depends on what the page is driven by.
   const call = !tracker.tracker
     ? copy.clickToOpen
     : tracker.discovered ? copy.bothToOpen : copy.touchToOpen;
   const cards: CardView[] = TABLES.map(
-    (entry, index) => createCard(row, entry, index, call, voice, open));
-  // Whoever cannot read this yet presses play and is read to instead.
-  const speech = speechFor(voice);
-  const spoken = `${copy.heading}. ${copy.motivation[voice.level].join(" ")}`;
-  const reader = createPills(
-    switches, [{id: "read", label: kit.speak, info: voice.say(kit.speakInfo), play: true}],
-    "speak", "", () => speech.toggle(spoken));
-  const readerPill = reader[0];
-  speech.listen(() => {
-    if (readerPill === undefined) return;
-    readerPill.group.setAttribute("data-speaking", String(speech.speaking()));
-    readerPill.text.textContent = speech.speaking() ? kit.speakStop : kit.speak;
-  });
+    entry => createCard(row, entry, call, voice, open, entry2 => point(entry2)));
   const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
 
-  // One figure in the middle, the one this visitor chose, and the switch under it.
-  const body = anatomy.bodies[chosen] ?? anatomy.bodies["male"] ?? anatomy.bodies["female"];
-  if (body === undefined) throw new Error("The anatomy holds no body.");
-  const figure = svg("g", {
-    class: "hub-body", "data-info": voice.say(copy.bodyInfo[chosen]),
-  }, figures);
-  const art = svg("g", {class: "body-art"}, figure);
-  // The exported body carries its own fills and is generated by pkpdsim, so it goes in as it
-  // comes.
-  art.innerHTML = body.svg;
-  const view: BodyView = {sex: chosen, body, art, layout: {scale: 1, left: 0, top: 0}};
-  // The woman and the man, as one either/or under the figure: wherever a body is shown, it is
-  // one press to see the other one.
-  const sexes = createPills(
-    switches,
-    (["female", "male"] as const).map(sex => ({
-      id: sex,
-      label: sex === "male" ? kit.male : kit.female,
-      info: voice.say(copy.bodyInfo[sex]),
-    })),
-    "sex", chosen, id => chooseQuery("sex", id, "male"));
+  // The woman and the man, side by side: the two reference bodies every table is solved on. The
+  // page shows both of them, and the switch between them belongs to a table, where a body is
+  // being solved for.
+  const views: BodyView[] = (["female", "male"] as const).flatMap(sex => {
+    const body = anatomy.bodies[sex];
+    if (body === undefined) return [];
+    const figure = svg("g", {
+      class: "hub-body", "data-info": voice.say(copy.bodyInfo[sex]),
+    }, figures);
+    const art = svg("g", {class: "body-art"}, figure);
+    // The exported body carries its own fills and is generated by pkpdsim, so it goes in as it
+    // comes.
+    art.innerHTML = body.svg;
+    const name = svg("text", {class: "hub-body-name", "text-anchor": "middle"}, figure);
+    name.textContent = sex === "male" ? kit.male : kit.female;
+    return [{
+      sex, body, art, name, layout: {scale: 1, left: 0, top: 0}, marks: [] as OrganMark[],
+    }];
+  });
+  if (views.length === 0) throw new Error("The anatomy holds no body.");
 
   /** One disc per organ a table is about, on each body: the organ is the table it belongs to. */
-  const marks = (() => {
+  for (const view of views) {
     const seen = new Set<string>();
-    return TABLES.flatMap(entry => {
+    view.marks = TABLES.flatMap(entry => {
       if (seen.has(entry.organ)) return [];
       seen.add(entry.organ);
-      const about = voice.say(entryCopy(voice, entry.id).about);
       const hit = svg("circle", {
         class: "hub-organ-hit", r: ORGAN_HIT.min, "data-dwell": `app:${entry.id}`,
-        "data-info": about,
       }, organs);
       hit.addEventListener("click", () => open(entry));
+      // What a table is stands in the box at the right, so an organ and a card say it in the
+      // one place rather than in a note over the body.
+      hit.addEventListener("pointerenter", () => point(entry));
+      hit.addEventListener("pointerleave", () => point(undefined));
       return [{
         entry, organ: entry.organ,
-        disc: svg("circle", {class: "hub-organ", r: 15, "data-info": about}, organs),
+        disc: svg("circle", {class: "hub-organ", r: 15}, organs),
         hit, centre: {x: 0, y: 0}, reach: ORGAN_HIT.min as number,
       }];
     });
-  })();
+  }
 
   let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
-  // What a card, a body or an organ is, and the hold which opens it: both are the one layer.
+  // The hold which opens a card, and the note behind the heading and the laboratory: one layer.
   createInfo(host.surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
   ], voice);
+  // The object which picks a table draws its ring and its card like the objects of a table do.
+  const tokenLayer = createTokenLayer(root, host);
+
+  /** The table a hand is pointing at, which is read before the one the object points at. */
+  let pointed: TableEntry | undefined;
+  /** The table the object points at, and since when it has been pointing at the same one. */
+  let turned: TableEntry | undefined;
+  let turnedAt = 0;
+  /** The object has to be turned once before it opens anything: it opens what a visitor chose. */
+  let moved = false;
+
+  /** How many lines the box is holding, which is what it is as tall as. */
+  let boxUsed = 0;
+
+  /** The box is as tall as what it says, so that it never stands half empty. */
+  const placeBox = (): void => {
+    const left = viewport.width - INFO.margin - INFO.width;
+    const height = 92 + boxUsed * 27 + (boxCall.textContent === "" ? 24 : 58);
+    attributes(boxPlate, {x: left, y: INFO.top, width: INFO.width, height});
+    const inside = left + 26;
+    attributes(boxTitle, {x: inside, y: INFO.top + 50});
+    boxPicture.setAttribute(
+      "transform", `translate(${left + INFO.width - 46} ${INFO.top + 40}) scale(0.46)`);
+    for (const [index, line] of boxLines.entries()) {
+      attributes(line, {x: inside, y: INFO.top + 90 + index * 27});
+    }
+    attributes(boxCall, {x: inside, y: INFO.top + height - 26});
+  };
+
+  /** What the box at the right says: a table, or what this page is while nothing is chosen. */
+  const showBox = (entry: TableEntry | undefined): void => {
+    const title = entry === undefined ? copy.pickTitle : entryCopy(voice, entry.id).title;
+    const text = entry === undefined
+      ? voice.say(copy.pickText) : voice.say(entryCopy(voice, entry.id).about);
+    boxTitle.textContent = title;
+    boxIcon.setAttribute(
+      "d", entry === undefined ? "" : (ICONS[entry.picture as GlyphKind] ?? []).join(" "));
+    boxPicture.setAttribute("opacity", entry === undefined ? "0" : "1");
+    const lines = wrapText(text, INFO.columns, INFO.lines);
+    boxUsed = lines.length;
+    for (const [index, line] of boxLines.entries()) line.textContent = lines[index] ?? "";
+    boxCall.textContent = entry === undefined
+      ? "" : turned?.id === entry.id ? copy.holdToOpen : call;
+    for (const card of cards) {
+      card.group.setAttribute("data-selected", String(card.entry.id === entry?.id));
+    }
+    placeBox();
+  };
+
+  /** A hand on a card or on an organ, which is read before the object. */
+  const point = (entry: TableEntry | undefined): void => {
+    pointed = entry;
+    showBox(pointed ?? turned);
+  };
+  showBox(undefined);
 
   const draw = (): void => {
     const stage = stageOf(viewport);
@@ -410,34 +412,44 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       const box = boxes[index];
       if (box !== undefined) placeCard(card, box);
     }
-    // The figure stands in the middle of the ring, and the switch of the body sits under it.
+    // The woman and the man stand side by side in the middle of the ring, both at the scale of
+    // the taller of them, so that the two bodies can be compared rather than only looked at.
     const room = bodyBox(stage);
-    const scale = room.height / view.body.height;
-    const bounds = view.art.getBBox();
-    const width = bounds.width * scale;
-    const left = stage.x + (stage.width - width) / 2 - bounds.x * scale;
-    const top = room.y;
-    view.layout = {scale, left, top};
-    view.art.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
-    // The woman and the man stand beside the figure, where a visitor is already looking.
-    placeStack(
-      sexes, left + (bounds.x + bounds.width) * scale + 26,
-      top + view.body.height * scale / 2 - 19);
-
-    for (const mark of marks) {
-      const anchor = anchorOf(view.body, mark.organ);
-      const {scale: s, left: x, top: y} = view.layout;
-      mark.centre = {x: x + anchor.x * s, y: y + anchor.y * s};
-      attributes(mark.disc, {cx: mark.centre.x, cy: mark.centre.y});
-      attributes(mark.hit, {cx: mark.centre.x, cy: mark.centre.y});
+    const tallest = Math.max(...views.map(one => one.body.height));
+    const scale = room.height / tallest;
+    const widths = views.map(one => one.art.getBBox().width * scale);
+    const gap = 44;
+    const total = widths.reduce((sum, width) => sum + width, 0) + gap * (views.length - 1);
+    let cursor = stage.x + (stage.width - total) / 2;
+    for (const [index, one] of views.entries()) {
+      const bounds = one.art.getBBox();
+      const left = cursor - bounds.x * scale;
+      const top = room.y + (room.height - one.body.height * scale);
+      one.layout = {scale, left, top};
+      one.art.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
+      // The word stands over the body, where the ring of cards leaves room for it.
+      attributes(one.name, {x: cursor + (widths[index] ?? 0) / 2, y: room.y - 14});
+      cursor += (widths[index] ?? 0) + gap;
     }
-    for (const mark of marks) {
-      const gaps = marks
-        .filter(other => other !== mark)
-        .map(other => Math.hypot(other.centre.x - mark.centre.x, other.centre.y - mark.centre.y));
-      mark.reach = Math.max(
-        ORGAN_HIT.min, Math.min(ORGAN_HIT.max, gaps.length === 0 ? ORGAN_HIT.max : Math.min(...gaps) / 2));
-      mark.hit.setAttribute("r", String(mark.reach));
+
+    const marks = views.flatMap(one => one.marks);
+    for (const one of views) {
+      for (const mark of one.marks) {
+        const anchor = anchorOf(one.body, mark.organ);
+        const {scale: s, left: x, top: y} = one.layout;
+        mark.centre = {x: x + anchor.x * s, y: y + anchor.y * s};
+        attributes(mark.disc, {cx: mark.centre.x, cy: mark.centre.y});
+        attributes(mark.hit, {cx: mark.centre.x, cy: mark.centre.y});
+      }
+      for (const mark of one.marks) {
+        const gaps = one.marks
+          .filter(other => other !== mark)
+          .map(other => Math.hypot(other.centre.x - mark.centre.x, other.centre.y - mark.centre.y));
+        mark.reach = Math.max(
+          ORGAN_HIT.min,
+          Math.min(ORGAN_HIT.max, gaps.length === 0 ? ORGAN_HIT.max : Math.min(...gaps) / 2));
+        mark.hit.setAttribute("r", String(mark.reach));
+      }
     }
     // Every card points at the organ its table is about, which is what the ring is around.
     for (const [index, card] of cards.entries()) {
@@ -446,7 +458,12 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       const from = {
         x: card.box.x + card.box.width / 2, y: card.box.y + card.box.height / 2,
       };
-      const target = marks.find(mark => mark.organ === card.entry.organ);
+      // Both bodies carry the organ, so a card points at the nearer of the two.
+      const target = marks
+        .filter(mark => mark.organ === card.entry.organ)
+        .sort((left, right) =>
+          Math.hypot(left.centre.x - from.x, left.centre.y - from.y)
+          - Math.hypot(right.centre.x - from.x, right.centre.y - from.y))[0];
       if (target === undefined) {
         leader.removeAttribute("d");
         continue;
@@ -464,16 +481,14 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       leader.setAttribute("d", `M ${start.x} ${start.y} L ${target.centre.x} ${target.centre.y}`);
     }
 
-    // The heading stands over the ring, which is the room left of the settings.
+    // The heading stands over the ring, which is the room left of the box.
     const middle = stage.x + stage.width / 2;
     attributes(heading, {x: middle, y: HEAD.top});
     for (const [index, line] of motivation.entries()) {
       attributes(line, {x: middle, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The button which reads the page aloud sits under what it reads.
-    placePills(
-      reader, middle + pillRun(reader) / 2,
-      HEAD.top + 44 + MOTIVATION_LINES * HEAD.line + 2);
+    // The box at the right, under the settings along the top.
+    placeBox();
     // The laboratory in the bottom right corner: the square a phone is pointed at, and the
     // three lines beside it, which open the page about all of this.
     const square = 84;
@@ -494,7 +509,60 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       ...status,
       detail: status.detail === "" ? hintFor(voice, tracker, status.state) : status.detail,
     });
+    // The object which picks a table: its angle is which of the five it is pointing at.
+    const values = valuesFromTokens(roles, snapshot.tokens);
+    const value = values.get("topic");
+    const next = value === undefined ? undefined : tableAtDial(value);
+    if (next?.id !== turned?.id) {
+      // The first reading of an object which was just put down is where it happens to lie, so
+      // it chooses nothing until it has been turned.
+      if (turned !== undefined && next !== undefined) moved = true;
+      turned = next;
+      turnedAt = performance.now();
+      if (next === undefined) moved = false;
+      showBox(pointed ?? turned);
+    }
+    tokenLayer.update({
+      snapshot, roles, viewport,
+      card: (token, role) => {
+        if (role === undefined) {
+          return {kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
+            note: voice.say(kit.noRoleNote)};
+        }
+        const entry = tableAtDial(
+          valuesFromTokens(roles, new Map([[token.sessionId, token]])).get("topic") ?? 0);
+        return {
+          kind: "dial", title: role.label,
+          value: entryCopy(voice, entry.id).title,
+          note: moved ? copy.holdToOpen : "",
+          info: role.description,
+          glyph: {kind: entry.picture as GlyphKind, level: 1},
+        };
+      },
+    });
   };
+
+  /**
+   * The object opens the table it has been held still on. A hand presses a card by resting on
+   * it, and an object does the same by standing still: the card fills while it is held, so that
+   * waiting is visibly doing something.
+   */
+  const holding = (now: number): void => {
+    window.requestAnimationFrame(holding);
+    const entry = turned;
+    const card = cards.find(one => one.entry.id === entry?.id);
+    for (const one of cards) {
+      if (one !== card) one.arm.style.transform = "";
+    }
+    if (entry === undefined || card === undefined || !moved) return;
+    const held = Math.min(1, (now - turnedAt) / HOLD);
+    card.arm.style.transform = `scaleX(${held.toFixed(3)})`;
+    if (held >= 1) {
+      card.arm.style.transform = "";
+      open(entry);
+    }
+  };
+  window.requestAnimationFrame(holding);
 
   const resize = (): void => {
     viewport = {width: window.innerWidth, height: window.innerHeight};

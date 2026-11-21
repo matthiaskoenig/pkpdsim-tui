@@ -6,10 +6,8 @@
  */
 
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
-import {speechFor} from "./speech.ts";
 import type {Viewport} from "./types.ts";
 import type {Voice} from "./voice.ts";
-import {words} from "./words.ts";
 
 /** A finger of the tracker, in pixels of the surface. */
 export interface InfoPoint {
@@ -87,30 +85,6 @@ export function createInfo(
   const sentence = document.createElement("p");
   sentence.className = "info-text";
   note.append(sentence);
-  // A note is one or two sentences, which is what a visitor who cannot read them wants read out.
-  const speech = voice === undefined ? null : speechFor(voice);
-  const copy = voice === undefined ? null : words(voice);
-  let button: HTMLButtonElement | null = null;
-  if (speech !== null && copy !== null) {
-    button = document.createElement("button");
-    button.type = "button";
-    button.className = "speak speak--note";
-    button.dataset["dwell"] = "speak-note";
-    button.innerHTML = `<span class="speak-icon" aria-hidden="true"></span>`
-      + `<span class="speak-label"></span>`;
-    button.addEventListener("click", () => speech.toggle(sentence.textContent ?? ""));
-    note.append(button);
-    const show = (): void => {
-      const label = button?.querySelector(".speak-label");
-      const reading = speech.speaking();
-      if (button !== null) button.dataset["speaking"] = String(reading);
-      if (label !== null && label !== undefined) {
-        label.textContent = reading ? copy.speakStop : copy.speak;
-      }
-    };
-    speech.listen(show);
-    show();
-  }
   surface.appendChild(note);
   let open: Element | undefined;
   const dwelling = new Map<number, {element: Element; since: number}>();
@@ -150,7 +124,6 @@ export function createInfo(
     if (open === undefined) return;
     open = undefined;
     note.hidden = true;
-    speech?.stop();
   };
 
   // The note holds itself open while a visitor is on it, and closes as they leave it, so that
@@ -159,8 +132,7 @@ export function createInfo(
 
   const over = (event: PointerEvent | MouseEvent): void => {
     const target = event.target;
-    // A visitor who moves onto the note itself, to press the button which reads it, is still
-    // reading it: the note holds itself open.
+    // A visitor whose pointer is on the note itself is reading it: it holds itself open.
     if (target instanceof Element && note.contains(target)) return;
     const found = target instanceof Element ? noteOf(target) : undefined;
     if (found === undefined) hide();

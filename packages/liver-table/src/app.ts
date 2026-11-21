@@ -71,6 +71,7 @@ export async function startLiverTable(host: TableHost): Promise<void> {
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
+    onReset: () => host.reset(),
     onChoose: (group, option) => host.choose(group, option),
   });
 

@@ -31,6 +31,12 @@ export interface TableHost {
   choose(group: string, option: string): void;
   /** Leave this table for the body, which is where every table is opened from. */
   back(): void;
+  /**
+   * Put this table back the way it opened: every value at the physiology it started from, and
+   * nothing of what the last visitor did left on it. A table is one page, so it starts again
+   * rather than unwinding its own state, which is what an exhibit between two visitors wants.
+   */
+  reset(): void;
 }
 
 /**

@@ -62,7 +62,7 @@ The organs of the abdomen sit on each other, so their names are read in two colu
 - **Renal artery stenosis.** Turn object 5 to the right. The kidneys lose flow and almost nothing else moves, because the kidneys are one organ among fourteen.
 - **A slow heart.** Turn object 1 down to 40 beats a minute. The heart has longer to fill, so one beat moves half as much again, but the cardiac output still falls and the pressure in the aorta has further to fall between two beats: the blood pressure opens to something like 107/41 mmHg.
 - **A failing heart.** Turn object 2 down. The ventricle beside the heart empties less with every beat, the stroke volume falls and the circulation is carried by the rate alone.
-- **The other body.** Touch Woman beside the body, here or on the landing page. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
+- **The other body.** Touch Woman in the panel. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
 
 ## Where the numbers come from
 

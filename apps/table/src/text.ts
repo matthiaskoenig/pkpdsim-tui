@@ -30,8 +30,15 @@ export interface HubCopy {
   readonly clickHint: string;
   readonly touchHint: string;
   readonly bothHint: string;
-  /** What a body is, behind it. */
+  /** What a body is, behind it. Both of them stand on the landing page, side by side. */
   readonly bodyInfo: Readonly<Record<"male" | "female", Phrase>>;
+  /** The object which picks a table: what it is called and what it does. */
+  readonly topic: {readonly label: string; readonly info: Phrase};
+  /** What stands in the box at the right while no table is picked. */
+  readonly pickTitle: string;
+  readonly pickText: Phrase;
+  /** What the box says under a table the object is pointing at. */
+  readonly holdToOpen: string;
   /** What the boot screen says while the bodies are loading, and when nothing can be shown. */
   readonly loadingBodies: string;
   readonly loadingTable: string;
@@ -126,16 +133,31 @@ const EN: HubCopy = {
   bothHint: "Hold a finger on a card, or click it, to open its table.",
   bodyInfo: {
     male: {
-      child: "A grown man. Touch him, and every table uses his body.",
-      adult: "The male reference body of pkpdsim. Touch it, and every table is solved for him.",
-      expert: "The male reference individual of the pkpdsim physiology, 73 kg at 176 cm. Every table is solved on its export.",
+      child: "A grown man. The tables know where everything in him is.",
+      adult: "The male reference body of pkpdsim, which the tables are solved on.",
+      expert: "The male reference individual of the pkpdsim physiology, 73 kg at 176 cm. Every table is solved on its export, and each one can be switched to the other body.",
     },
     female: {
-      child: "A grown woman. Touch her, and every table uses her body.",
-      adult: "The female reference body of pkpdsim. Touch it, and every table is solved for her.",
+      child: "A grown woman. The tables know where everything in her is.",
+      adult: "The female reference body of pkpdsim, which the tables are solved on.",
       expert: "The female reference individual of the pkpdsim physiology, 60 kg at 163 cm, with its own organ volumes and blood flows.",
     },
   },
+  topic: {
+    label: "The table",
+    info: {
+      child: "Turn it, and it walks around the cards. Hold it still, and that table opens.",
+      adult: "Turn this object to walk around the five tables. Hold it still on one, and it opens.",
+      expert: "The first object of the surface, marker 0, is the table switch: its angle picks one of the five tables and holding it still opens that one.",
+    },
+  },
+  pickTitle: "Five tables, one body",
+  pickText: {
+    child: "Put the round object on the table and turn it. Every card is one thing you can try out.",
+    adult: "Put the first object on the glass and turn it to walk around the five tables, or press a card. Each one opens a model of the same body.",
+    expert: "Each card opens a model of pkpdsim, solved in this browser: the circulation, the liver, the lobes of the liver, a drug through the body, and a liver on a machine.",
+  },
+  holdToOpen: "Hold the object still to open it",
   loadingBodies: "Loading the bodies...",
   loadingTable: "Loading the table...",
   failed: "The table could not start",
@@ -251,16 +273,31 @@ const DE: HubCopy = {
   bothHint: "Halten Sie einen Finger auf eine Karte oder klicken Sie sie an.",
   bodyInfo: {
     male: {
-      child: "Ein erwachsener Mann. Berühre ihn, dann rechnet jeder Tisch mit seinem Körper.",
-      adult: "Der männliche Referenzkörper von pkpdsim. Berühren Sie ihn, und jeder Tisch rechnet für ihn.",
-      expert: "Das männliche Referenzindividuum der Physiologie von pkpdsim, 73 kg bei 176 cm. Jeder Tisch rechnet auf dessen Export.",
+      child: "Ein erwachsener Mann. Die Tische wissen, wo alles in ihm liegt.",
+      adult: "Der männliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
+      expert: "Das männliche Referenzindividuum der Physiologie von pkpdsim, 73 kg bei 176 cm. Jeder Tisch rechnet auf dessen Export und lässt sich auf den anderen Körper umstellen.",
     },
     female: {
-      child: "Eine erwachsene Frau. Berühre sie, dann rechnet jeder Tisch mit ihrem Körper.",
-      adult: "Der weibliche Referenzkörper von pkpdsim. Berühren Sie ihn, und jeder Tisch rechnet für sie.",
+      child: "Eine erwachsene Frau. Die Tische wissen, wo alles in ihr liegt.",
+      adult: "Der weibliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
       expert: "Das weibliche Referenzindividuum der Physiologie von pkpdsim, 60 kg bei 163 cm, mit eigenen Organvolumina und Blutflüssen.",
     },
   },
+  topic: {
+    label: "Der Tisch",
+    info: {
+      child: "Dreh es, dann wandert es um die Karten. Halt es still, dann geht der Tisch auf.",
+      adult: "Drehen Sie dieses Objekt, um durch die fünf Tische zu wandern. Halten Sie es still, dann öffnet sich der Tisch.",
+      expert: "Das erste Objekt der Oberfläche, Marker 0, ist der Tischwähler: sein Winkel wählt einen der fünf Tische, Stillhalten öffnet ihn.",
+    },
+  },
+  pickTitle: "Fünf Tische, ein Körper",
+  pickText: {
+    child: "Stell das runde Objekt auf den Tisch und dreh es. Jede Karte ist etwas zum Ausprobieren.",
+    adult: "Stellen Sie das erste Objekt auf das Glas und drehen Sie es, um durch die fünf Tische zu wandern, oder berühren Sie eine Karte. Jede öffnet ein Modell desselben Körpers.",
+    expert: "Jede Karte öffnet ein Modell aus pkpdsim, gelöst in diesem Browser: der Kreislauf, die Leber, die Leberlappen, ein Medikament durch den Körper und eine Leber an der Maschine.",
+  },
+  holdToOpen: "Objekt stillhalten, dann geht der Tisch auf",
   loadingBodies: "Die Körper werden geladen...",
   loadingTable: "Der Tisch wird geladen...",
   failed: "Der Tisch konnte nicht starten",
@@ -376,16 +413,31 @@ const ES: HubCopy = {
   bothHint: "Mantenga un dedo sobre una tarjeta, o haga clic en ella.",
   bodyInfo: {
     male: {
-      child: "Un hombre adulto. Tócalo y todas las mesas usan su cuerpo.",
-      adult: "El cuerpo masculino de referencia de pkpdsim. Tóquelo y todas las mesas se resuelven para él.",
-      expert: "El individuo masculino de referencia de la fisiología de pkpdsim, 73 kg y 176 cm. Cada mesa se resuelve sobre su exportación.",
+      child: "Un hombre adulto. Las mesas saben dónde está cada cosa dentro de él.",
+      adult: "El cuerpo masculino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
+      expert: "El individuo masculino de referencia de la fisiología de pkpdsim, 73 kg y 176 cm. Cada mesa se resuelve sobre su exportación y puede cambiarse al otro cuerpo.",
     },
     female: {
-      child: "Una mujer adulta. Tócala y todas las mesas usan su cuerpo.",
-      adult: "El cuerpo femenino de referencia de pkpdsim. Tóquelo y todas las mesas se resuelven para ella.",
+      child: "Una mujer adulta. Las mesas saben dónde está cada cosa dentro de ella.",
+      adult: "El cuerpo femenino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
       expert: "El individuo femenino de referencia de la fisiología de pkpdsim, 60 kg y 163 cm, con sus propios volúmenes de órganos y flujos sanguíneos.",
     },
   },
+  topic: {
+    label: "La mesa",
+    info: {
+      child: "Gíralo y recorre las tarjetas. Mantenlo quieto y esa mesa se abre.",
+      adult: "Gire este objeto para recorrer las cinco mesas. Manténgalo quieto sobre una y se abre.",
+      expert: "El primer objeto de la superficie, el marcador 0, es el selector de mesa: su ángulo elige una de las cinco y mantenerlo quieto la abre.",
+    },
+  },
+  pickTitle: "Cinco mesas, un cuerpo",
+  pickText: {
+    child: "Pon el objeto redondo sobre la mesa y gíralo. Cada tarjeta es algo para probar.",
+    adult: "Ponga el primer objeto sobre el cristal y gírelo para recorrer las cinco mesas, o toque una tarjeta. Cada una abre un modelo del mismo cuerpo.",
+    expert: "Cada tarjeta abre un modelo de pkpdsim, resuelto en este navegador: la circulación, el hígado, los lóbulos del hígado, un fármaco por el cuerpo y un hígado en una máquina.",
+  },
+  holdToOpen: "Mantenga el objeto quieto para abrirla",
   loadingBodies: "Cargando los cuerpos...",
   loadingTable: "Cargando la mesa...",
   failed: "La mesa no pudo arrancar",

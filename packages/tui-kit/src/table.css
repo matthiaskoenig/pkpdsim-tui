@@ -185,6 +185,41 @@ body {
   margin: 0;
 }
 
+/* The button which puts a figure back the way it opened. It stands where the panel stops saying
+   what the table is and starts saying what can be done with it. */
+.reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.9rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.55rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.reset-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.reset:hover,
+.reset:focus-visible,
+.reset[data-arming="true"] {
+  border-color: var(--accent);
+  color: var(--ink);
+  outline: none;
+}
+
 /* The button which reads a text aloud: in the panel, in a note, and on the landing page. */
 .speak {
   display: inline-flex;
@@ -817,16 +852,66 @@ body {
   background: var(--warn);
 }
 
-/* On the landing page the switches stand open in a column at the right, so a visitor sees what
-   can be changed before they walk to the first table. */
+/* On the landing page the switches stand open, so a visitor sees what can be changed before
+   they walk to the first table. They are a thin strip along the top edge there: the page is
+   about the body in the middle, and the strip says what it is in and how much it says. */
 .settings--pinned {
-  top: 1.5rem;
-  bottom: 1.5rem;
-  align-content: start;
+  top: 1rem;
+  right: 1.25rem;
+  gap: 0;
 }
 
 .settings--pinned .settings-button {
   display: none;
+}
+
+.settings--pinned .settings-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  width: auto;
+  padding: 0.45rem 0.9rem 0.5rem;
+  border-radius: 0.8rem;
+}
+
+.settings--pinned .settings-title {
+  display: none;
+}
+
+.settings--pinned .setting + .setting {
+  margin-top: 0;
+  padding-left: 1.1rem;
+  border-left: 1px solid rgba(243, 248, 251, 0.14);
+}
+
+.settings--pinned .setting-name {
+  margin: 0 0 0.25rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+
+.settings--pinned .setting-options {
+  grid-template-columns: repeat(3, auto);
+  gap: 0.3rem;
+}
+
+.settings--pinned .pick {
+  gap: 0.2rem;
+  padding: 0.3rem 0.45rem 0.25rem;
+  border-radius: 0.55rem;
+  font-size: 0.66rem;
+}
+
+.settings--pinned .pick-art {
+  width: 1.5rem;
+  height: 1.05rem;
+}
+
+.settings--pinned .pick-tick {
+  top: -0.3rem;
+  right: -0.3rem;
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 .settings-card {

@@ -122,6 +122,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
+    onReset: () => host.reset(),
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
       else host.choose(group, option);
