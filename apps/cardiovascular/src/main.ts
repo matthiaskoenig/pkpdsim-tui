@@ -3,8 +3,9 @@
  * and the anatomy answers while a hand is still on them.
  *
  * Query parameters:
- *   ?tuio             a tracker on ws://localhost:3343
+ *   ?tuio             a tracker on ws://localhost:3333
  *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
+ *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?sex=female       the female reference body
  */
 
@@ -13,14 +14,16 @@ import {
 } from "@pkpdsim-tui/cardio-sim";
 import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {
-  createMockTableInput, createTuioTableInput, DEFAULT_TUIO_HOST, DEFAULT_TUIO_PORT,
+  createMockTableInput, createTuioTableInput, trackerOptions,
 } from "@pkpdsim-tui/tuio-input";
-import type {TableInput, TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
-import {createChrome} from "./chrome.ts";
-import {CARDIOVASCULAR_ROLES, controlsFromTokens, unassignedMarkers, winningTokens} from "./roles.ts";
-import {createReadout} from "./readout.ts";
+import type {
+  TableInput, TableSnapshot, TableStatus, TrackerOptions,
+} from "@pkpdsim-tui/tuio-input";
+import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
+import {createChrome, createReadout, createTokenLayer, formatFactor} from "@pkpdsim-tui/tui-kit";
+import {CARDIOVASCULAR_STATS, cardFor} from "./cards.ts";
+import {CARDIOVASCULAR_ROLES, controlsFromTokens} from "./roles.ts";
 import {createScene} from "./scene.ts";
-import {createTokenLayer} from "./tokens.ts";
 
 const MOUSE_HINT = "Keys 1 to 4 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
@@ -31,24 +34,13 @@ function element<T extends Element>(id: string): T {
   return found as unknown as T;
 }
 
-function parseTracker(value: string | null): {host: string; port: number} {
-  if (value === null || value === "" || value === "true") {
-    return {host: DEFAULT_TUIO_HOST, port: DEFAULT_TUIO_PORT};
-  }
-  const [host, port] = value.split(":");
-  const parsed = Number.parseInt(port ?? "", 10);
-  return {
-    host: host === undefined || host === "" ? DEFAULT_TUIO_HOST : host,
-    port: Number.isInteger(parsed) ? parsed : DEFAULT_TUIO_PORT,
-  };
-}
 
 /** What a person at the table should do next, which depends on how the page was started. */
-function hintFor(usesTracker: boolean, port: number, state: TableStatus["state"]): string {
-  if (!usesTracker) return MOUSE_HINT;
+function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
+  if (!tracker.tracker) return MOUSE_HINT;
   if (state === "connected") return TABLE_HINT;
-  return `Set the tracker to WebSocket, TUIO 2.0 and port ${port}, then reload. `
-    + "Without \"?tuio\" in the address the table runs on the mouse instead.";
+  return `Set the tracker to WebSocket, TUIO ${tracker.version} and port ${tracker.port}, then `
+    + "reload. Without \"?tuio\" in the address the table runs on the mouse instead.";
 }
 
 function fail(message: string): void {
@@ -77,12 +69,12 @@ async function start(): Promise<void> {
   const surface = element<HTMLElement>("surface");
   const root = element<SVGSVGElement>("scene");
   const scene = createScene(root, body, reference);
-  const readout = createReadout(root);
+  const readout = createReadout(root, CARDIOVASCULAR_STATS);
   const tokenLayer = createTokenLayer(root);
   const chrome = createChrome(element<HTMLElement>("chrome"));
 
-  const usesTracker = parameters.has("tuio");
-  const tracker = parseTracker(parameters.get("tuio"));
+  const tracker = trackerOptions(parameters);
+  const usesTracker = tracker.tracker;
   const input: TableInput = usesTracker
     ? createTuioTableInput(tracker)
     : createMockTableInput({
@@ -115,12 +107,19 @@ async function start(): Promise<void> {
     }
     scene.update(solution, reference);
     readout.update(solution, baseline);
-    tokenLayer.update({snapshot, roles: CARDIOVASCULAR_ROLES, origins, solution, viewport});
+    tokenLayer.update({
+      snapshot, roles: CARDIOVASCULAR_ROLES, viewport,
+      card: (token, role) => cardFor(token, role, solution, origins),
+    });
     chrome.update({
-      status, roles: CARDIOVASCULAR_ROLES, controls, notice,
+      status, roles: CARDIOVASCULAR_ROLES, notice,
+      value: role => {
+        const live = controls[role.id as keyof typeof controls];
+        return live === undefined ? "-" : formatFactor(live);
+      },
       live: new Set(winningTokens(CARDIOVASCULAR_ROLES, snapshot.tokens).keys()),
       unassigned: unassignedMarkers(CARDIOVASCULAR_ROLES, snapshot.tokens),
-      hint: hintFor(usesTracker, tracker.port, status.state),
+      hint: hintFor(tracker, status.state),
       credit: anatomy.attribution,
     });
   };

@@ -16,7 +16,7 @@ The paper to cite:
 
 TUIO is encoded as [Open Sound Control](https://opensoundcontrol.stanford.edu/) (OSC), the binary message format from computer music, in bundles. The transport is normally UDP on the default port **3333**, called TUIO/UDP; TCP exists as well.
 
-A browser cannot receive UDP, so a browser application needs the tracker to offer the same bundles over a **WebSocket**. The tables of Interactive Scape and their simulator do exactly that, and the port is chosen in the tracker. The examples of Interactive Scape use **3343**, and so do these applications by default. Port 3333 is the UDP port of the protocol and is never the WebSocket port.
+A browser cannot receive UDP, so a browser application needs the tracker to offer the same bundles over a **WebSocket**. The tables of Interactive Scape and their simulator do exactly that, and the port is chosen in the tracker. Port **3333** is the port the specification names, and a WebSocket tracker may share it, because the two are different sockets: it is the default of the simulator of this repository and of these applications. Some WebSocket bridges use **3343** instead, which an application reaches with `?tuio=host:3343`.
 
 The protocol is one way. The tracker sends, the application listens, and the application never answers. A table does not care whether anybody is looking.
 
@@ -76,7 +76,7 @@ The TUIO 2.0 specification is dated November 2014, is considered stable and read
 
 ## What this repository uses
 
-`packages/tuio-input` speaks TUIO 2.0 over WebSocket, through the [`tuio-client`](https://github.com/InteractiveScapeGmbH/tuio_client_js) package of Interactive Scape. The package ships no WebSocket receiver, so the repository carries one built on [`osc-js`](https://github.com/adzialocha/osc-js), the same twenty lines its README and the `tuio-web-examples` repository use.
+`packages/tuio-input` speaks TUIO 2.0 and TUIO 1.1 over WebSocket, through the [`tuio-client`](https://github.com/InteractiveScapeGmbH/tuio_client_js) package of Interactive Scape. The package ships no WebSocket receiver, so the repository carries one built on [`osc-js`](https://github.com/adzialocha/osc-js), the same twenty lines its README and the `tuio-web-examples` repository use.
 
 The protocol is reduced to one small shape, which is all an application sees:
 

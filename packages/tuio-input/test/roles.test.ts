@@ -77,3 +77,18 @@ describe("valueFromAngle, relative", () => {
     expect(valueFromAngle(r, -10 * TWO_PI, 0)).toBeCloseTo(0.5, 12);
   });
 });
+
+describe("a role that carries its value in its position", () => {
+  const instrument: TokenRole = {
+    id: "clamp", label: "Clamp", description: "Closes the branch under it.", unit: "",
+    markers: [5], min: 0, max: 1, reference: 0, mode: "position", scale: "linear", turns: 1,
+  };
+
+  it("has no value in its angle", () => {
+    expect(() => valueFromAngle(instrument, 1)).toThrow(RangeError);
+  });
+
+  it("is still found by its marker", () => {
+    expect(roleForMarker([instrument], 5)).toBe(instrument);
+  });
+});

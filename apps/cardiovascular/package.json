@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pkpdsim-tui/cardio-sim": "*",
+    "@pkpdsim-tui/tui-kit": "*",
     "@pkpdsim-tui/tuio-input": "*"
   }
 }

@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 /**
- * The TUIO 2.0 simulator: a tracker a table application can be pointed at, driven from a page
+ * The TUIO simulator: a tracker a table application can be pointed at, driven from a page
  * instead of from a table.
  *
  * A browser cannot listen on a socket, so the simulator is two halves that meet here. The
- * tracker half is a WebSocket server on the TUIO port, which broadcasts a bundle per frame to
- * every application that connects and never reads anything from them, because the protocol is
- * one way. The control half is the page this process serves over plain HTTP, which connects back
- * on `/control` and sends the state of its surface as JSON.
+ * tracker half sends a bundle per frame, as TUIO 2.0 or TUIO 1.1, over a WebSocket port
+ * applications connect to or to a UDP address nobody connects to. The control half is the page
+ * this process serves over plain HTTP, which connects back on `/control`, sends the state of its
+ * surface as JSON and may change what the tracker speaks and where, so that a version, a
+ * transport or a port is tried without restarting anything.
  *
- * Run it with `npm run simulator`. The flags are `--port`, `--host`, `--page-port` and `--rate`.
+ * Run it with `npm run simulator`. The flags are below, and every one of them is a starting
+ * value the control page can change.
  */
 
 import {readFile} from "node:fs/promises";
@@ -19,14 +21,13 @@ import {fileURLToPath} from "node:url";
 import {WebSocket, WebSocketServer} from "ws";
 
 import {DEFAULT_SOURCE, oscTimetag, packFrame} from "./frame.mjs";
+import {
+  DEFAULT_PAGE_PORT, DEFAULT_SETTINGS, describeTracker, normalizeSettings, sameTracker,
+  TRANSPORTS, TUIO_VERSIONS,
+} from "./protocol.mjs";
 import {createSessionIds} from "./sessions.mjs";
 import {emptySurface, frameOf, normalizeSurface} from "./surface.mjs";
-
-/** The WebSocket port of the tracker. 3333 is the UDP port of TUIO and is never this one. */
-const DEFAULT_PORT = 3343;
-
-/** The port the control page is served on. */
-const DEFAULT_PAGE_PORT = 3344;
+import {createTracker} from "./tracker.mjs";
 
 /** Frames per second of a surface nobody is touching. */
 const DEFAULT_RATE = 60;
@@ -49,21 +50,24 @@ const CONTENT_TYPES = {
   ".svg": "image/svg+xml",
 };
 
-const USAGE = `The TUIO 2.0 simulator of pkpdsim-tui.
+const USAGE = `The TUIO simulator of pkpdsim-tui.
 
   npm run simulator -- [options]
 
-  --host <host>       the interface both servers listen on (default localhost)
-  --port <port>       the WebSocket port of the tracker (default ${DEFAULT_PORT})
+  --host <host>       the interface both servers listen on (default ${DEFAULT_SETTINGS.host})
+  --port <port>       the TUIO port of the tracker (default ${DEFAULT_SETTINGS.port})
+  --tuio <version>    ${TUIO_VERSIONS.join(" or ")} (default ${DEFAULT_SETTINGS.version})
+  --transport <kind>  ${TRANSPORTS.join(" or ")} (default ${DEFAULT_SETTINGS.transport})
   --page-port <port>  the HTTP port of the control page (default ${DEFAULT_PAGE_PORT})
   --rate <hz>         frames per second (default ${DEFAULT_RATE})
   --help              this text
+
+The control page changes the version, the transport and the port while the simulator runs.
 `;
 
 function parseOptions(argv) {
   const options = {
-    host: "localhost", port: DEFAULT_PORT, pagePort: DEFAULT_PAGE_PORT, rate: DEFAULT_RATE,
-    help: false,
+    ...DEFAULT_SETTINGS, pagePort: DEFAULT_PAGE_PORT, rate: DEFAULT_RATE, help: false,
   };
   const numbers = {"--port": "port", "--page-port": "pagePort", "--rate": "rate"};
   for (let index = 0; index < argv.length; index += 1) {
@@ -73,6 +77,16 @@ function parseOptions(argv) {
     } else if (flag === "--host") {
       index += 1;
       options.host = argv[index] ?? options.host;
+    } else if (flag === "--tuio" || flag === "--version") {
+      index += 1;
+      const value = argv[index] ?? "";
+      if (!TUIO_VERSIONS.includes(value)) throw new Error(`${flag} is ${TUIO_VERSIONS.join(" or ")}, got "${value}".`);
+      options.version = value;
+    } else if (flag === "--transport") {
+      index += 1;
+      const value = argv[index] ?? "";
+      if (!TRANSPORTS.includes(value)) throw new Error(`${flag} is ${TRANSPORTS.join(" or ")}, got "${value}".`);
+      options.transport = value;
     } else if (flag in numbers) {
       index += 1;
       const value = Number(argv[index]);
@@ -110,6 +124,8 @@ async function serveFile(request, response) {
       "content-type": CONTENT_TYPES[extname(file)],
       // The page and its modules are edited while the simulator runs.
       "cache-control": "no-store",
+      // The page embeds the application it drives, which is served from another port.
+      "cross-origin-opener-policy": "same-origin-allow-popups",
     });
     response.end(body);
   } catch {
@@ -150,14 +166,18 @@ async function main() {
 
   const sessions = createSessionIds();
   const interval = 1000 / options.rate;
+  let settings = normalizeSettings(options);
   let surface = emptySurface();
+  let tracker = null;
+  let trouble = "";
   let frameId = 0;
   let lastFrame = 0;
   let coalesced = null;
   let ticker = null;
+  let driver = null;
 
-  const trackers = new WebSocketServer({host: options.host, port: options.port});
-  const trackersReady = listening(trackers, "The tracker", options.host, options.port);
+  const log = text => process.stdout.write(`${text}\n`);
+
   const pageServer = createServer((request, response) => {
     serveFile(request, response).catch(error => {
       process.stderr.write(`The control page could not be served: ${String(error)}\n`);
@@ -165,22 +185,20 @@ async function main() {
     });
   });
   const controls = new WebSocketServer({server: pageServer, path: "/control"});
-  let driver = null;
 
-  // While the servers bind, `listening` reports the one failure that matters, and a port that is
-  // taken reaches all three of them: without a listener an error event would throw instead.
-  const ignore = () => undefined;
-  for (const server of [trackers, controls, pageServer]) server.on("error", ignore);
-
-  /** What the control page shows about the tracker: who is listening and how far it has counted. */
+  /** What the control page shows about the tracker: what it speaks, who hears it, how far it counted. */
   const announce = () => {
     if (driver === null || driver.readyState !== WebSocket.OPEN) return;
     driver.send(JSON.stringify({
       type: "status",
-      trackers: trackers.clients.size,
+      settings,
+      transport: tracker?.kind ?? settings.transport,
+      trackers: tracker?.listeners ?? null,
+      source: tracker?.url ?? "",
+      description: describeTracker(settings),
+      trouble,
       frameId,
       rate: options.rate,
-      source: `ws://${options.host}:${options.port}`,
       sessions: sessions.entries(),
     }));
   };
@@ -198,12 +216,7 @@ async function main() {
     const frame = frameOf(surface, sessions, {
       frameId, time: oscTimetag(lastFrame), source: DEFAULT_SOURCE,
     });
-    if (trackers.clients.size > 0) {
-      const bytes = packFrame(frame);
-      for (const client of trackers.clients) {
-        if (client.readyState === WebSocket.OPEN) client.send(bytes, {binary: true});
-      }
-    }
+    if (tracker !== null && tracker.wants) tracker.send(packFrame(frame, settings.version));
     ticker = setTimeout(emit, interval);
   };
 
@@ -221,23 +234,67 @@ async function main() {
     }
   };
 
-  trackers.on("connection", socket => {
-    process.stdout.write(`A table application connected. Listening: ${trackers.clients.size}.\n`);
-    socket.on("close", () => {
-      process.stdout.write(`A table application left. Listening: ${trackers.clients.size}.\n`);
-      announce();
-    });
-    socket.on("error", () => socket.terminate());
+  const hooks = {
+    onChange: announce,
+    onLog: log,
+  };
+
+  /**
+   * The tracker of `next`, in place of the one that is running. A transport that cannot open,
+   * which is a port that is taken, leaves the old one in place and is reported to the page: the
+   * surface on the table does not go down because somebody typed a port.
+   */
+  const openTracker = async next => {
+    const candidate = createTracker(next, hooks);
+    if (candidate.server !== null) {
+      const ignore = () => undefined;
+      candidate.server.on("error", ignore);
+      try {
+        await listening(candidate.server, "The tracker", next.host, next.port);
+      } catch (error) {
+        candidate.close();
+        throw error;
+      }
+      candidate.server.off("error", ignore);
+      candidate.server.on("error", error => process.stderr.write(`The tracker hit an error: ${String(error)}\n`));
+    }
+    if (tracker !== null) tracker.close();
+    tracker = candidate;
+    settings = next;
+    trouble = "";
     // A client that arrives in the middle of a frame should not wait for the next one.
     changed();
     announce();
-  });
+  };
+
+  /** The settings the page asks for, which only restart the tracker when they move it. */
+  const apply = async raw => {
+    const next = normalizeSettings(raw, settings);
+    const moved = !sameTracker(next, settings);
+    if (!moved) {
+      settings = next;
+      trouble = "";
+      log(`The tracker now speaks ${describeTracker(settings)}.`);
+      changed();
+      announce();
+      return;
+    }
+    try {
+      await openTracker(next);
+      log(`The tracker is now ${describeTracker(settings)}.`);
+    } catch (error) {
+      trouble = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`${trouble}\n`);
+      announce();
+    }
+  };
+
   controls.on("connection", socket => {
     if (driver !== null) {
       driver.close(TAKEN_OVER, "Another control page connected.");
     }
     driver = socket;
-    process.stdout.write("The control page connected.\n");
+    log("The control page connected.");
     socket.on("message", data => {
       let message = null;
       try {
@@ -245,9 +302,13 @@ async function main() {
       } catch {
         return;
       }
-      if (socket !== driver || message?.type !== "surface") return;
-      surface = normalizeSurface(message);
-      changed();
+      if (socket !== driver) return;
+      if (message?.type === "surface") {
+        surface = normalizeSurface(message);
+        changed();
+      } else if (message?.type === "settings") {
+        apply(message.settings).catch(error => process.stderr.write(`${String(error)}\n`));
+      }
     });
     socket.on("close", () => {
       if (socket !== driver) return;
@@ -255,34 +316,36 @@ async function main() {
       // The surface of a page that is gone is an empty table, not the last thing it said.
       surface = {...surface, tokens: [], pointers: []};
       sessions.clear();
-      process.stdout.write("The control page left. The surface is empty.\n");
+      log("The control page left. The surface is empty.");
       changed();
     });
     socket.on("error", () => socket.terminate());
     announce();
   });
 
-  const pageReady = listening(pageServer, "The control page", options.host, options.pagePort);
-  pageServer.listen(options.pagePort, options.host);
-  const started = await Promise.allSettled([trackersReady, pageReady]);
-  const refused = started.find(result => result.status === "rejected");
-  if (refused !== undefined) {
-    trackers.close();
+  // While the page server binds, `listening` reports the one failure that matters: without a
+  // listener an error event would throw instead.
+  const ignore = () => undefined;
+  for (const server of [controls, pageServer]) server.on("error", ignore);
+  const pageReady = listening(pageServer, "The control page", settings.host, options.pagePort);
+  pageServer.listen(options.pagePort, settings.host);
+  try {
+    await pageReady;
+    await openTracker(settings);
+  } catch (error) {
     controls.close();
     pageServer.close();
-    throw refused.reason;
+    if (tracker !== null) tracker.close();
+    throw error;
   }
-
-  for (const server of [trackers, controls, pageServer]) {
+  for (const server of [controls, pageServer]) {
     server.off("error", ignore);
     server.on("error", error => process.stderr.write(`The simulator hit an error: ${String(error)}\n`));
   }
 
-  process.stdout.write(
-    `The TUIO 2.0 simulator is a tracker on ws://${options.host}:${options.port}, at `
-    + `${options.rate} Hz.\nThe control page is on http://${options.host}:${options.pagePort}\n`
-    + `Point an application at it with ?tuio=${options.host}:${options.port}\n`,
-  );
+  log(`The simulator is a tracker: ${describeTracker(settings)}, at ${options.rate} Hz.`);
+  log(`The control page is on http://${settings.host}:${options.pagePort}`);
+  log(`Point an application at it with ?tuio=${settings.host}:${settings.port}`);
 
   emit();
   const heartbeat = setInterval(announce, 500);
@@ -292,13 +355,13 @@ async function main() {
     if (ticker !== null) clearTimeout(ticker);
     if (coalesced !== null) clearTimeout(coalesced);
     // Closing a server leaves the sockets it accepted open, which would keep the process alive.
-    for (const client of [...trackers.clients, ...controls.clients]) client.terminate();
-    trackers.close();
+    for (const client of controls.clients) client.terminate();
+    if (tracker !== null) tracker.close();
     controls.close();
     pageServer.close();
   };
   process.on("SIGINT", () => {
-    process.stdout.write("\nThe simulator stops.\n");
+    log("\nThe simulator stops.");
     stop();
   });
   process.on("SIGTERM", stop);

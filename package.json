@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
   "license": "MIT",
-  "author": "Matthias König",
+  "author": "Matthias K\u00f6nig",
   "repository": {
     "type": "git",
     "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
@@ -19,13 +19,17 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @pkpdsim-tui/cardiovascular",
-    "build": "npm run build --workspace @pkpdsim-tui/cardiovascular",
+    "dev:cardiovascular": "npm run dev --workspace @pkpdsim-tui/cardiovascular -- --port 5173 --strictPort",
+    "dev:lobes": "npm run dev --workspace @pkpdsim-tui/lobes -- --port 5174 --strictPort",
+    "dev:glimepiride": "npm run dev --workspace @pkpdsim-tui/glimepiride -- --port 5175 --strictPort",
+    "build": "npm run build --workspaces --if-present",
     "preview": "npm run preview --workspace @pkpdsim-tui/cardiovascular",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "sync": "node scripts/sync-assets.mjs",
+    "export:glimepiride": "uv run python scripts/export_model.py --sbml ${GLIMEPIRIDE_MODEL:-../glimepiride-model/models/glimepiride_body_flat.xml} --output apps/glimepiride/public/assets/solver",
     "docs": "uv run zensical serve",
     "docs:build": "uv run zensical build --clean --strict"
   },

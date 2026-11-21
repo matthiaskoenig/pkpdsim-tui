@@ -1,0 +1,106 @@
+/* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
+@import "@pkpdsim-tui/tui-kit/table.css";
+
+/* The segments of the liver. */
+.liver-blocks {
+  transition: opacity 120ms linear;
+}
+
+/* While a solve is running the liver it replaces steps back a little. */
+.scene[data-solving="true"] .liver-blocks {
+  opacity: 0.72;
+}
+
+.segment-plate {
+  stroke: rgba(8, 12, 17, 0.8);
+  stroke-width: 2;
+}
+
+.segment[data-state="resected"] .segment-plate {
+  stroke: var(--ink-dim);
+  stroke-width: 2;
+  stroke-dasharray: 10 8;
+}
+
+.segment-label,
+.segment-name,
+.segment-value,
+.segment-note {
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(7, 11, 16, 0.75);
+  stroke-width: 3;
+}
+
+.segment-label {
+  fill: var(--ink);
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.segment-name {
+  fill: var(--ink-dim);
+  font-size: 0.82rem;
+}
+
+.segment-value {
+  fill: var(--ink);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.segment-note {
+  fill: var(--ink-dim);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.segment[data-state="resected"] .segment-label,
+.segment[data-state="resected"] .segment-value {
+  fill: var(--ink-dim);
+}
+
+/* The two branches of a segment: filled while they are open, hollow once they are closed. */
+.pip {
+  stroke-width: 2;
+}
+
+.pip--portal {
+  fill: var(--portal);
+  stroke: var(--portal);
+}
+
+.pip--arterial {
+  fill: var(--arterial);
+  stroke: var(--arterial);
+}
+
+.pip[data-closed="true"] {
+  fill: none;
+  stroke-dasharray: 2 2;
+}
+
+.vessel {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vessel--arterial {
+  stroke: var(--arterial);
+}
+
+.vessel--venous {
+  stroke: var(--venous);
+}
+
+.vessel--portal {
+  stroke: var(--portal);
+}
+
+.trunk-label {
+  fill: var(--ink-dim);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}

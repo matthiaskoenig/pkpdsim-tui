@@ -34,10 +34,29 @@ const APPS = {
   },
   lobes: {
     target: "apps/lobes/public/assets",
-    entries: ["lobes-data.json", "lobes-anatomy.json", "solver_lobes"],
+    // The compiled livers of `solver_lobes/<species>` share the runtime of `solver`, so only the
+    // runtime is taken from there and the heart model beside it is left where it is.
+    entries: [
+      "lobes-data.json",
+      "solver_lobes",
+      {from: "solver", to: "runtime", files: ["engine.wasm", "mathlib.wasm", "sbmlsim-core.js", "LICENSE", "THIRD_PARTY.md"]},
+    ],
     provenanceOf: "lobes-data.json",
   },
 };
+
+/** Where an entry comes from in the checkout, and what it is called in the application. */
+function sourceOf(entry) {
+  return typeof entry === "string" ? entry : entry.from;
+}
+
+function targetOf(entry) {
+  return typeof entry === "string" ? entry : entry.to ?? entry.from;
+}
+
+function describeEntries(app) {
+  return app.entries.map(entry => sourceOf(entry)).join(", ");
+}
 
 function parseArguments(argv) {
   const options = {pkpdsim: process.env.PKPDSIM_DIR ?? resolve(root, "..", "pkpdsim"), apps: [], list: false};
@@ -112,7 +131,7 @@ async function syncApp(name, examples, pkpdsim) {
   }
   const missing = [];
   for (const entry of app.entries) {
-    if (!(await exists(join(examples, entry)))) missing.push(entry);
+    if (!(await exists(join(examples, sourceOf(entry))))) missing.push(sourceOf(entry));
   }
   if (missing.length === app.entries.length) {
     console.log(`  ${name}: skipped, the checkout has no ${missing.join(", ")}`);
@@ -128,8 +147,17 @@ async function syncApp(name, examples, pkpdsim) {
   await mkdir(target, {recursive: true});
   let bytes = 0;
   for (const entry of app.entries) {
-    const from = join(examples, entry);
-    await cp(from, join(target, entry), {recursive: true, force: true});
+    const from = join(examples, sourceOf(entry));
+    const into = join(target, targetOf(entry));
+    if (typeof entry !== "string" && entry.files !== undefined) {
+      await mkdir(into, {recursive: true});
+      for (const file of entry.files) {
+        await cp(join(from, file), join(into, file), {force: true});
+        bytes += await sizeOf(join(from, file));
+      }
+      continue;
+    }
+    await cp(from, into, {recursive: true, force: true});
     bytes += await sizeOf(from);
   }
   const data = JSON.parse(await readFile(join(examples, app.provenanceOf), "utf8"));
@@ -138,12 +166,12 @@ async function syncApp(name, examples, pkpdsim) {
     `${JSON.stringify({
       synced_at: new Date().toISOString(),
       pkpdsim: {path: pkpdsim, ...(await gitDescribe(pkpdsim))},
-      entries: app.entries,
+      entries: app.entries.map(entry => targetOf(entry)),
       data_provenance: data.provenance ?? null,
       schema_version: data.schema_version ?? null,
     }, null, 2)}\n`,
   );
-  console.log(`  ${name}: ${app.entries.join(", ")} (${megabytes(bytes)}) into ${app.target}`);
+  console.log(`  ${name}: ${describeEntries(app)} (${megabytes(bytes)}) into ${app.target}`);
   return true;
 }
 
@@ -151,7 +179,7 @@ async function main() {
   const options = parseArguments(process.argv.slice(2));
   if (options.list) {
     for (const [name, app] of Object.entries(APPS)) {
-      console.log(`${name}: ${app.entries.join(", ")} -> ${app.target}`);
+      console.log(`${name}: ${describeEntries(app)} -> ${app.target}`);
     }
     return;
   }

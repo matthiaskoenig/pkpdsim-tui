@@ -1,0 +1,388 @@
+/*
+ * A surface people stand around: no browser furniture, no scrolling, dark enough that the
+ * anatomy is the brightest thing in the room, and every text block large enough to read from
+ * an arm's length away.
+ */
+
+:root {
+  --ink: #e8eef5;
+  --ink-dim: #8da2b8;
+  --surface: #070b10;
+  --panel: rgba(18, 26, 36, 0.82);
+  --panel-line: rgba(126, 160, 196, 0.26);
+  --arterial: #e2574c;
+  --venous: #4d8bf0;
+  --portal: #a06cd5;
+  --accent: #27b3ac;
+  --warn: #e8a33d;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: ui-sans-serif, "Inter", "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+}
+
+.surface {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(39, 179, 172, 0.10), transparent 62%),
+    var(--surface);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A panel at an edge of the table, rotated so the person standing there reads it upright. */
+.edge {
+  position: absolute;
+  max-width: 22rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.9rem;
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* The panels sit in two opposite corners: the bands own the middle of the near and far edges,
+   and the middle of the surface belongs to the objects. */
+.edge--top-left {
+  left: 1.5rem;
+  top: 1.5rem;
+}
+
+.edge--bottom-right {
+  right: 1.5rem;
+  bottom: 1.5rem;
+  transform: rotate(180deg);
+}
+
+@media (max-width: 1500px) {
+  .edge {
+    max-width: 18rem;
+    font-size: 0.82rem;
+  }
+}
+
+.edge h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.legend {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: grid;
+  grid-template-columns: 1.9rem 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.legend .marker {
+  display: inline-grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 50%;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.legend .value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+}
+
+.legend li[data-live="true"] .marker {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.legend li[data-live="true"] .value {
+  color: var(--ink);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.status .dot {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  flex: none;
+}
+
+.status[data-state="connected"] .dot {
+  background: var(--accent);
+}
+
+.status[data-state="connecting"] .dot {
+  background: var(--warn);
+}
+
+.status[data-state="error"] .dot {
+  background: var(--arterial);
+}
+
+.status .detail {
+  color: var(--ink-dim);
+}
+
+.hint {
+  margin: 0.55rem 0 0;
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+}
+
+.boot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.6rem;
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface);
+  transition: opacity 240ms ease;
+}
+
+.boot[hidden] {
+  display: none;
+}
+
+.boot h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.boot p {
+  margin: 0;
+  color: var(--ink-dim);
+  max-width: 36rem;
+}
+
+.boot code {
+  color: var(--ink);
+  font-size: 0.95em;
+}
+
+.boot--error h1 {
+  color: var(--warn);
+}
+
+.credit {
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.stat-label {
+  fill: var(--ink-dim);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  fill: var(--ink);
+  font-size: 34px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-unit {
+  fill: var(--ink-dim);
+  font-size: 14px;
+}
+
+.stat-delta {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.token-ring {
+  fill: rgba(10, 15, 21, 0.55);
+  stroke: var(--panel-line);
+  stroke-width: 2;
+}
+
+.token-ring--unassigned {
+  stroke-dasharray: 6 6;
+}
+
+.token-track {
+  fill: none;
+  stroke: rgba(126, 160, 196, 0.22);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.token-arc {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.token-detent {
+  stroke: rgba(232, 238, 245, 0.55);
+  stroke-width: 2;
+}
+
+.token-pointer {
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.token-marker {
+  fill: var(--ink-dim);
+  font-size: 15px;
+  font-weight: 600;
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  fill: rgba(18, 26, 36, 0.9);
+  stroke: var(--panel-line);
+  stroke-width: 1;
+}
+
+.card--unassigned {
+  stroke: var(--warn);
+}
+
+.card-title {
+  fill: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.card-value {
+  fill: var(--accent);
+  font-size: 30px;
+  font-weight: 600;
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-note {
+  fill: var(--ink-dim);
+  font-size: 14px;
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.touch {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* The course below the scene, drawn by `createPlot`. */
+.plot-axis,
+.plot-tick {
+  stroke: rgba(224, 233, 242, 0.25);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.plot-tick-label {
+  fill: var(--ink-dim);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.plot-cursor {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+  opacity: 0.6;
+}
+
+.plot-cursor-label {
+  fill: var(--ink);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.trace-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* The same individual without the intervention, behind the solved one. */
+.trace-reference {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 6;
+  opacity: 0.45;
+}
+
+.trace-value {
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: rgba(7, 11, 16, 0.8);
+  stroke-width: 3;
+}
+
+/* While a solve is running the course it replaces steps back a little. */
+.layer--plot {
+  transition: opacity 120ms linear;
+}
+
+.scene[data-solving="true"] .layer--plot {
+  opacity: 0.72;
+}

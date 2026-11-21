@@ -3,8 +3,8 @@ import reference from "../../../packages/cardio-sim/test/fixtures/pressure-refer
 import {parsePressureReference} from "@pkpdsim-tui/cardio-sim";
 import {roleForMarker, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken} from "@pkpdsim-tui/tuio-input";
-import {CARDIOVASCULAR_ROLES, controlsFromTokens, unassignedMarkers} from "../src/roles.ts";
-import {cardRotation} from "../src/tokens.ts";
+import {CARDIOVASCULAR_ROLES, controlsFromTokens} from "../src/roles.ts";
+import {unassignedMarkers} from "@pkpdsim-tui/tuio-input";
 
 const pressure = parsePressureReference(reference);
 
@@ -89,22 +89,5 @@ describe("unassignedMarkers", () => {
   it("reports each unknown marker once", () => {
     expect(unassignedMarkers(CARDIOVASCULAR_ROLES, tokens(token(1, 42, 0), token(2, 42, 0))))
       .toEqual([42]);
-  });
-});
-
-describe("cardRotation", () => {
-  it("turns a card to the nearest edge of the table", () => {
-    expect(cardRotation(0.5, 0.9)).toBe(0);
-    expect(cardRotation(0.5, 0.1)).toBe(180);
-    expect(cardRotation(0.1, 0.5)).toBe(90);
-    expect(cardRotation(0.9, 0.5)).toBe(-90);
-  });
-
-  it("faces the near edge in the middle of the table", () => {
-    expect(cardRotation(0.5, 0.5)).toBe(0);
-  });
-
-  it("picks one edge in a corner", () => {
-    expect([0, 90]).toContain(cardRotation(0.08, 0.92));
   });
 });

@@ -4,21 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="The control surface of the TUIO 2.0 simulator of pkpdsim-tui: tokens and touches on a table, sent to a table application as TUIO 2.0 bundles.">
-  <title>TUIO 2.0 simulator | pkpdsim-tui</title>
+  <meta name="description" content="The control surface of the TUIO simulator of pkpdsim-tui: tokens and touches on a table, sent to a table application as TUIO 2.0 or TUIO 1.1, over WebSocket or UDP.">
+  <title>TUIO simulator | pkpdsim-tui</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%23007c78'/%3E%3Ccircle%20cx='12'%20cy='13'%20r='5'%20fill='none'%20stroke='white'%20stroke-width='2'/%3E%3Ccircle%20cx='22'%20cy='22'%20r='3'%20fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header class="bar">
-    <h1>TUIO 2.0 simulator</h1>
-    <div class="status" id="status" data-state="connecting">
-      <span class="dot"></span>
-      <span id="status-text">Connecting to the simulator...</span>
+    <div class="bar-row">
+      <h1>TUIO simulator</h1>
+      <div class="status" id="status" data-state="connecting">
+        <span class="dot"></span>
+        <span id="status-text">Connecting to the simulator...</span>
+      </div>
     </div>
-    <div class="fields">
-      <label for="marker">Next marker
-        <input id="marker" type="number" min="0" max="999" step="1" value="1" inputmode="numeric">
+    <div class="bar-row fields">
+      <label for="version">TUIO
+        <select id="version">
+          <option value="2.0" selected>2.0</option>
+          <option value="1.1">1.1</option>
+        </select>
+      </label>
+      <label for="transport">Connection
+        <select id="transport">
+          <option value="websocket" selected>WebSocket</option>
+          <option value="udp">UDP</option>
+        </select>
+      </label>
+      <label for="port">Port
+        <input id="port" type="number" min="1" max="65535" step="1" value="3333" inputmode="numeric">
+      </label>
+      <label for="marker">Next object id
+        <input id="marker" type="number" min="0" max="999" step="1" value="0" inputmode="numeric">
       </label>
       <label for="width">Surface
         <input id="width" type="number" min="1" max="65535" step="1" value="1920" inputmode="numeric" aria-label="The width of the surface in pixels">
@@ -26,24 +43,44 @@
         <input id="height" type="number" min="1" max="65535" step="1" value="1080" inputmode="numeric" aria-label="The height of the surface in pixels">
         <span class="unit">px</span>
       </label>
-      <button id="clear" type="button">Clear surface</button>
+    </div>
+    <div class="bar-row fields">
+      <label class="grow" for="app">Application
+        <input id="app" type="url" list="apps" placeholder="http://localhost:5173" spellcheck="false" autocomplete="off">
+        <datalist id="apps">
+          <option value="http://localhost:5173">Cardiovascular circulation</option>
+          <option value="http://localhost:5174">Lobed liver</option>
+          <option value="http://localhost:5175">Glimepiride</option>
+        </datalist>
+      </label>
+      <button id="load" type="button">Show it under the surface</button>
+      <button id="unload" type="button" class="ghost">Hide it</button>
+      <button id="clear" type="button" class="ghost">Clear surface</button>
     </div>
   </header>
 
   <main class="stage" id="stage">
-    <svg id="table" class="table" role="application" aria-label="The surface of the table">
-      <g id="pointers"></g>
-      <g id="tokens"></g>
-    </svg>
+    <div class="surface" id="surface">
+      <iframe class="app" id="frame" title="The table application under the surface" hidden></iframe>
+      <svg id="table" class="table" role="application" aria-label="The surface of the table">
+        <g id="pointers"></g>
+        <g id="tokens"></g>
+      </svg>
+    </div>
+    <div class="picker" id="picker" hidden role="dialog" aria-label="The object to place">
+      <p class="picker-title">Place object</p>
+      <div class="picker-grid" id="picker-grid"></div>
+    </div>
   </main>
 
   <footer class="help">
     <ul class="gestures">
       <li><b>Drag</b> empty space is a touch</li>
-      <li><b>Double click</b> places a token</li>
-      <li><b>Drag</b> a token moves it</li>
-      <li><b>Scroll</b> over a token turns it, with <b>shift</b> for finer steps</li>
-      <li><b>Middle click</b> a token removes it</li>
+      <li><b>Double click</b> places the next object</li>
+      <li><b>Right double click</b> picks which object to place</li>
+      <li><b>Drag</b> an object moves it</li>
+      <li><b>Scroll</b> over an object turns it, with <b>shift</b> for finer steps</li>
+      <li><b>Middle click</b> an object removes it</li>
     </ul>
     <p class="counts" id="counts"></p>
   </footer>
