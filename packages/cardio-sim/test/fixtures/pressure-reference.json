@@ -1,0 +1,109 @@
+{
+  "arterial_pressure": 95.0,
+  "venous_pressure": 5.0,
+  "portal_pressure": 10.0,
+  "hepatic_pressure": 8.0,
+  "cardiac_output": 6.500000000000002,
+  "portal_resistance": 1.4987854251012163,
+  "hepatic_resistance": 1.6751131221719473,
+  "organs": [
+    {
+      "id": "he",
+      "name": "Heart",
+      "portal": false,
+      "resistance": 320.3653846153852,
+      "flow": 0.280929227444624
+    },
+    {
+      "id": "br",
+      "name": "Brain",
+      "portal": false,
+      "resistance": 106.78846153846118,
+      "flow": 0.8427876823338765
+    },
+    {
+      "id": "li",
+      "name": "Liver",
+      "portal": false,
+      "resistance": 190.57633136094685,
+      "flow": 0.4565099945975146
+    },
+    {
+      "id": "ki",
+      "name": "Kidney",
+      "portal": false,
+      "resistance": 67.4453441295545,
+      "flow": 1.3344138303619697
+    },
+    {
+      "id": "st",
+      "name": "Stomach",
+      "portal": true,
+      "resistance": 1210.269230769232,
+      "flow": 0.07023230686115606
+    },
+    {
+      "id": "si",
+      "name": "Small intestine",
+      "portal": true,
+      "resistance": 121.02692307692323,
+      "flow": 0.7023230686115605
+    },
+    {
+      "id": "la",
+      "name": "Large intestine",
+      "portal": true,
+      "resistance": 302.567307692308,
+      "flow": 0.28092922744462423
+    },
+    {
+      "id": "sp",
+      "name": "Spleen",
+      "portal": true,
+      "resistance": 403.42307692307736,
+      "flow": 0.21069692058346817
+    },
+    {
+      "id": "pa",
+      "name": "Pancreas",
+      "portal": true,
+      "resistance": 1210.269230769232,
+      "flow": 0.07023230686115606
+    },
+    {
+      "id": "mu",
+      "name": "Muscle",
+      "portal": false,
+      "resistance": 75.38009049773764,
+      "flow": 1.1939492166396528
+    },
+    {
+      "id": "sk",
+      "name": "Skin",
+      "portal": false,
+      "resistance": 256.2923076923077,
+      "flow": 0.3511615343057806
+    },
+    {
+      "id": "ad",
+      "name": "Adipose",
+      "portal": false,
+      "resistance": 256.2923076923077,
+      "flow": 0.3511615343057806
+    },
+    {
+      "id": "bo",
+      "name": "Bone",
+      "portal": false,
+      "resistance": 256.2923076923077,
+      "flow": 0.3511615343057806
+    },
+    {
+      "id": "go",
+      "name": "Gonads",
+      "portal": false,
+      "resistance": 25629.23076923077,
+      "flow": 0.0035116153430578066
+    }
+  ]
+}
