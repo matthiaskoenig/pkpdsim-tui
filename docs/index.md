@@ -9,7 +9,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 ## One application, several tables
 
-Everything here is one application. It opens on the body of the pkpdsim physiology, with a card at each of the two long edges for every table it carries and a line from each card to the organ its table is about. Touching a card, or the organ it points at, opens that table; the switch in the panels moves between them and back to the body. One build, one address, one port.
+Everything here is one application. It opens on the body of the pkpdsim physiology, with a card for every table it carries along the edge the visitors stand at, and a line from each card to the organ its table is about. Touching a card, or the organ it points at, opens that table; the switch in the panel moves between them and back to the body. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ npm run sync      # copies the exported models and reference data of a pkpdsim c
 npm run dev
 ```
 
-`npm run dev` starts the application and the [TUIO simulator](simulator.md) together, and serves both on one port:
+`npm run dev` starts the application and the [TUIO simulator](simulator.md) together, and serves both on one port. The application finds the tracker of that server by itself, so there is nothing to add to its address:
 
 | Address | What it is |
 | --- | --- |
@@ -36,7 +36,17 @@ npm run dev
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
 
-Without a table the application runs on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body. On the surface of the simulator the objects are placed with a double click and turned with the wheel; the application under it follows them, because the development server carries the tracker too, at `/tuio`.
+### Which one do I want?
+
+| What you want to see | What to run | What to open |
+| --- | --- | --- |
+| The application alone, driven by the mouse | `npm run dev:app` | `http://localhost:5173/` |
+| The objects of a table, on a surface you do not have to own | `npm run dev` | `http://localhost:5173/simulator/` |
+| The application as it will stand on the table, with the objects beside it | `npm run dev` | `http://localhost:5173/` in one window, `http://localhost:5173/simulator/` in another |
+| The built application, as it will be deployed | `npm run build && npm run preview` | `http://localhost:4173/` |
+| A real table | `npm run build`, serve `apps/table/dist` | `http://<server>/?tuio=<table host>:<table port>`, see [Run on a table](table.md) |
+
+Both the mouse and the objects work while `npm run dev` is running: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body, while the simulator puts its own objects on the same surface. On the surface of the simulator the objects are placed with a double click and turned with the wheel. `?tuio=off` keeps a page on the mouse alone, and `?tuio=<host>:<port>` points it at a tracker somewhere else.
 
 Because everything is on one port, a table on another machine is one forwarded port:
 
@@ -57,7 +67,18 @@ The vocabulary is the same in every application, so a visitor who learned one ha
 
 Touches stay for what touches are good at: moving a panel, scrubbing a time course, switching a mode. Two switches every table carries are which table this is and whose body it is, male or female, because neither is a value a dial holds: one is another table and the other is a different export of the model. The body holds across a switch, so the circulation, the liver and the drug are solved for the same person.
 
-Each table also says in words what it is and what it is showing. A panel at each of two opposite corners carries the title, a sentence a visitor who is not a clinician understands, two or three things worth trying, and a reading of the state the objects have put the body in, which changes as they are moved. The numbers at the edges are for whoever wants them; the sentence is for everybody else.
+Each table also says in words what it is and what it is showing. One panel, in the corner of the edge the visitors stand at, carries the title, a reading of the state the objects have put the body in, which changes as they are moved, and two things worth trying. The numbers at the edge are for whoever wants them; the sentence is for everybody else.
+
+Everything that is not needed at a glance waits behind the element it belongs to: hovering a number, an object, an organ or a card with the mouse, or resting a finger on it at the table, opens a note that says what it is. That is what keeps the surface short enough to read in a room full of people.
+
+## On show
+
+The table is made for a visitor who has a minute, not for a reader. What that costs the design:
+
+- **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
+- **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
+- **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.
+- **Nothing is permanent.** Lifting an object undoes it, and every table is one touch away from the body it belongs to.
 
 ## What runs the model
 

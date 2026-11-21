@@ -149,3 +149,8 @@
 .pulse-key--ventricle {
   fill: var(--venous);
 }
+
+/* The circle around an organ a finger or a pointer has to find to open its note. */
+.organ-field {
+  fill: transparent;
+}

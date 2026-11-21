@@ -62,7 +62,8 @@ body {
   pointer-events: none;
 }
 
-/* A panel at an edge of the table, rotated so the person standing there reads it upright. */
+/* The panel at the edge of the table the people stand at. There is one: the table is read from
+   one side, and the same words twice only take the room the body needs. */
 .edge {
   position: absolute;
   max-width: 22rem;
@@ -75,17 +76,11 @@ body {
   line-height: 1.45;
 }
 
-/* The panels sit in two opposite corners: the bands own the middle of the near and far edges,
-   and the middle of the surface belongs to the objects. */
-.edge--top-left {
+/* The panel keeps to the near corner: the band owns the middle of the top edge, and the middle
+   of the surface belongs to the body and to the objects. */
+.edge--near {
   left: 1.5rem;
   top: 1.5rem;
-}
-
-.edge--bottom-right {
-  right: 1.5rem;
-  bottom: 1.5rem;
-  transform: rotate(180deg);
 }
 
 @media (max-width: 1500px) {
@@ -105,9 +100,45 @@ body {
   color: var(--ink);
 }
 
-.edge .about {
-  margin: 0 0 0.5rem;
+/* The mark that says there is more behind an element than it shows. */
+.info-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin-left: 0.4em;
+  border: 1px solid var(--panel-line);
+  border-radius: 50%;
   color: var(--ink-dim);
+  font-size: 0.68em;
+  font-style: normal;
+  font-weight: 600;
+  vertical-align: 0.12em;
+}
+
+[data-info] {
+  pointer-events: auto;
+  cursor: help;
+}
+
+[data-info]:hover .info-dot {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* What an element is, for the visitor who hovers it or rests a finger on it. */
+.info-note {
+  position: fixed;
+  z-index: 20;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.6rem;
+  background: rgba(10, 18, 26, 0.96);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  pointer-events: none;
 }
 
 /* What the objects on the table are doing to the body, in words rather than in numbers. */
@@ -371,6 +402,12 @@ body {
   stroke-linecap: round;
 }
 
+.token-badge {
+  fill: rgba(10, 15, 21, 0.92);
+  stroke: var(--panel-line);
+  stroke-width: 2;
+}
+
 .token-marker {
   fill: var(--ink-dim);
   font-size: 15px;
@@ -415,6 +452,63 @@ body {
   fill: none;
   stroke: var(--accent);
   stroke-width: 2;
+}
+
+/* The picture of an object inside its ring: what it is, and what turning it does to it. */
+.glyph-line path {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+.glyph-fill path {
+  fill: var(--accent);
+  fill-opacity: 0.55;
+  stroke: none;
+}
+
+.glyph-wall {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.glyph-fill .glyph-lumen {
+  fill: var(--arterial);
+  fill-opacity: 0.6;
+  stroke: none;
+}
+
+.glyph-hand {
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* The heart keeps the time of the rate it is set to, so the object beats in the hand. */
+.glyph[data-glyph="heart"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: token-beat var(--beat, 0.8s) ease-in-out infinite;
+}
+
+@keyframes token-beat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(0.86); }
+  34% { transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph[data-glyph="heart"] {
+    animation: none;
+  }
+}
+
+/* The column a number of the band stands in, which is what a finger has to find. */
+.stat-field {
+  fill: transparent;
 }
 
 /* The course below the scene, drawn by `createPlot`. */

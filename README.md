@@ -13,7 +13,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 ## One application, several tables
 
-Everything here is one application: it opens on the human body, with a card for every table it carries, and a touch on a card or on the organ it points at opens that table. One build, one address, one port.
+Everything here is one application: it opens on the human body, with a card for every table it carries along the edge the visitors stand at, and a touch on a card or on the organ it points at opens that table. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
@@ -36,7 +36,14 @@ npm run dev           # the application and the TUIO simulator, both on http://l
 | `http://localhost:5173/simulator/` | the simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | the same, opened on one table |
 
-Without a table the application runs on the mouse: digit keys place an object, dragging moves it, the wheel turns it, backspace lifts it, escape leaves a table for the body. On the surface of the simulator the objects are placed with a double click and turned with the wheel, and the application under it follows them: the development server carries the tracker as well, at `/tuio`. The Unity simulator of Interactive Scape, and a real table, are addressed with `?tuio=host:port` instead.
+Nothing has to be added to those addresses: a page asks the server it came from whether it carries a tracker, and the development server does, at `/tuio`. The mouse works at the same time as the objects: digit keys place an object, dragging moves it, the wheel turns it, backspace lifts it, escape leaves a table for the body. On the surface of the simulator the objects are placed with a double click and turned with the wheel, and the application under it follows them. `?tuio=off` keeps a page on the mouse alone; the Unity simulator of Interactive Scape, and a real table, are addressed with `?tuio=host:port`.
+
+| What you want to see | What to run | What to open |
+| --- | --- | --- |
+| the application alone, on the mouse | `npm run dev:app` | `http://localhost:5173/` |
+| the objects of a table, on a surface you do not have to own | `npm run dev` | `http://localhost:5173/simulator/` |
+| the application as it will stand on the table, with the objects beside it | `npm run dev` | the two addresses above, in two windows |
+| the built application | `npm run build && npm run preview` | `http://localhost:4173/` |
 
 Everything is on one port, so a table on another machine is one forwarded port: `ssh -L 5173:localhost:5173 <machine>`, then the addresses above in the browser at home. `npm run dev -- --no-simulator` leaves the simulator out, and `npm run preview` serves the built application the same way.
 

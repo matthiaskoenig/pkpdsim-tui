@@ -45,6 +45,8 @@ interface OrganVisual {
   readonly x: number;
   readonly y: number;
   readonly disc: SVGCircleElement;
+  /** The circle a finger has to find, which is wider than the organ it belongs to. */
+  readonly field: SVGCircleElement;
   readonly supply: SVGPathElement;
   readonly drain: SVGPathElement;
   readonly label: SVGTextElement;
@@ -134,6 +136,10 @@ export function createScene(parent: SVGSVGElement, body: Body, reference: Pressu
     const disc = svg("circle", {
       class: "organ", cx: anchor.x, cy: anchor.y, r: 2, "fill-opacity": 0.88,
     }, discs);
+    // A visitor who wants to know what an organ is doing hovers it, or rests a finger on it.
+    const field = svg("circle", {
+      class: "organ-field", cx: anchor.x, cy: anchor.y, r: 4.2,
+    }, discs);
     // Which way a name reads out of the body. The default follows the midline, but the organs
     // of the upper abdomen sit on top of each other and are placed by hand.
     const side = LABEL_SIDE[organ.id] ?? (anchor.x <= 0 ? -1 : 1);
@@ -147,7 +153,7 @@ export function createScene(parent: SVGSVGElement, body: Body, reference: Pressu
     }, labels);
     organs.push({
       id: organ.id, name: organ.name, portal: organ.portal, referenceFlow: organ.flow,
-      side, x: anchor.x, y: anchor.y, disc, supply, drain, label, value,
+      side, x: anchor.x, y: anchor.y, disc, field, supply, drain, label, value,
     });
   }
 
@@ -187,6 +193,15 @@ export function createScene(parent: SVGSVGElement, body: Body, reference: Pressu
         attributes(organ.supply, {"stroke-width": vesselWidth(flow)});
         attributes(organ.drain, {"stroke-width": vesselWidth(flow)});
         organ.value.textContent = `${flow.toFixed(2)} l/min`;
+      const share = solution.co > 0 ? (100 * flow) / solution.co : 0;
+      const note = `${organ.name}: ${flow.toFixed(2)} litres a minute, `
+        + `${share.toFixed(0)} out of every 100 the heart moves`
+        + (organ.portal
+          ? ". Its blood goes on through the portal vein to the liver before it returns."
+          : ".");
+      organ.disc.setAttribute("data-info", note);
+      organ.field.setAttribute("data-info", note);
+      organ.label.setAttribute("data-info", note);
         const offset = organ.side * (organRadius(flow) + 1.1);
         organ.label.setAttribute("x", String(organ.x + offset));
         organ.value.setAttribute("x", String(organ.x + offset));

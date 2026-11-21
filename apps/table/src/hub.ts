@@ -1,19 +1,18 @@
 /**
  * The body: what the application shows while no table is open. One figure of the pkpdsim
- * physiology in the middle, a card per table at each of the two long edges so that nobody has to
- * walk around the table to read them, and a line from every card to the organ its table is
- * about. A finger on a card, or on the organ it points at, opens that table.
+ * physiology, a card per table along the edge the people stand at, and a line from every card
+ * to the organ its table is about. A finger on a card, or on the organ it points at, opens that
+ * table. The card says the little a visitor needs to choose; what the table is waits behind the
+ * card as a note.
  */
 
 import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
 import type {Body} from "@pkpdsim-tui/cardio-sim";
+import {openTableInput} from "@pkpdsim-tui/tuio-input";
+import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  createMockTableInput, createTuioTableInput, trackerOptions,
-} from "@pkpdsim-tui/tuio-input";
-import type {
-  TableInput, TableSnapshot, TableStatus, TrackerOptions,
-} from "@pkpdsim-tui/tuio-input";
-import {attributes, chooseQuery, createChrome, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
+  attributes, chooseQuery, createChrome, createInfo, formatNumber, pointerPoints, svg,
+} from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableApp, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
 import {OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
@@ -21,14 +20,21 @@ import {wrapText} from "./wrap.ts";
 
 const MOUSE_HINT = "Click a card to open its table. Escape brings you back here.";
 const TABLE_HINT = "Hold a finger on a card to open its table.";
+const BOTH_HINT = "Hold a finger on a card, or click it, to open its table.";
 /** How long a finger rests on a card before it opens, so that a hand passing over opens nothing. */
 const DWELL = 320;
 /** The card at the edge of the table, in pixels. */
-const CARD = {height: 164, gap: 26, margin: 26, minWidth: 236, maxWidth: 352} as const;
+const CARD = {height: 136, gap: 26, margin: 26, minWidth: 236, maxWidth: 352} as const;
+/** The air above the body, which the cards do not take. */
+const TOP_GAP = 30;
+/** How much of the room between the cards and the top edge the body takes. */
+const BODY_SHARE = 0.94;
+/** A small number as it is spoken, for the sentence which counts the tables. */
+const COUNTS = ["No", "One", "Two", "Three", "Four", "Five", "Six"];
 const PADDING = 20;
 /** How much of a sentence a card holds: characters on a line at its narrowest, and lines. */
 const COLUMNS = 34;
-const LINES = 4;
+const LINES = 2;
 /** How far the body stays away from the cards. */
 const BODY_GAP = 26;
 /**
@@ -71,24 +77,16 @@ function cardBoxes(viewport: Viewport, count: number): readonly CardBox[] {
   }));
 }
 
-/** Where the body is drawn: the room between the two rows of cards. */
+/** Where the body is drawn: the room above the row of cards. */
 function bodyLayout(viewport: Viewport, body: Body): {scale: number; left: number; top: number} {
-  const room = viewport.height - 2 * (CARD.margin + CARD.height + BODY_GAP);
-  const scale = Math.max(room, 120) / body.height;
-  return {scale, left: viewport.width / 2, top: (viewport.height - body.height * scale) / 2};
+  const room = viewport.height - (CARD.margin + CARD.height + BODY_GAP) - TOP_GAP;
+  const scale = (Math.max(room, 120) * BODY_SHARE) / body.height;
+  return {scale, left: viewport.width / 2, top: TOP_GAP + (room - body.height * scale) / 2};
 }
 
 function anchorOf(body: Body, id: string): {x: number; y: number} {
   const anchor = body.anchors[id];
   return anchor === undefined ? {x: 0, y: body.height / 2} : {x: anchor[0], y: anchor[1]};
-}
-
-/** The same point of the body as the other row sees it, which is the surface turned around. */
-function mirrored(box: CardBox, viewport: Viewport): CardBox {
-  return {
-    x: viewport.width - box.x - box.width, y: viewport.height - box.y - box.height,
-    width: box.width, height: box.height,
-  };
 }
 
 function inside(box: CardBox, x: number, y: number): boolean {
@@ -102,7 +100,7 @@ function within(point: {x: number; y: number}, x: number, y: number, radius: num
 /** What a person at the table should do, which depends on how the page was started. */
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
-  if (state === "connected") return TABLE_HINT;
+  if (state === "connected") return tracker.discovered ? BOTH_HINT : TABLE_HINT;
   return `Start a TUIO ${tracker.version} tracker on ${tracker.address}, or drop "?tuio" from `
     + "the address to drive the table with the mouse.";
 }
@@ -113,6 +111,8 @@ function createCard(
 ): CardView {
   const group = svg("g", {
     class: "hub-card", "data-active": "false", role: "button", tabindex: 0,
+    // What the table is, for the visitor who wants more than the card says.
+    "data-info": entry.about,
   }, parent);
   const plate = svg("rect", {class: "hub-card-plate", rx: 18}, group);
   const badge = svg("circle", {class: "hub-card-badge", r: 17}, group);
@@ -120,7 +120,7 @@ function createCard(
   number.textContent = String(index + 1);
   const title = svg("text", {class: "hub-card-title"}, group);
   title.textContent = entry.title;
-  const lines = wrapText(entry.about, COLUMNS, LINES).map(text => {
+  const lines = wrapText(entry.blurb, COLUMNS, LINES).map(text => {
     const element = svg("text", {class: "hub-card-line"}, group);
     element.textContent = text;
     return element;
@@ -169,20 +169,22 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   art.innerHTML = body.svg;
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
-  const rows = ["hub-row hub-row--near", "hub-row hub-row--far"]
-    .map(className => svg("g", {class: className}, scene));
+  const row = svg("g", {class: "hub-row"}, scene);
 
   const open = (entry: TableEntry): void => {
     chooseQuery("app", entry.id, OVERVIEW);
   };
 
-  const tracker = trackerOptions(host.parameters);
-  const call = tracker.tracker ? "Touch to open" : "Click to open";
-  const cards: CardView[][] = rows.map(row =>
-    TABLES.map((entry, index) => createCard(row, entry, index, call, open)));
-  const leaders = TABLES.map(() => [
-    svg("path", {class: "hub-link"}, links), svg("path", {class: "hub-link"}, links),
-  ]);
+  const {input, tracker} = await openTableInput({
+    parameters: host.parameters, element: host.surface, markers: [],
+  });
+  // What a visitor is invited to do, which depends on what the page is driven by.
+  const call = !tracker.tracker
+    ? "Click to open"
+    : tracker.discovered ? "Touch or click to open" : "Touch to open";
+  const cards: CardView[] = TABLES.map(
+    (entry, index) => createCard(row, entry, index, call, open));
+  const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
   const subjects = new Set(TABLES.map(entry => entry.organ));
   const marks = TABLES.map(entry => {
     // An organ another table is about already carries that table's number, so it is marked once.
@@ -192,10 +194,13 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       organs: marked,
       discs: marked.map(organ => svg("circle", {
         class: "hub-organ", "data-primary": String(organ === entry.organ),
+        "data-info": entry.about,
       }, organs)),
       number: svg("text", {class: "hub-organ-number", "text-anchor": "middle"}, organs),
       // A finger is wider than the dot it aims at, so the organ is opened from around it.
-      hit: svg("circle", {class: "hub-organ-hit", r: ORGAN_HIT.min}, organs),
+      hit: svg("circle", {
+        class: "hub-organ-hit", r: ORGAN_HIT.min, "data-info": entry.about,
+      }, organs),
       centre: {x: 0, y: 0},
       reach: ORGAN_HIT.min,
     };
@@ -204,11 +209,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     mark.hit.addEventListener("click", () => open(mark.entry));
   }
   for (const [index, mark] of marks.entries()) mark.number.textContent = String(index + 1);
-
-  const input: TableInput = tracker.tracker
-    ? createTuioTableInput(tracker)
-    // The body has no objects of its own; the mouse drives the cards through the page itself.
-    : createMockTableInput({element: host.surface, markers: []});
 
   const bodies: readonly ChoiceGroup[] = [{
     id: "sex", label: "Body", selected: sex,
@@ -224,25 +224,25 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
+  // What a table is: the note opens where a visitor hovers a card or rests a finger on it.
+  createInfo(host.surface, () => pointerPoints(snapshot, viewport));
   /** Which card each finger is on, and since when, so that a card opens on a rest and not a sweep. */
   const dwelling = new Map<number, {entry: TableEntry; since: number}>();
   let active = "";
 
   const describe = (): string => `The ${sex} reference body of pkpdsim, `
-    + `${formatNumber(body.height, 0)} cm tall. Three tables sit on it: `
-    + `${TABLES.map(entry => entry.label.toLowerCase()).join(", ")}.`;
+    + `${formatNumber(body.height, 0)} cm tall. `
+    + `${COUNTS[TABLES.length] ?? String(TABLES.length)} tables sit on it.`;
 
   const draw = (): void => {
     const layout = bodyLayout(viewport, body);
     const placed: {centre: {x: number; y: number}; reach: number; hit: SVGCircleElement}[] = [];
     art.setAttribute("transform", `translate(${layout.left} ${layout.top}) scale(${layout.scale})`);
     const boxes = cardBoxes(viewport, TABLES.length);
-    for (const [row, views] of cards.entries()) {
-      for (const [index, card] of views.entries()) {
-        const box = boxes[index];
-        if (box === undefined) continue;
-        placeCard(card, row === 0 ? box : mirrored(box, viewport));
-      }
+    for (const [index, card] of cards.entries()) {
+      const box = boxes[index];
+      if (box === undefined) continue;
+      placeCard(card, box);
     }
     for (const [index, mark] of marks.entries()) {
       const box = boxes[index];
@@ -260,18 +260,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
           attributes(mark.hit, {cx: point.x, cy: point.y});
           placed.push(mark);
           attributes(mark.number, {x: point.x, y: point.y + 6});
-          const near = leaders[index]?.[0];
-          const far = leaders[index]?.[1];
-          const mirror = mirrored(box, viewport);
-          if (near !== undefined) {
-            near.setAttribute("d",
-              `M ${box.x + box.width / 2} ${box.y} L ${point.x} ${point.y + 20}`);
-          }
-          if (far !== undefined) {
-            far.setAttribute("d",
-              `M ${mirror.x + mirror.width / 2} ${mirror.y + mirror.height} `
-              + `L ${point.x} ${point.y - 20}`);
-          }
+          leaders[index]?.setAttribute("d",
+            `M ${box.x + box.width / 2} ${box.y} L ${point.x} ${point.y + 20}`);
         }
       }
     }
@@ -286,10 +276,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   };
 
   const update = (): void => {
-    for (const views of cards) {
-      for (const card of views) {
-        card.group.setAttribute("data-active", String(card.entry.id === active));
-      }
+    for (const card of cards) {
+      card.group.setAttribute("data-active", String(card.entry.id === active));
     }
     for (const mark of marks) {
       for (const disc of mark.discs) {
@@ -302,12 +290,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
         + "the objects on the table.",
       reading: describe(),
       tries: [
-        "Hold a finger, or put an object, on a card or on the organ it points at: that opens "
-          + "its table.",
-        "The body switch holds for every table: the circulation, the liver and the drug are "
-          + "solved for the same person.",
-        "Every table carries this panel: the table switch in it moves between them and back "
-          + "to the body.",
+        "Hold a finger on a card, or on the organ it points at, to open that table.",
+        "The body switch holds everywhere: all three tables are solved for the same person.",
       ],
       status, roles: [], value: () => "", live: new Set<string>(), unassigned: [],
       notice: "", hint: hintFor(tracker, status.state), credit: anatomy.attribution,
@@ -325,7 +309,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const touch of [...snapshot.pointers.values(), ...snapshot.tokens.values()]) {
       const x = touch.x * viewport.width;
       const y = touch.y * viewport.height;
-      const found = cards.flat().find(card => inside(card.box, x, y))?.entry
+      const found = cards.find(card => inside(card.box, x, y))?.entry
         ?? marks.find(mark => within(mark.centre, x, y, mark.reach))?.entry;
       if (found === undefined) continue;
       live.add(touch.sessionId);

@@ -47,7 +47,10 @@ export function formatFactor(value: number): string {
 export function formatDelta(value: number, reference: number, digits = 1): string {
   const delta = value - reference;
   if (Math.abs(delta) < 0.05 * Math.max(1e-9, Math.abs(reference)) && Math.abs(delta) < 0.1) return "";
-  return `${delta > 0 ? "+" : ""}${delta.toFixed(digits)}`;
+  const text = delta.toFixed(digits);
+  // A difference which rounds to nothing is not written as "-0": at these decimals it is none.
+  if (Number.parseFloat(text) === 0) return "";
+  return `${delta > 0 ? "+" : ""}${text}`;
 }
 
 function parseHex(color: string): [number, number, number] {

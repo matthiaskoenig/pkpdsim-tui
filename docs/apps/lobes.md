@@ -39,7 +39,7 @@ Below the liver, the portal vein and the hepatic artery come up to the hilum and
 
 ## What the table shows
 
-The five numbers at the near and the far edge, read at the day the dial points at:
+The five numbers of the band, read at the day the dial points at. Hovering one, or resting a finger on it, says what it is:
 
 | Number | What it is |
 | --- | --- |

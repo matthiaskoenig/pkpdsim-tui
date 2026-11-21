@@ -45,13 +45,26 @@ npm run simulator -- --host 0.0.0.0 --rate 30
 | `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
 | `ws://localhost:5173/tuio` | The tracker itself, which an application reaches with `?tuio=/tuio` |
 
-The control page fills that address in for you: an application on the origin of the page came through the same server as the page, so it is given `?tuio=/tuio` rather than a host and a port. One port is also one forwarded port, which is how a table is driven from another machine:
+Nothing has to be added to the address of the application: a page which was not told about a tracker asks the server it came from whether it has one at `/tuio`, and takes it when it does. A page served from a build without a tracker, for example the deployed one, finds nothing there and runs on the mouse. `?tuio=off` keeps a page on the mouse even where a tracker answers, and `?tuio=<host>:<port>` points it somewhere else.
+
+A tracker the page found this way does not take the mouse away: the objects of the simulator and the keys of the laptop put objects on the same surface, which is what makes it possible to try a table with one hand on the mouse while the simulator stands beside it. A tracker the address names is a real table, and there the page listens to the table alone.
+
+One port is also one forwarded port, which is how a table is driven from another machine:
 
 ```bash
 ssh -L 5173:localhost:5173 <machine>
 ```
 
 The **Port** field still moves the tracker, but the one port carries the tracker it was started with: change the port only when an application is pointed at the tracker directly, with `?tuio=host:port`. `npm run dev -- --tuio-port 3343` moves both ends at once.
+
+### Which of the two windows do I want?
+
+| What you want to see | What to open |
+| --- | --- |
+| The application as a visitor will meet it | `http://localhost:5173/`, and `?app=<table>` for one table |
+| The same application with a surface over it, where objects are placed and turned | `http://localhost:5173/simulator/` |
+| The two side by side, which is how a table is rehearsed | both addresses, in two windows: the application follows every object of the surface |
+| The application on the mouse alone, with no tracker in the way | `http://localhost:5173/?tuio=off`, or `npm run dev:app` |
 
 ### What it speaks, and where
 

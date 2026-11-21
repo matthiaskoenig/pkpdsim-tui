@@ -8,16 +8,17 @@ import {DEFAULT_HEART_CONTROLS} from "@pkpdsim-tui/cardio-sim";
 import type {HeartControls, HeartSummary} from "@pkpdsim-tui/cardio-sim";
 import {formatNumber} from "@pkpdsim-tui/tui-kit";
 
-export const CARDIO_TITLE = "The circulation, beat by beat";
+export const CARDIO_TITLE = "The circulation";
 
+/** The note behind the title: what this table is, for the visitor who asks. */
 export const CARDIO_ABOUT = "The heart pushes five to six litres of blood through the body every "
-  + "minute. Narrow a vessel or change the beat, and the pressures and the flows settle "
-  + "somewhere new within a few beats.";
+  + "minute. Narrow a vessel or change the beat, and the pressures and the flows of the whole "
+  + "body settle somewhere new within a few beats. Every number here is solved from the "
+  + "circulation model of pkpdsim while you turn the objects.";
 
 export const CARDIO_TRIES: readonly string[] = [
-  "Turn the hepatic outflow up: the blood cannot leave the liver, and the pressure in front of it rises.",
-  "Turn the heart rate dial and watch the ventricle beside the heart empty and fill faster.",
-  "Take the contractility down to a failing heart and see how much blood a beat still moves.",
+  "Turn 1 up: the blood cannot leave the liver, and the pressure in front of it rises.",
+  "Turn 5 up: the heart beats faster, and the ventricle empties and fills with it.",
 ];
 
 /** How a blood pressure is spoken about: the two numbers of a cuff. */
@@ -38,40 +39,31 @@ export function cardioReading(
 ): string {
   const body = sex === "female" ? "A woman of 60 kg" : "A man of 73 kg";
   const done: string[] = [];
-  if (controls.hepatic > 1.05) {
-    done.push(`the veins which drain the liver are ${formatNumber(controls.hepatic, 1)} times as narrow`);
-  }
-  if (controls.hepatic < 0.95) done.push("the veins which drain the liver are wider than normal");
-  if (controls.portal > 1.05) {
-    done.push(`the portal vein is ${formatNumber(controls.portal, 1)} times as narrow`);
-  }
+  if (controls.hepatic > 1.05) done.push("the liver cannot let the blood out");
+  if (controls.hepatic < 0.95) done.push("the liver lets the blood out more easily");
+  if (controls.portal > 1.05) done.push("the portal vein is narrowed");
   if (controls.systemic > 1.05) done.push("the vessels of the body are narrowed");
   if (controls.systemic < 0.95) done.push("the vessels of the body are wide open");
-  if (controls.renal > 1.05) done.push("the kidneys are getting less blood");
+  if (controls.renal > 1.05) done.push("the kidneys get less blood");
   if (Math.abs(controls.heartRate - DEFAULT_HEART_CONTROLS.heartRate) > 1) {
-    done.push(`the heart beats ${formatNumber(controls.heartRate, 0)} times a minute instead of `
-      + `${formatNumber(DEFAULT_HEART_CONTROLS.heartRate, 0)}`);
+    done.push(`the heart beats ${formatNumber(controls.heartRate, 0)} times a minute`);
   }
-  if (controls.contractility < 0.95) done.push("the heart squeezes more weakly");
+  if (controls.contractility < 0.95) done.push("the heart squeezes weakly");
   if (controls.contractility > 1.05) done.push("the heart squeezes harder");
 
-  const pressure = `The blood pressure is ${bloodPressure(summary)} and the heart moves `
+  const pressure = `${bloodPressure(summary)}, `
     + `${formatNumber(summary.mean_cardiac_output, 1)} litres a minute.`;
-  if (done.length === 0) {
-    return `${body} at rest. ${pressure} Put an object on the table and turn it to change `
-      + "the circulation.";
-  }
-  const sentence = done.length === 1
-    ? done[0]
-    : `${done.slice(0, -1).join(", ")} and ${done.at(-1)}`;
+  if (done.length === 0) return `${body} at rest: ${pressure}`;
+  // Two things at once are as much as a sentence carries; the objects on the table say the rest.
+  const first = done.slice(0, 2);
+  const sentence = first.length === 1 ? first[0] : `${first[0]} and ${first[1]}`;
   // What a visitor should take away from an obstructed liver: the blood backs up in front of
   // it. The portal pressure is the number that says so, and a few mmHg above the reference is
   // where a clinician starts calling it portal hypertension.
   const portal = summary.mean_portal_pressure;
   const liver = portal > reference.mean_portal_pressure + 4
-    ? " The blood is backing up in front of the liver: the pressure in the vein which feeds it "
-      + `is ${formatNumber(portal, 0)} mmHg instead of `
-      + `${formatNumber(reference.mean_portal_pressure, 0)}, which is portal hypertension.`
+    ? ` The blood backs up in front of the liver: ${formatNumber(portal, 0)} mmHg in the portal `
+      + "vein, which is portal hypertension."
     : "";
-  return `${body} in whom ${sentence}. ${pressure}${liver}`;
+  return `${body} in whom ${sentence}: ${pressure}${liver}`;
 }

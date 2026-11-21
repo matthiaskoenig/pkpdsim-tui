@@ -5,7 +5,7 @@
 | Path | What is in it |
 | --- | --- |
 | `packages/tuio-input` | TUIO 2.0 and the mouse behind one `TableInput` interface, and the role, angle and target vocabulary |
-| `packages/tui-kit` | What every application shares: the surface, the dials and cards of the objects, the bands at the edges, the panels in the corners and the course below the scene |
+| `packages/tui-kit` | What every application shares: the surface, the dials, pictures and cards of the objects, the band of numbers, the panel in the corner, the notes behind the elements and the course below the scene |
 | `packages/core-runtime` | A compiled SBML model on the sbmlsim-core WebAssembly runtime, solved with SUNDIALS IDA in a Web Worker |
 | `packages/cardio-sim` | The steady pressure network of the cardiovascular model and the loaders of the exported data |
 | `packages/lobes-sim` | The lobed liver: the states of a segment, the parameters they change and the request that solves them |
@@ -52,6 +52,8 @@ Everything that carries logic is a pure function and is tested without a socket:
 
 `createMockTableInput` is not a test double. It implements the same `TableInput` interface from mouse, touch and keyboard events, which is how a table application is developed and demonstrated without a table. An application never learns which input it is drawing.
 
+`openTableInput` decides which it is, so every table asks the same question in one line. A page whose address names a tracker listens to that tracker alone. A page which names none asks the server it came from whether it carries one at `/tuio`, and when it does, the objects of that tracker and the mouse of this machine are merged into one surface, with the sessions of the mouse numbered far above those of the tracker so the two never meet. `?tuio=off` keeps a page on the mouse. That is what makes `npm run dev`, a forwarded port over ssh and a deployed build all work without anything being added to the address.
+
 ## Adding a table
 
 1. Add a package under `packages/<name>-table` whose `src/app.ts` exports one `TableApp`: a function which takes the `TableHost` of `packages/tui-kit` and draws on the surface it is given. It looks for no element of its own, and reads the query and the assets of its table from the host.
@@ -59,7 +61,7 @@ Everything that carries logic is a pure function and is tested without a socket:
 3. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs, and the `dev:<name>` script to the root `package.json`.
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
-6. Draw it with `packages/tui-kit`: the bands, the cards, the panels and the course are shared, and only the scene of the application is its own.
+6. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
 7. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
 
 ## Conventions
@@ -67,7 +69,8 @@ Everything that carries logic is a pure function and is tested without a socket:
 - No model equations live here. The models are exported by pkpdsim or compiled from their own repository, and a port of one is held to its exported reference by a test.
 - A solve that takes longer than a frame runs in a Web Worker, the objects stay where they are, and the answer that is on the table stays on it until the next one arrives.
 - A table application never shows a browser dialog. `alert`, `confirm` and `prompt` block the surface and there is no keyboard at a table to dismiss them.
-- Anything a person reads is repeated at two opposite edges, or turned to the edge it belongs to.
+- A table is read from one side: everything a person reads stands upright for the edge the panel is in, and nothing is drawn twice.
+- What is not needed at a glance is a note behind the element it belongs to, which a hover or a finger at rest opens, and not another paragraph on the surface.
 - The reference state stays on screen when something fails. An empty table in front of an audience is the worst failure mode there is.
 - Markdown carries no hard line wraps: a paragraph, a list item or a table row is a single line.
 

@@ -18,6 +18,20 @@ http://<the machine that serves the application>:5173/?tuio=<table host>:<table 
 
 That address is the body, from which a visitor opens a table; `&app=cardiovascular` opens one of them at once, which is what a booth with one subject uses. If the browser runs on the table itself, the host is `localhost`. Start with the [simulator settings](simulator.md), which is the same protocol on the same port.
 
+A page which is told about a tracker this way listens to it alone, so a stray mouse on the machine cannot put objects on the surface of an exhibition. A page which is told nothing looks for a tracker behind its own server at `/tuio` and otherwise runs on the mouse, which is what the development server and a deployed build respectively give you.
+
+## One side of the table
+
+Everything a table draws is upright for the people standing at the edge the panel is in: the panel in the corner, the band of numbers along that edge, the cards of the tables on the body, and the card beside every object. Nothing is drawn twice.
+
+That is a decision about what these tables are for. A booth has a front, and the room that a second, upside down copy of every number would take goes to the body instead. A table that people are meant to stand around on every side would want the mirrored copies back, which is a layout change in `packages/tui-kit`: the panel, the band and the card of an object are each drawn in one place.
+
+## What a visitor is told
+
+Each table says the little that is needed at a glance, and keeps the rest behind the thing it belongs to. Hovering a number, an object, an organ or a card with a mouse, or resting a finger on it for a moment at the table, opens a note that says what it is: what a portal pressure means, what the object in somebody's hand does, how much blood an organ is getting.
+
+The objects say what they are as well. Inside the ring of an object is a picture of the thing it stands for, and the picture answers while the object is turned: a vessel narrows as its resistance goes up, a heart beats at the rate the dial is set to, a tablet fills, a clock hand walks through the days after an operation.
+
 ## Full screen
 
 A table has no keyboard and no browser chrome. Start Chrome in kiosk mode on the page:
@@ -48,7 +62,8 @@ Put the marker on the underside of a puck, and put a label and an arrow on the t
 
 1. The body is on the surface, and a finger held on a card opens its table.
 2. The panel in the corner shows a teal dot and the address of the table.
-3. Every puck is recognised: put each one down in turn and watch its card appear with the right name.
-4. Turning a puck moves the numbers at both edges of the table.
+3. Every puck is recognised: put each one down in turn and watch its card appear with the right name and its picture inside the ring.
+4. Turning a puck moves both the picture inside it and the numbers at the edge.
 5. Lifting a puck returns its number to the reference.
-6. The numbers at the far edge are upright from that side.
+6. The panel, the numbers and the cards all read upright from the side the visitors stand at.
+7. A finger resting on a number, an organ or an object opens the note behind it.

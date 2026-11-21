@@ -2,8 +2,8 @@
  * What the liver says: the numbers of the bands at the edges, and the card beside an object.
  */
 
-import {formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {PlotTrace, StatDefinition, TokenCard} from "@pkpdsim-tui/tui-kit";
+import {clamp, formatNumber} from "@pkpdsim-tui/tui-kit";
+import type {PlotTrace, StatDefinition, TokenCard, TokenGlyph} from "@pkpdsim-tui/tui-kit";
 import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {LobeBlock} from "./layout.ts";
@@ -16,22 +16,31 @@ export const LOBE_STATS: readonly StatDefinition<Sample>[] = [
   {
     id: "remnant", label: "Liver volume", unit: "% of reference",
     of: sample => (sample["f_remnant"] ?? 0) * 100, digits: 0,
+    info: "How much liver there is, against the same liver on the same day without an "
+      + "operation. A liver which has lost a part grows until it is back at its size.",
   },
   {
     id: "portal-pressure", label: "Portal pressure", unit: "mmHg",
     of: sample => sample["CV_P_po"] ?? 0, digits: 1,
+    info: "The pressure in the vein which brings the blood of the gut to the liver. The whole "
+      + "of that blood has to pass through whatever liver is left.",
   },
   {
     id: "gradient", label: "Portal gradient", unit: "mmHg",
     of: sample => (sample["CV_P_po"] ?? 0) - (sample["CV_P_li"] ?? 0), digits: 1,
+    info: "The pressure the blood loses on its way through the liver. It rises when there is "
+      + "less liver for the same blood to cross.",
   },
   {
     id: "portal-flow", label: "Portal flow", unit: "l/min",
     of: sample => sample["Qpo"] ?? 0, digits: 2,
+    info: "The blood the gut sends to the liver, about three quarters of everything the liver "
+      + "receives.",
   },
   {
     id: "arterial-flow", label: "Arterial flow", unit: "l/min",
     of: sample => sample["Qha"] ?? 0, digits: 2,
+    info: "The blood the liver gets straight from the heart, which carries the oxygen.",
   },
 ];
 
@@ -68,6 +77,13 @@ function instrumentNote(roleId: string, block: LobeBlock, context: CardContext):
   }
 }
 
+/** The picture inside the object: the instrument it is, or the clock of the days. */
+function glyphFor(role: TokenRole, level: number): TokenGlyph {
+  if (role.id === "resect") return {kind: "scalpel", level: 1};
+  if (role.mode === "position") return {kind: "clamp", level: 1};
+  return {kind: "clock", level: clamp(level, 0, 1)};
+}
+
 export function cardFor(token: TableToken, role: TokenRole | undefined, context: CardContext): TokenCard {
   if (role === undefined) {
     return {
@@ -83,11 +99,13 @@ export function cardFor(token: TableToken, role: TokenRole | undefined, context:
       note: block === undefined
         ? "Put it on a segment of the liver"
         : instrumentNote(role.id, block, context),
+      glyph: glyphFor(role, 1), info: role.description,
     };
   }
   const day = valueFromAngle(role, token.turn, context.origins.get(token.sessionId) ?? 0);
   return {
     kind: "dial", title: role.label, value: `day ${formatNumber(day, 1)}`,
-    note: `turn back from day ${formatNumber(context.days, 0)} to the operation`,
+    note: "turn back to the operation",
+    glyph: glyphFor(role, context.days > 0 ? day / context.days : 0), info: role.description,
   };
 }

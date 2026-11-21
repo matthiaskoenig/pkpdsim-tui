@@ -16,7 +16,9 @@ export interface TableEntry {
   readonly label: string;
   /** The heading of its card on the body, and the title of the page while it is open. */
   readonly title: string;
-  /** One sentence on the body: what a visitor does at this table. */
+  /** The few words on the card: what a visitor does at this table. */
+  readonly blurb: string;
+  /** The whole of it, behind the card: what the table is, for the visitor who asks. */
   readonly about: string;
   /** The organ a card points at, by the anchor id of the pkpdsim physiology. */
   readonly organ: string;
@@ -33,8 +35,10 @@ export const TABLES: readonly TableEntry[] = [
     id: "cardiovascular",
     label: "Circulation",
     title: "The circulation",
-    about: "Narrow the vessels of an organ or change the beat, and watch the pressures and the "
-      + "flows of the whole body settle somewhere new.",
+    blurb: "Narrow a vessel or change the beat.",
+    about: "The heart pushes five to six litres of blood through the body every minute. Narrow "
+      + "the vessels of an organ or change the beat, and watch the pressures and the flows of "
+      + "the whole body settle somewhere new.",
     organ: "he",
     organs: ["he", "lu"],
     assets: "cardiovascular/",
@@ -44,8 +48,10 @@ export const TABLES: readonly TableEntry[] = [
     id: "lobes",
     label: "Liver",
     title: "The lobed liver",
-    about: "Clamp the segments of a liver or cut them away, and see how much of its work the "
-      + "rest can still do.",
+    blurb: "Cut a piece away and watch it grow back.",
+    about: "A liver is built of eight pieces, each with its own blood supply. Clamp them or cut "
+      + "them away, and see how much of its work the rest can still do, and how it grows back "
+      + "over the days which follow.",
     organ: "li",
     organs: ["li"],
     assets: "lobes/",
@@ -55,8 +61,9 @@ export const TABLES: readonly TableEntry[] = [
     id: "glimepiride",
     label: "Glimepiride",
     title: "One tablet, two people",
-    about: "Swallow a tablet of a diabetes drug and follow it through the gut, the liver and the "
-      + "kidneys of one person after another.",
+    blurb: "Follow one tablet through two bodies.",
+    about: "Swallow a tablet of a diabetes drug and follow it through the gut, the liver and "
+      + "the kidneys. Change who the person is, and the same tablet does something else.",
     organ: "si",
     organs: ["si", "li", "ki"],
     assets: "glimepiride/",

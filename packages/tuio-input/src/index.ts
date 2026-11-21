@@ -19,7 +19,9 @@ export {
 export type {TuioObjectLike, TuioPointerLike, TuioSession, TuioTokenLike} from "./snapshot.ts";
 export {createTuioTableInput, DEFAULT_TUIO_VERSION, TUIO_VERSIONS} from "./tuio.ts";
 export type {TuioTableInputOptions, TuioVersion} from "./tuio.ts";
-export {trackerOptions} from "./options.ts";
+export {resolveTracker, SAME_ORIGIN_PATH, trackerOptions, trackerUrl} from "./options.ts";
+export {openTableInput} from "./table-input.ts";
+export type {TableInputOptions, TableInputSource} from "./table-input.ts";
 export type {PageOrigin, TrackerOptions} from "./options.ts";
 export type {
   SensorSize, TableInput, TableInputState, TableListener, TablePointer, TableSnapshot, TableStatus,

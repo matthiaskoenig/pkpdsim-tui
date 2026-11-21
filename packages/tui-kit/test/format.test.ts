@@ -3,7 +3,8 @@ import {
   describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "../src/format.ts";
-import {cardRotation, trackSpan} from "../src/tokens.ts";
+import {markerSpan} from "../src/chrome.ts";
+import {trackSpan} from "../src/tokens.ts";
 import {ABSOLUTE_SPAN} from "@pkpdsim-tui/tuio-input";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 
@@ -94,23 +95,6 @@ describe("vesselWidth and organRadius", () => {
   });
 });
 
-describe("cardRotation", () => {
-  it("turns a card to the nearest edge of the table", () => {
-    expect(cardRotation(0.5, 0.9)).toBe(0);
-    expect(cardRotation(0.5, 0.1)).toBe(180);
-    expect(cardRotation(0.1, 0.5)).toBe(90);
-    expect(cardRotation(0.9, 0.5)).toBe(-90);
-  });
-
-  it("faces the near edge in the middle of the table", () => {
-    expect(cardRotation(0.5, 0.5)).toBe(0);
-  });
-
-  it("picks one edge in a corner", () => {
-    expect([0, 90]).toContain(cardRotation(0.08, 0.92));
-  });
-});
-
 describe("trackSpan", () => {
   const role = (min: number, max: number, reference: number): TokenRole => ({
     id: "r", label: "r", description: "", unit: "", markers: [1],
@@ -131,5 +115,30 @@ describe("trackSpan", () => {
   it("gives a relative dial the whole span, because it has no stop", () => {
     const {start, end} = trackSpan({...role(0, 10, 10), mode: "relative"});
     expect(end - start).toBeCloseTo(2 * ABSOLUTE_SPAN * 180, 6);
+  });
+});
+
+describe("markerSpan", () => {
+  const role = (id: string, markers: readonly number[]): TokenRole => ({
+    id, label: id, description: "", unit: "", markers,
+    min: 0, max: 1, reference: 0, mode: "absolute", scale: "linear", turns: 1,
+  });
+
+  it("speaks a run of markers as a range", () => {
+    expect(markerSpan([role("a", [1]), role("b", [2]), role("c", [3])])).toBe("1 to 3");
+  });
+
+  it("speaks two markers and a lone one as a person would", () => {
+    expect(markerSpan([role("a", [1]), role("b", [2])])).toBe("1 and 2");
+    expect(markerSpan([role("a", [5])])).toBe("5");
+  });
+
+  it("breaks a gap into runs", () => {
+    const roles = [1, 2, 3, 4, 5, 8].map(marker => role(`r${marker}`, [marker]));
+    expect(markerSpan(roles)).toBe("1 to 5 and 8");
+  });
+
+  it("is empty for a table with no objects of its own", () => {
+    expect(markerSpan([])).toBe("");
   });
 });
