@@ -11,14 +11,16 @@
 | `packages/lobes-sim` | The lobed liver: the states of a segment, the parameters they change and the request that solves them |
 | `packages/glimepiride-sim` | The glimepiride individual, the request that solves them and the pharmacokinetics of the result |
 | `packages/tuio-simulator` | The TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
-| `apps/cardiovascular` | The cardiovascular table application |
-| `apps/lobes` | The lobed liver table application |
-| `apps/glimepiride` | The glimepiride table application |
-| `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into an application |
+| `packages/cardiovascular-table` | The cardiovascular table: its scene, its objects, its cards and what it says about itself |
+| `packages/lobes-table` | The lobed liver table |
+| `packages/glimepiride-table` | The glimepiride table |
+| `apps/table` | The one application: the body, the tables behind it, the assets of each of them, and the development server that carries the simulator |
+| `scripts/dev.mjs` | Starts the application and the simulator on one port |
+| `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into `apps/table/public/assets/<table>` |
 | `scripts/export_model.py` | Compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
 | `docs/` | This site |
 
-The repository is an npm workspace. The packages ship TypeScript source and are consumed as source, so there is one type check and one build for the whole tree.
+The repository is an npm workspace. The packages ship TypeScript source and are consumed as source, so there is one type check and one build for the whole tree. There is one application: `apps/table` is the page, and a table of `packages/*-table` is a module it loads when `?app` names it, with the assets of that table under `assets/<table>/`. A table is left by opening another one, which reloads the page, so no table has to take itself down and a worker, a solver and a socket go with the page they belong to.
 
 ## Commands
 
@@ -26,10 +28,11 @@ The repository is an npm workspace. The packages ship TypeScript source and are 
 npm install
 npm run sync          # the exported models and data of a pkpdsim checkout
 npm run export:glimepiride  # compiles the glimepiride model of its own repository
-npm run dev:cardiovascular  # the circulation, on http://localhost:5173
-npm run dev:lobes           # the lobed liver, on http://localhost:5174
-npm run dev:glimepiride     # glimepiride, on http://localhost:5175
-npm run simulator     # the TUIO simulator: a tracker on 3333, its control page on 3344
+npm run dev           # the application and the simulator, both on http://localhost:5173
+npm run dev:app       # the application alone, for a real table or another tracker
+npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
+npm run preview       # the built application, served the same way
+npm run simulator     # the simulator alone: a tracker on 3333, its control page on 3344
 npm test              # vitest
 npm run typecheck     # tsc
 npm run build         # the production bundle
@@ -41,7 +44,7 @@ npm run docs:build    # this site, strict
 
 A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one or at the path in `GLIMEPIRIDE_MODEL`. The script knows nothing about a model, so the next one is another line in `package.json`.
 
-An application is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is: `npm run simulator` in one terminal, `npm run dev:cardiovascular` in another, and the application opened at `http://localhost:5173/?tuio=localhost:3333`. Nothing but the checkout is needed for it, and the objects are placed and turned on the page it serves on `http://localhost:3344`, which also shows the application under its own surface.
+A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface which drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`. The flags of `scripts/dev.mjs` move the ports (`--port`, `--page-port`, `--tuio-port`), leave the simulator out (`--no-simulator`) or serve the build (`--preview`).
 
 ## The input layer
 
@@ -49,11 +52,11 @@ Everything that carries logic is a pure function and is tested without a socket:
 
 `createMockTableInput` is not a test double. It implements the same `TableInput` interface from mouse, touch and keyboard events, which is how a table application is developed and demonstrated without a table. An application never learns which input it is drawing.
 
-## Adding an application
+## Adding a table
 
-1. Add the folder under `apps/`, with its own `package.json`, `vite.config.ts` and `index.html`.
-2. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs.
-3. Add the `dev:<name>` and `preview:<name>` scripts to the root `package.json`, on the next port after the applications that are there. Every application is named in its scripts; there is no unnamed default.
+1. Add a package under `packages/<name>-table` whose `src/app.ts` exports one `TableApp`: a function which takes the `TableHost` of `packages/tui-kit` and draws on the surface it is given. It looks for no element of its own, and reads the query and the assets of its table from the host.
+2. Add it to `TABLES` in `apps/table/src/tables.ts`: what `?app` calls it, its card on the body, the organ the card points at, the folder of its assets and the import which loads it.
+3. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs, and the `dev:<name>` script to the root `package.json`.
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
 6. Draw it with `packages/tui-kit`: the bands, the cards, the panels and the course are shared, and only the scene of the application is its own.

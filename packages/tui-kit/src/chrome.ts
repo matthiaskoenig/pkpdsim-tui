@@ -103,6 +103,10 @@ function panelHtml(state: ChromeUpdate): string {
   const detail = state.status.detail === ""
     ? ""
     : `<p class="hint detail">${escapeHtml(state.status.detail)}</p>`;
+  // The body of the application has no objects of its own, so it carries no legend either.
+  const objects = state.roles.length === 0
+    ? ""
+    : `<h2>Objects</h2><ul class="legend">${items}</ul>`;
   const tries = state.tries.length === 0
     ? ""
     : `<ul class="tries">${state.tries.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>`;
@@ -117,8 +121,7 @@ function panelHtml(state: ChromeUpdate): string {
     </div>
     ${detail}
     ${state.choices === undefined || state.choices.length === 0 ? "" : choicesHtml(state.choices)}
-    <h2>Objects</h2>
-    <ul class="legend">${items}</ul>
+    ${objects}
     ${unassigned}
     ${notice}
     <p class="hint">${escapeHtml(state.hint)}</p>

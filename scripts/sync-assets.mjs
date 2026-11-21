@@ -25,10 +25,13 @@ import {promisify} from "node:util";
 const run = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** What each application needs, relative to `docs/pbpk/examples` of a pkpdsim checkout. */
+/**
+ * What each table needs, relative to `docs/pbpk/examples` of a pkpdsim checkout. The application
+ * is one page with one folder of assets per table, see `apps/table`.
+ */
 const APPS = {
   cardiovascular: {
-    target: "apps/cardiovascular/public/assets",
+    target: "apps/table/public/assets/cardiovascular",
     // The female export is the female reference circulation and the heart compiled on it. Its
     // runtime is the one of `solver`, which both bodies share.
     entries: [
@@ -39,7 +42,7 @@ const APPS = {
     provenanceOf: "cardiovascular-data.json",
   },
   lobes: {
-    target: "apps/lobes/public/assets",
+    target: "apps/table/public/assets/lobes",
     // The compiled livers of `solver_lobes/<species>` share the runtime of `solver`, so only the
     // runtime is taken from there and the heart model beside it is left where it is.
     entries: [
@@ -133,10 +136,6 @@ async function syncApp(name, examples, pkpdsim) {
   const app = APPS[name];
   if (app === undefined) {
     throw new Error(`Unknown application "${name}". Known: ${Object.keys(APPS).join(", ")}.`);
-  }
-  if (!(await exists(resolve(root, dirname(app.target), "..")))) {
-    console.log(`  ${name}: skipped, this repository has no apps/${name}`);
-    return false;
   }
   const missing = [];
   for (const entry of app.entries) {

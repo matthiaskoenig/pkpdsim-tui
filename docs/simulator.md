@@ -34,6 +34,25 @@ The flags come after `--`, because npm takes the ones before it for itself:
 npm run simulator -- --host 0.0.0.0 --rate 30
 ```
 
+### The table and the simulator on one port
+
+`npm run dev` starts the application and the simulator together and serves both on the port of the application, so a whole table is one address:
+
+| Address | What it is |
+| --- | --- |
+| `http://localhost:5173/` | The application: the body, and a table with `?app=` |
+| `http://localhost:5173/simulator/` | This control page, with the application under its own surface |
+| `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
+| `ws://localhost:5173/tuio` | The tracker itself, which an application reaches with `?tuio=/tuio` |
+
+The control page fills that address in for you: an application on the origin of the page came through the same server as the page, so it is given `?tuio=/tuio` rather than a host and a port. One port is also one forwarded port, which is how a table is driven from another machine:
+
+```bash
+ssh -L 5173:localhost:5173 <machine>
+```
+
+The **Port** field still moves the tracker, but the one port carries the tracker it was started with: change the port only when an application is pointed at the tracker directly, with `?tuio=host:port`. `npm run dev -- --tuio-port 3343` moves both ends at once.
+
 ### What it speaks, and where
 
 The first three flags are only starting values: the **TUIO**, **Connection** and **Port** fields of the control page change them while the simulator runs, and the tracker is replaced under the applications that are listening. A port that is taken changes nothing and says so in the chip, so the surface in front of an audience does not go down because somebody typed a port.
@@ -112,23 +131,32 @@ The applications read TUIO 1.1 as well, with `&tuio-version=1.1` in the address,
 | Click with the middle button | Removes the token under the pointer |
 | Double click with the right button | Places a mobile, which is a TUIO 2.0 object with a random id |
 
-The marker is what an application reads to know what an object is, so set **Next Object ID** before each token. The [cardiovascular application](apps/cardiovascular.md) uses markers 1 to 4.
+The marker is what an application reads to know what an object is, so set **Next Object ID** before each token. The [cardiovascular table](apps/cardiovascular.md) uses markers 1 to 6, the [lobed liver](apps/lobes.md) 5 to 8 and [glimepiride](apps/glimepiride.md) 1 to 5 and 8.
 
 ## Point an application at it
 
 ```bash
-npm run dev:cardiovascular
+npm run dev
 ```
 
-Then open `http://localhost:5173/?tuio=localhost:3333`.
+Then open `http://localhost:5173/simulator/`, which puts the application under the surface, or the application beside it at `http://localhost:5173/?tuio=/tuio`.
 
-The address of the tracker is `?tuio=host:port`. A bare `?tuio` means `localhost:3333`, and `&tuio-version=1.1` asks for the older protocol. Without the parameter the application runs on the mouse and ignores the tracker.
+The address of the tracker is `?tuio=`:
+
+| What it says | Which tracker |
+| --- | --- |
+| `?tuio` | `ws://localhost:3333`, the simulator on this machine |
+| `?tuio=host:port` | A tracker somewhere else, which is how a [table](table.md) is addressed |
+| `?tuio=/tuio` | A tracker behind the server the page came from, on the port of the page |
+| `?tuio=ws://host:port/path` | A tracker named in full |
+
+`&tuio-version=1.1` asks for the older protocol. Without the parameter the application runs on the mouse and ignores the tracker.
 
 The panel in the corner of the table names the tracker and its state:
 
 | What it says | What it means |
 | --- | --- |
-| `ws://localhost:3333` with a teal dot | Bundles are arriving |
+| `ws://localhost:3333`, or `ws://localhost:5173/tuio` behind the one port, with a teal dot | Bundles are arriving |
 | An amber dot | The socket is open and the first frame has not arrived |
 | A red dot, "No tracker answers" | Nothing is listening on that port. The simulator is not started, or it is on UDP, or on another port |
 | A red dot, "closed the connection" | The tracker was there and went away. Start it and reload |

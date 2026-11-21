@@ -77,10 +77,13 @@ npm run export:glimepiride
 npm run dev:glimepiride
 ```
 
+The table is the third card on the body at `http://localhost:5173/`, and `?app=glimepiride` opens it directly.
+
 | Address | What it does |
 | --- | --- |
-| `http://localhost:5175/` | On the mouse: keys 1 to 6 place an object, dragging moves it, the wheel turns it, backspace lifts it, escape clears the table |
-| `http://localhost:5175/?tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
-| `http://localhost:5175/?tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
-| `http://localhost:5175/?tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
-| `http://localhost:5175/?sex=female` | The female reference body of 60 kg and 163 cm |
+| `http://localhost:5173/?app=glimepiride` | On the mouse: keys 1 to 6 place an object, dragging moves it, the wheel turns it, backspace lifts it, escape goes back to the body |
+| `http://localhost:5173/?app=glimepiride&tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
+| `http://localhost:5173/?app=glimepiride&tuio=/tuio` | On the tracker behind the one port of `npm run dev`, which is what `http://localhost:5173/simulator/?table=glimepiride` opens |
+| `http://localhost:5173/?app=glimepiride&tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
+| `http://localhost:5173/?app=glimepiride&tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
+| `http://localhost:5173/?app=glimepiride&sex=female` | The female reference body of 60 kg and 163 cm |

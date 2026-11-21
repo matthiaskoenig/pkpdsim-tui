@@ -6,6 +6,7 @@ export {
   clamp, describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "./format.ts";
+export type {TableApp, TableHost} from "./host.ts";
 export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";

@@ -7,11 +7,8 @@
  * solved in a Web Worker for the objects as they came to rest, and it is what the numbers at the
  * edges and the beat beside the heart are read from.
  *
- * Query parameters:
- *   ?tuio             a tracker on ws://localhost:3333
- *   ?tuio=host:port   a tracker somewhere else, which is how a table is addressed
- *   ?tuio-version=1.1 a tracker that speaks TUIO 1.1 rather than TUIO 2.0
- *   ?sex=female       the female reference body
+ * The application starts this table for `?app=cardiovascular`, with the body of `?sex`; the
+ * tracker and the surface are the ones of the application, see `apps/table`.
  */
 
 import {
@@ -33,7 +30,7 @@ import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
   chooseQuery, createChrome, createReadout, createTokenLayer, formatFactor, formatNumber,
 } from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup} from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
 import {createPulse} from "./pulse.ts";
 import type {BeatCycle} from "./beat.ts";
@@ -42,6 +39,7 @@ import {CARDIOVASCULAR_STATS, cardFor} from "./cards.ts";
 import type {CardioReadout} from "./cards.ts";
 import {CARDIOVASCULAR_ROLES, controlsFromTokens, heartControlsFromTokens} from "./roles.ts";
 import {createScene} from "./scene.ts";
+import "./style.css";
 
 const MOUSE_HINT = "Keys 1 to 6 place an object under the pointer, drag moves it, the wheel turns it, backspace lifts it.";
 const TABLE_HINT = "Put an object on the table and turn it.";
@@ -59,33 +57,19 @@ const TABLE_COLUMNS = new Set([
   "CV_V_blood_total",
 ]);
 
-function element<T extends Element>(id: string): T {
-  const found = document.getElementById(id);
-  if (found === null) throw new Error(`The page has no element "${id}".`);
-  return found as unknown as T;
-}
-
 /** What a person at the table should do next, which depends on how the page was started. */
 function hintFor(tracker: TrackerOptions, state: TableStatus["state"]): string {
   if (!tracker.tracker) return MOUSE_HINT;
   if (state === "connected") return TABLE_HINT;
-  return `Set the tracker to WebSocket, TUIO ${tracker.version} and port ${tracker.port}, then `
-    + "reload. Without \"?tuio\" in the address the table runs on the mouse instead.";
+  return `No tracker answers on ${tracker.address}. Set it to WebSocket and TUIO `
+    + `${tracker.version}, then reload. Without "?tuio" in the address the table runs on the `
+    + "mouse instead.";
 }
 
-function fail(message: string): void {
-  const boot = element<HTMLElement>("boot");
-  boot.classList.add("boot--error");
-  boot.hidden = false;
-  const heading = boot.querySelector("h1");
-  if (heading !== null) heading.textContent = "The table could not start";
-  element<HTMLElement>("boot-message").textContent = message;
-}
-
-async function start(): Promise<void> {
-  const parameters = new URLSearchParams(window.location.search);
-  const message = element<HTMLElement>("boot-message");
-  const assets = new URL("assets/", document.baseURI);
+/** The cardiovascular table, on the surface of the application. */
+export async function startCardiovascularTable(host: TableHost): Promise<void> {
+  const parameters = host.parameters;
+  const assets = host.assets;
   const sex = parameters.get("sex") === "female" ? "female" : "male";
   // The anatomy holds both bodies; the reference circulation and the compiled heart are the
   // export of one of them. The engine and the host of the runtime are shared.
@@ -93,7 +77,7 @@ async function start(): Promise<void> {
   const runtime = new URL("solver/", assets);
   const solverBase = sex === "female" ? new URL("female/solver/", assets) : runtime;
 
-  message.textContent = "Loading the circulation...";
+  host.progress("Loading the circulation...");
   const [data, anatomy, config] = await Promise.all([
     loadCardiovascularData(new URL("cardiovascular-data.json", dataBase)),
     loadAnatomy(new URL("cardiovascular-anatomy.json", assets)),
@@ -124,22 +108,23 @@ async function start(): Promise<void> {
   if (exported === undefined) throw new Error("The export holds no case of the reference heart.");
   const referenceSummary: HeartSummary = exported.summary.after;
 
-  message.textContent = "Starting the heart...";
-  const host = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
+  host.progress("Starting the heart...");
+  const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
   const solver: Solver = await createSolver({
-    host, key: `heart-${sex}`,
+    host: core, key: `heart-${sex}`,
     assets: await fetchSolverAssets(solverBase, {runtimeBase: runtime}),
   });
 
-  const surface = element<HTMLElement>("surface");
-  const root = element<SVGSVGElement>("scene");
+  const surface = host.surface;
+  const root = host.scene;
   const scene = createScene(root, body, reference);
   const readout = createReadout<CardioReadout>(root, CARDIOVASCULAR_STATS);
   const pulse = createPulse(root);
   const tokenLayer = createTokenLayer(root);
-  const chrome = createChrome(element<HTMLElement>("chrome"), {
+  const chrome = createChrome(host.chrome, {
     onChoose: (group, option) => {
       if (group === "sex") chooseQuery("sex", option, "male");
+      else host.choose(group, option);
     },
   });
 
@@ -239,7 +224,7 @@ async function start(): Promise<void> {
     chrome.update({
       title: CARDIO_TITLE, about: CARDIO_ABOUT, tries: CARDIO_TRIES,
       reading: cardioReading(heartControls, sex, summary, referenceSummary),
-      choices: bodies,
+      choices: [...host.choices, ...bodies],
       status, roles: CARDIOVASCULAR_ROLES, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];
@@ -300,13 +285,4 @@ async function start(): Promise<void> {
   await solve(heartControls);
   schedule();
   window.requestAnimationFrame(tick);
-  element<HTMLElement>("boot").hidden = true;
-}
-
-try {
-  await start();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  fail(`${message} The exported models and reference data are copied in with "npm run sync".`);
-  console.error(error);
 }

@@ -1,12 +1,6 @@
-/* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
-@import "@pkpdsim-tui/tui-kit/table.css";
+/* The surface, the objects, the panels and the body are shared; see @pkpdsim-tui/tui-kit. */
 
 /* The scene itself. */
-/* The anatomogram paths carry their own fills; the table only dims them a little. */
-.body-art {
-  opacity: 0.92;
-}
-
 .vessel {
   fill: none;
   stroke-linecap: round;

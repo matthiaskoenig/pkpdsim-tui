@@ -7,13 +7,15 @@ The interactive examples in the pkpdsim documentation run in a browser, with sli
 
 Every application also runs without a table, on a mouse and the keyboard, so it can be developed and shown anywhere.
 
-## The applications
+## One application, several tables
 
-| Application | State | What the objects do |
-| --- | --- | --- |
-| [Cardiovascular circulation](apps/cardiovascular.md) | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself, which beats on the table while they are moved. |
-| [Lobed liver](apps/lobes.md) | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
-| [Glimepiride](apps/glimepiride.md) | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
+Everything here is one application. It opens on the body of the pkpdsim physiology, with a card at each of the two long edges for every table it carries and a line from each card to the organ its table is about. Touching a card, or the organ it points at, opens that table; the switch in the panels moves between them and back to the body. One build, one address, one port.
+
+| Table | Opened by | State | What the objects do |
+| --- | --- | --- | --- |
+| [Cardiovascular circulation](apps/cardiovascular.md) | `?app=cardiovascular` | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself, which beats on the table while they are moved. |
+| [Lobed liver](apps/lobes.md) | `?app=lobes` | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
+| [Glimepiride](apps/glimepiride.md) | `?app=glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
 
 ## Quick start
 
@@ -22,18 +24,27 @@ git clone https://github.com/matthiaskoenig/pkpdsim-tui.git
 cd pkpdsim-tui
 npm install
 npm run sync      # copies the exported models and reference data of a pkpdsim checkout
-npm run dev:cardiovascular
+npm run dev
 ```
 
-The circulation opens on `http://localhost:5173`; `npm run dev:lobes` and `npm run dev:glimepiride` open the other two on 5174 and 5175. Without a table they run on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, and backspace lifts it.
+`npm run dev` starts the application and the [TUIO simulator](simulator.md) together, and serves both on one port:
 
-To drive it from objects instead, start the simulator this repository carries, in a second terminal:
+| Address | What it is |
+| --- | --- |
+| `http://localhost:5173/` | The body, from which every table is opened |
+| `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes` and `glimepiride` are the other two |
+| `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
+| `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
+
+Without a table the application runs on the mouse: the digit keys place an object under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body. On the surface of the simulator the objects are placed with a double click and turned with the wheel; the application under it follows them, because the development server carries the tracker too, at `/tuio`.
+
+Because everything is on one port, a table on another machine is one forwarded port:
 
 ```bash
-npm run simulator
+ssh -L 5173:localhost:5173 <machine>
 ```
 
-It is a TUIO tracker on `ws://localhost:3333` and a control page on `http://localhost:3344`, where objects are placed with a double click and turned with the wheel, and which shows the application under its own surface. Open the application at `http://localhost:5173/?tuio=localhost:3333` and it follows them. The [simulator page](simulator.md) covers the gestures and the Unity simulator of Interactive Scape, the [table page](table.md) covers a real surface.
+The addresses above then work in the browser at home. The [simulator page](simulator.md) covers the gestures and the Unity simulator of Interactive Scape, the [table page](table.md) covers a real surface.
 
 ## The idea
 
@@ -44,7 +55,7 @@ The vocabulary is the same in every application, so a visitor who learned one ha
 - Its position says **what it acts on**, where a role needs a target: the vessel, organ or lobe under it.
 - Lifting the object **undoes** it. Nothing on this table is permanent.
 
-Touches stay for what touches are good at: moving a panel, scrubbing a time course, switching a mode. The one switch every application carries is the body of the individual, male or female, because that is not a value a dial holds but a different export of the model.
+Touches stay for what touches are good at: moving a panel, scrubbing a time course, switching a mode. Two switches every table carries are which table this is and whose body it is, male or female, because neither is a value a dial holds: one is another table and the other is a different export of the model. The body holds across a switch, so the circulation, the liver and the drug are solved for the same person.
 
 Each table also says in words what it is and what it is showing. A panel at each of two opposite corners carries the title, a sentence a visitor who is not a clinician understands, two or three things worth trying, and a reading of the state the objects have put the body in, which changes as they are moved. The numbers at the edges are for whoever wants them; the sentence is for everybody else.
 
