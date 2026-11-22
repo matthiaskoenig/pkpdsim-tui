@@ -16,9 +16,15 @@ import type {GlyphKind} from "./icons.mjs";
 import type {Voice} from "./voice.ts";
 import {words} from "./words.ts";
 
-/** The picture of an option: an object of a table, a flag, or one of the three audiences. */
+/**
+ * The picture of an option: an object of a table, a flag, one of the three audiences, or one of
+ * the bodies a model is built on - a woman, a man, and the three species of the liver.
+ */
 export type Pictogram = GlyphKind | "flag-en" | "flag-de" | "flag-es"
-  | "child" | "adult" | "expert";
+  | "child" | "adult" | "expert" | FigureKind;
+
+/** The bodies a table is solved for, drawn rather than named. */
+export type FigureKind = "woman" | "man" | "human" | "rat" | "mouse";
 
 /**
  * The three audiences, drawn rather than named: a child, a grown up, somebody of the field.
@@ -48,6 +54,62 @@ const AUDIENCE: Readonly<Record<"child" | "adult" | "expert", readonly string[]>
     "M 13.2 -6 h 3.4 v 2.8 h -3.4 z",
   ],
 };
+/**
+ * The bodies, as silhouettes. Which body a table is solved for is a thing a visitor sees from
+ * across the room: a woman and a man stand side by side at the same height, and the three
+ * species are the animal itself, because "rat" in a language somebody does not read is nothing
+ * at all while a rat with its tail is a rat.
+ *
+ * Every figure is a set of parts which touch but never overlap: the icons are drawn as one path
+ * with the even-odd rule, where an overlap is a hole.
+ */
+const FIGURES: Readonly<Record<FigureKind, readonly string[]>> = {
+  woman: [
+    "M -4.8 -11.4 a 4.8 4.8 0 1 1 9.6 0 a 4.8 4.8 0 1 1 -9.6 0 z",
+    // The dress, from the shoulders to the hem.
+    "M -7.2 -6.6 h 14.4 l 4.2 14.4 h -22.8 z",
+    "M -5.4 8.2 h 4.2 v 8.8 h -4.2 z",
+    "M 1.2 8.2 h 4.2 v 8.8 h -4.2 z",
+  ],
+  man: [
+    "M -4.8 -11.4 a 4.8 4.8 0 1 1 9.6 0 a 4.8 4.8 0 1 1 -9.6 0 z",
+    // The square shoulders, which is what tells the two figures apart at a glance.
+    "M -9.5 -5.4 q 0 -1.2 1.2 -1.2 h 16.6 q 1.2 0 1.2 1.2 v 9.6 h -19 z",
+    "M -7.4 4.8 h 5.8 v 12.2 h -5.8 z",
+    "M 1.6 4.8 h 5.8 v 12.2 h -5.8 z",
+  ],
+  // The species of a liver: a person, and the two animals the library carries a physiology of.
+  // The person stands, as the two bodies above do; the animals are seen from the side, which is
+  // the only way a rat is a rat.
+  human: [
+    "M -4.8 -11.4 a 4.8 4.8 0 1 1 9.6 0 a 4.8 4.8 0 1 1 -9.6 0 z",
+    "M -8.4 -5.4 q 0 -1.2 1.2 -1.2 h 14.4 q 1.2 0 1.2 1.2 v 9.6 h -16.8 z",
+    "M -6.6 4.8 h 5.2 v 12.2 h -5.2 z",
+    "M 1.4 4.8 h 5.2 v 12.2 h -5.2 z",
+  ],
+  rat: [
+    "M -11.5 3 a 9.5 6 0 1 1 19 0 a 9.5 6 0 1 1 -19 0 z",
+    "M 6.9 0 a 4.6 4.6 0 1 1 9.2 0 a 4.6 4.6 0 1 1 -9.2 0 z",
+    "M 16.1 -1.4 l 5 1.4 l -5 1.4 z",
+    "M 7.1 -7.2 a 2.9 2.9 0 1 1 5.8 0 a 2.9 2.9 0 1 1 -5.8 0 z",
+    // The long bare tail of a rat, which is the half of it a mouse does not have.
+    "M -11.2 1.4 c -6.5 -1.2 -9.4 -5.6 -7.6 -9.6 l 2 0.9 c -1.4 3.1 0.9 6.4 6 7.4 z",
+    "M -8.6 8.4 h 2.8 v 3.4 h -2.8 z",
+    "M 0.4 8.4 h 2.8 v 3.4 h -2.8 z",
+  ],
+  // A mouse is the same animal two thirds of the size, with a rounder ear and half the tail,
+  // which is what tells it from the rat beside it.
+  mouse: [
+    "M -8.3 5.5 a 6.8 4.6 0 1 1 13.6 0 a 6.8 4.6 0 1 1 -13.6 0 z",
+    "M 5.4 4.2 a 3.6 3.6 0 1 1 7.2 0 a 3.6 3.6 0 1 1 -7.2 0 z",
+    "M 12.5 3.2 l 3.6 1 l -3.6 1 z",
+    "M 4.6 -2.3 a 3 3 0 1 1 6 0 a 3 3 0 1 1 -6 0 z",
+    "M -8.1 4.4 c -3.2 -0.6 -4.4 -2.6 -3.6 -4.4 l 1.6 0.7 c -0.5 1.2 0.5 2.4 2.6 2.9 z",
+    "M -5.6 10 h 2.2 v 2.2 h -2.2 z",
+    "M 0.8 10 h 2.2 v 2.2 h -2.2 z",
+  ],
+};
+
 /** A flag, in the bands and the colours it is actually made of. */
 const FLAGS: Readonly<Record<"en" | "de" | "es", string>> = {
   de: `<rect x="-26" y="-16" width="52" height="10.7" fill="#111"></rect>`
@@ -73,7 +135,7 @@ export function pictogram(picture: Pictogram): string {
   }
   const paths = picture === "child" || picture === "adult" || picture === "expert"
     ? AUDIENCE[picture]
-    : ICONS[picture];
+    : picture in FIGURES ? FIGURES[picture as FigureKind] : ICONS[picture as GlyphKind];
   // One path, so that the inner shapes of an icon cut the outer one open.
   return `${open}<path class="pick-path" d="${paths.join(" ")}"></path></svg>`;
 }
@@ -88,6 +150,18 @@ export interface SettingsOptions {
   /** The groups, in the order they are shown. Every option carries its picture. */
   readonly groups: readonly ChoiceGroup[];
   readonly onChoose: (group: string, option: string) => void;
+  /**
+   * Who the tables are solved for, and the way back into that question. It stands at the top of
+   * the card of every table, because the age, the body and the weight are of the visitor and
+   * not of the table they happen to be standing at.
+   */
+  readonly person?: {
+    readonly label: string;
+    readonly line: string;
+    readonly info: string;
+    readonly picture: Pictogram;
+    readonly onOpen: () => void;
+  };
 }
 
 function escapeHtml(value: string): string {
@@ -139,6 +213,14 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
     </button>
     <div class="settings-card" hidden>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
+      ${options.person === undefined ? "" : `<section class="setting">
+        <h3 class="setting-name">${escapeHtml(options.person.label)}</h3>
+        <button class="settings-person" type="button" data-dwell="settings:person"
+          data-info="${escapeHtml(options.person.info)}">
+          ${pictogram(options.person.picture)}
+          <span class="settings-person-line">${escapeHtml(options.person.line)}</span>
+        </button>
+      </section>`}
       <div class="settings-groups"></div>
       <p class="settings-tracker"><span class="dot"></span>
         <span class="settings-source"></span></p>
@@ -164,6 +246,11 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
     if (!(target instanceof Element)) return;
     if (target.closest(".settings-button") !== null) {
       show(card.hidden === true);
+      return;
+    }
+    if (target.closest(".settings-person") !== null) {
+      show(false);
+      options.person?.onOpen();
       return;
     }
     const pick = target.closest(".pick");

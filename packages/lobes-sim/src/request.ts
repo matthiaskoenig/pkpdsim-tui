@@ -70,6 +70,7 @@ export function lobeRequest(
     end: config.end,
     output: {times},
     preinit: [
+      ...(config.preinit ?? []).map(([id, value]) => [id, value] as ValueChange),
       [DOSE_PARAMETER, config.dose],
       ...settings,
       ...(surgery <= config.start ? intervention : []),

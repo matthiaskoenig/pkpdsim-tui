@@ -6,8 +6,7 @@
 
 import {linspace} from "@pkpdsim-tui/core-runtime";
 import type {SimulationRequest, TimedChange} from "@pkpdsim-tui/core-runtime";
-import {GLIMEPIRIDE_CONTROLS, parametersOf} from "./individual.ts";
-import type {Sex} from "./individual.ts";
+import {GLIMEPIRIDE_CONTROLS, heightOf, parametersOf} from "./individual.ts";
 import type {GlimepirideIndividual} from "./individual.ts";
 
 /**
@@ -60,7 +59,7 @@ export const SOLVER_SETTINGS: Readonly<Record<string, unknown>> = {
  */
 export function glimepirideRequest(
   individual: Partial<GlimepirideIndividual> = {},
-  sex: Sex = "male",
+  height: number = heightOf(),
   columns: readonly string[] = GLIMEPIRIDE_COLUMNS,
   doses: number = GLIMEPIRIDE_DOSES.value,
 ): SimulationRequest {
@@ -82,7 +81,7 @@ export function glimepirideRequest(
     start,
     end,
     output: {times: linspace(start, end, points - 1)},
-    preinit: parametersOf(individual, sex),
+    preinit: parametersOf(individual, height),
     changes,
     steady_state: null,
     selections: columns,

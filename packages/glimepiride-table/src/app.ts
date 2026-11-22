@@ -14,11 +14,11 @@ import {
 } from "@pkpdsim-tui/core-runtime";
 import type {Series, Solver} from "@pkpdsim-tui/core-runtime";
 import {
-  finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_DOSES, glimepirideRequest, pharmacokinetics,
-  referenceIndividual,
+  finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_DOSES, glimepirideRequest, NORMAL_CRCL,
+  pharmacokinetics, referenceIndividual,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
-import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
+import {loadAnatomy, renalFactor} from "@pkpdsim-tui/cardio-sim";
 import {
   chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, LAB_ROOM, pointerPoints, visibleStats, words,
@@ -81,10 +81,17 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     host: core, key: "glimepiride", assets: await fetchSolverAssets(solverBase),
   });
 
-  const sex: Sex = parameters.get("sex") === "female" ? "female" : "male";
-  const roles = glimepirideRoles(voice, sex);
-  const reference = referenceIndividual(sex);
-  const bodies: readonly ChoiceGroup[] = [{...bodyChoices(voice), selected: sex}];
+  // Who the table is solved for: the person of the first screen, whose age carries the height
+  // and the reference weight of the body, and whose years carry what the kidneys still clear.
+  const person = host.individual;
+  const sex: Sex = person.sex;
+  const roles = glimepirideRoles(voice, person);
+  const reference: GlimepirideIndividual = {
+    ...referenceIndividual(sex),
+    weight: person.weight,
+    renal: NORMAL_CRCL * renalFactor(person.age, sex),
+  };
+  const bodies: readonly ChoiceGroup[] = [{...bodyChoices(voice, person.age), selected: sex}];
   // The figure is the one every table of the application is solved on: the reference body of
   // the pkpdsim physiology, which the circulation exports with its anatomy.
   // The assets of this table are its own folder, and the bodies belong to the circulation.
@@ -109,7 +116,9 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     onBack: () => host.back(),
     onReset: () => host.reset(),
     onChoose: (group, option) => {
-      if (group === "sex") chooseQuery("sex", option, "male");
+      // The body of the person, which the weight of the first screen belongs to: the
+      // other body takes the reference weight of its own age.
+      if (group === "sex") chooseQuery("sex", option, "female", ["bw"]);
       else host.choose(group, option);
     },
   });
@@ -156,7 +165,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     solving = true;
     schedule();
     try {
-      const request = glimepirideRequest(individual, sex, GLIMEPIRIDE_COLUMNS, doses);
+      const request = glimepirideRequest(individual, person.height, GLIMEPIRIDE_COLUMNS, doses);
       span = request.end;
       const result = await solver.simulate(request, {signal: controller.signal});
       series = toSeries(result);
@@ -235,7 +244,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       title: host.title, about: voice.say(copy.about),
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: glimepirideReading(
-        voice, individual, sex, current, reference_readout, reference, doses),
+        voice, individual, person, current, reference_readout, reference, doses),
       back: true,
       choices: bodies,
       status, roles, notice,

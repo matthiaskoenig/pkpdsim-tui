@@ -26,6 +26,24 @@ export interface HubCopy {
   /** The button of the landing page which asks both of them again. */
   readonly startAgain: string;
   readonly startAgainInfo: string;
+  /** The third question of the first screen: who the tables are solved for. */
+  readonly person: {
+    readonly ask: string;
+    readonly note: Phrase;
+    readonly age: string;
+    readonly years: string;
+    readonly weight: string;
+    readonly height: string;
+    readonly ready: string;
+    readonly readyInfo: string;
+    readonly change: string;
+    readonly changeInfo: string;
+    readonly reference: string;
+    /** What the figure of the landing page is: the body every table is run with. */
+    readonly solvedFor: string;
+    readonly ageInfo: string;
+    readonly weightInfo: string;
+  };
   /** The two lines under the heading: what there is to learn here. */
   readonly motivation: Readonly<Record<Level, readonly string[]>>;
   readonly headingInfo: Phrase;
@@ -37,7 +55,6 @@ export interface HubCopy {
   readonly touchHint: string;
   readonly bothHint: string;
   /** What a body is, behind it. Both of them stand on the landing page, side by side. */
-  readonly bodyInfo: Readonly<Record<"male" | "female", Phrase>>;
   /** The object which picks a table: what it is called and what it does. */
   /** What stands in the box at the right while no table is picked. */
   readonly pickTitle: string;
@@ -113,6 +130,26 @@ const EN: HubCopy = {
   askLevel: "Who is looking?",
   startAgain: "Start again",
   startAgainInfo: "Asks for the language and who is looking again, and forgets what was open.",
+  person: {
+    ask: "Who is standing at the table?",
+    note: {
+      child: "Say how old you are and whether the body is a girl or a boy. Every table then shows a body like yours.",
+      adult: "The tables are solved for this body. The age gives its size, the weight moves it from there, and every model of the collection is run again for it.",
+      expert: "The age and the sex give the reference body of ICRP 89, the weight moves it from there, and BW and HEIGHT go into every model of the collection. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
+    },
+    age: "Age",
+    years: "years",
+    weight: "Weight",
+    height: "Height",
+    ready: "That is me",
+    readyInfo: "Takes this body to the tables. It can be changed again at any time.",
+    change: "The person",
+    changeInfo: "Changes the age, the body and the weight every table is solved for.",
+    reference: "reference",
+    solvedFor: "Every table of the collection is solved for this body.",
+    ageInfo: "Four to a hundred and twenty years. The body of a child is the reference child of ICRP 89 of that age.",
+    weightInfo: "What this body weighs. It starts at the reference of that age and that body, and the organs and their blood flows follow it.",
+  },
   motivation: {
     child: [
       "Four models of the human body you can move with your hands.",
@@ -138,18 +175,6 @@ const EN: HubCopy = {
   clickHint: "Click a card to open its table.",
   touchHint: "Hold a finger on a card to open its table.",
   bothHint: "Hold a finger on a card, or click it, to open its table.",
-  bodyInfo: {
-    male: {
-      child: "A grown man. The tables know where everything in him is.",
-      adult: "The male reference body of pkpdsim, which the tables are solved on.",
-      expert: "The male reference individual of the pkpdsim physiology, 73 kg at 176 cm. Every table is solved on its export, and each one can be switched to the other body.",
-    },
-    female: {
-      child: "A grown woman. The tables know where everything in her is.",
-      adult: "The female reference body of pkpdsim, which the tables are solved on.",
-      expert: "The female reference individual of the pkpdsim physiology, 60 kg at 163 cm, with its own organ volumes and blood flows.",
-    },
-  },
   pickTitle: "Four tables, one body",
   pickText: {
     child: "Press one of the four big circles. Every one of them is something you can try out.",
@@ -239,6 +264,26 @@ const DE: HubCopy = {
   askLevel: "Wer schaut?",
   startAgain: "Von vorn",
   startAgainInfo: "Fragt wieder nach Sprache und danach, wer schaut, und vergisst, was offen war.",
+  person: {
+    ask: "Wer steht am Tisch?",
+    note: {
+      child: "Sag, wie alt du bist und ob der Körper ein Mädchen oder ein Junge ist. Dann zeigt jeder Tisch einen Körper wie deinen.",
+      adult: "Für diesen Körper werden die Tische gerechnet. Das Alter gibt seine Größe, das Gewicht verschiebt ihn von dort aus, und jedes Modell der Sammlung läuft damit neu.",
+      expert: "Alter und Geschlecht geben den Referenzkörper der ICRP 89, das Gewicht verschiebt ihn von dort aus, und BW und HEIGHT gehen in jedes Modell der Sammlung. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
+    },
+    age: "Alter",
+    years: "Jahre",
+    weight: "Gewicht",
+    height: "Größe",
+    ready: "Das bin ich",
+    readyInfo: "Nimmt diesen Körper mit auf die Tische. Er lässt sich jederzeit wieder ändern.",
+    change: "Die Person",
+    changeInfo: "Ändert Alter, Körper und Gewicht, für die jeder Tisch gerechnet wird.",
+    reference: "Referenz",
+    solvedFor: "Für diesen Körper wird jeder Tisch der Sammlung gerechnet.",
+    ageInfo: "Vier bis hundertzwanzig Jahre. Der Körper eines Kindes ist das Referenzkind der ICRP 89 dieses Alters.",
+    weightInfo: "Was dieser Körper wiegt. Er beginnt bei der Referenz dieses Alters und dieses Körpers, und die Organe und ihre Durchblutung folgen ihm.",
+  },
   motivation: {
     child: [
       "Vier Modelle des menschlichen Körpers, die du mit den Händen bewegen kannst.",
@@ -264,18 +309,6 @@ const DE: HubCopy = {
   clickHint: "Klicken Sie eine Karte an, um ihren Tisch zu öffnen.",
   touchHint: "Halten Sie einen Finger auf eine Karte, um ihren Tisch zu öffnen.",
   bothHint: "Halten Sie einen Finger auf eine Karte oder klicken Sie sie an.",
-  bodyInfo: {
-    male: {
-      child: "Ein erwachsener Mann. Die Tische wissen, wo alles in ihm liegt.",
-      adult: "Der männliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
-      expert: "Das männliche Referenzindividuum der Physiologie von pkpdsim, 73 kg bei 176 cm. Jeder Tisch rechnet auf dessen Export und lässt sich auf den anderen Körper umstellen.",
-    },
-    female: {
-      child: "Eine erwachsene Frau. Die Tische wissen, wo alles in ihr liegt.",
-      adult: "Der weibliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
-      expert: "Das weibliche Referenzindividuum der Physiologie von pkpdsim, 60 kg bei 163 cm, mit eigenen Organvolumina und Blutflüssen.",
-    },
-  },
   pickTitle: "Vier Tische, ein Körper",
   pickText: {
     child: "Drück einen der vier großen Kreise. Jeder ist etwas zum Ausprobieren.",
@@ -365,6 +398,26 @@ const ES: HubCopy = {
   askLevel: "¿Quién mira?",
   startAgain: "Desde el principio",
   startAgainInfo: "Vuelve a preguntar el idioma y quién mira, y olvida lo que estaba abierto.",
+  person: {
+    ask: "¿Quién está en la mesa?",
+    note: {
+      child: "Di cuántos años tienes y si el cuerpo es de una niña o de un niño. Cada mesa muestra entonces un cuerpo como el tuyo.",
+      adult: "Las mesas se resuelven para este cuerpo. La edad da su tamaño, el peso lo mueve desde ahí, y cada modelo de la colección vuelve a correr con él.",
+      expert: "La edad y el sexo dan el cuerpo de referencia de la ICRP 89, el peso lo mueve desde ahí, y BW y HEIGHT entran en cada modelo de la colección. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
+    },
+    age: "Edad",
+    years: "años",
+    weight: "Peso",
+    height: "Altura",
+    ready: "Ese soy yo",
+    readyInfo: "Lleva este cuerpo a las mesas. Se puede cambiar otra vez cuando quieras.",
+    change: "La persona",
+    changeInfo: "Cambia la edad, el cuerpo y el peso con los que se resuelve cada mesa.",
+    reference: "referencia",
+    solvedFor: "Cada mesa de la colección se resuelve para este cuerpo.",
+    ageInfo: "De cuatro a ciento veinte años. El cuerpo de un niño es el niño de referencia de la ICRP 89 de esa edad.",
+    weightInfo: "Lo que pesa este cuerpo. Empieza en la referencia de esa edad y ese cuerpo, y los órganos y su flujo de sangre lo siguen.",
+  },
   motivation: {
     child: [
       "Cuatro modelos del cuerpo humano que puedes mover con las manos.",
@@ -390,18 +443,6 @@ const ES: HubCopy = {
   clickHint: "Haga clic en una tarjeta para abrir su mesa.",
   touchHint: "Mantenga un dedo sobre una tarjeta para abrir su mesa.",
   bothHint: "Mantenga un dedo sobre una tarjeta, o haga clic en ella.",
-  bodyInfo: {
-    male: {
-      child: "Un hombre adulto. Las mesas saben dónde está cada cosa dentro de él.",
-      adult: "El cuerpo masculino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
-      expert: "El individuo masculino de referencia de la fisiología de pkpdsim, 73 kg y 176 cm. Cada mesa se resuelve sobre su exportación y puede cambiarse al otro cuerpo.",
-    },
-    female: {
-      child: "Una mujer adulta. Las mesas saben dónde está cada cosa dentro de ella.",
-      adult: "El cuerpo femenino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
-      expert: "El individuo femenino de referencia de la fisiología de pkpdsim, 60 kg y 163 cm, con sus propios volúmenes de órganos y flujos sanguíneos.",
-    },
-  },
   pickTitle: "Cuatro mesas, un cuerpo",
   pickText: {
     child: "Toca uno de los cuatro círculos grandes. Cada uno es algo para probar.",

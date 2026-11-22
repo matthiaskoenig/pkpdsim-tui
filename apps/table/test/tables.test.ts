@@ -71,8 +71,6 @@ describe("the words of the application", () => {
         expect(copy.motivation[level].length, `${locale} ${level}`).toBe(2);
         for (const line of copy.motivation[level]) expect(line.length).toBeGreaterThan(20);
         expect(say(copy.headingInfo, level).length).toBeGreaterThan(30);
-        expect(say(copy.bodyInfo.male, level).length).toBeGreaterThan(20);
-        expect(say(copy.bodyInfo.female, level).length).toBeGreaterThan(20);
       }
       // A language which forgot a table would leave a card of the landing page empty.
       expect(Object.keys(copy.entries).sort()).toEqual(TABLES.map(entry => entry.id).sort());

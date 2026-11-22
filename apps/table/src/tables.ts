@@ -15,6 +15,9 @@ export const OVERVIEW = "overview";
 /** The page about the models, the software, the licences and the laboratory. */
 export const ABOUT = "about";
 
+/** The question of who is at the table, which can be asked again at any time. */
+export const PERSON = "person";
+
 /** The picture of the body, which is the table every other one is opened from. */
 export const OVERVIEW_PICTURE: Pictogram = "body";
 

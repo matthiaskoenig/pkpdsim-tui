@@ -8,9 +8,12 @@
  * the table draws only that half.
  */
 
-import {GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSES, REFERENCE_BODIES} from "@pkpdsim-tui/glimepiride-sim";
-import type {GlimepirideControl, Sex} from "@pkpdsim-tui/glimepiride-sim";
-import type {Voice} from "@pkpdsim-tui/tui-kit";
+import {individualOf, renalFactor, weightRange} from "@pkpdsim-tui/cardio-sim";
+import {
+  GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSES, NORMAL_CRCL,
+} from "@pkpdsim-tui/glimepiride-sim";
+import type {GlimepirideControl} from "@pkpdsim-tui/glimepiride-sim";
+import type {TableIndividual, Voice} from "@pkpdsim-tui/tui-kit";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
 
@@ -31,18 +34,27 @@ function dial(
   };
 }
 
-/** The dials of the individual. The body of the reference moves the detent of the weight dial. */
-export function individualRoles(voice: Voice, sex: Sex = "male"): readonly TokenRole[] {
+/**
+ * The dials of the individual, for the person at the table. Two of them belong to that person
+ * rather than to the model: the weight spans what a body of their age can weigh and rests at
+ * the reference of that age, and the clearance of the kidneys rests where the years have left
+ * it, because the kidneys of a body of ninety are not the kidneys of a body of thirty.
+ */
+export function individualRoles(
+  voice: Voice, person: TableIndividual = individualOf(),
+): readonly TokenRole[] {
+  const weight = weightRange(person.age, person.sex);
   const roles: readonly TokenRole[] = [
     dial(GLIMEPIRIDE_CONTROLS.dose, 1, "dose", voice),
-    dial(GLIMEPIRIDE_CONTROLS.weight, 2, "weight", voice),
+    dial({...GLIMEPIRIDE_CONTROLS.weight, ...weight, value: person.weight}, 2, "weight", voice),
     dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 4, "cyp2c9", voice),
     dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 5, "cirrhosis", voice),
-    dial(GLIMEPIRIDE_CONTROLS.renal, 6, "renal", voice),
+    dial({
+      ...GLIMEPIRIDE_CONTROLS.renal,
+      value: NORMAL_CRCL * renalFactor(person.age, person.sex),
+    }, 6, "renal", voice),
   ];
-  return roles.map(role => (role.id === GLIMEPIRIDE_CONTROLS.weight.id
-    ? {...role, reference: REFERENCE_BODIES[sex].weight}
-    : role));
+  return roles;
 }
 
 /**
@@ -60,8 +72,10 @@ export function doseCountRole(voice: Voice): TokenRole {
 }
 
 /** The objects of the table, in the order of their markers, which is how the panel lists them. */
-export function glimepirideRoles(voice: Voice, sex: Sex = "male"): readonly TokenRole[] {
-  const [dose, weight, ...rest] = individualRoles(voice, sex);
+export function glimepirideRoles(
+  voice: Voice, person: TableIndividual = individualOf(),
+): readonly TokenRole[] {
+  const [dose, weight, ...rest] = individualRoles(voice, person);
   return [...(dose === undefined ? [] : [dose]), ...(weight === undefined ? [] : [weight]),
     doseCountRole(voice), ...rest];
 }

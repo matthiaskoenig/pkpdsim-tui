@@ -6,8 +6,8 @@
 
 import {DEFAULT_HEART_CONTROLS} from "@pkpdsim-tui/cardio-sim";
 import type {HeartControls, HeartSummary} from "@pkpdsim-tui/cardio-sim";
-import {formatNumber} from "@pkpdsim-tui/tui-kit";
-import type {Voice} from "@pkpdsim-tui/tui-kit";
+import {formatNumber, GROWN_UP} from "@pkpdsim-tui/tui-kit";
+import type {TableIndividual, Voice} from "@pkpdsim-tui/tui-kit";
 import {CARDIO_TEXT} from "./text.ts";
 import type {CardioDone} from "./text.ts";
 
@@ -25,7 +25,7 @@ export function bloodPressure(summary: HeartSummary): string {
 export function cardioReading(
   voice: Voice,
   controls: HeartControls,
-  sex: "male" | "female",
+  person: TableIndividual,
   summary: HeartSummary,
   reference: HeartSummary,
 ): string {
@@ -36,8 +36,14 @@ export function cardioReading(
   if (Math.abs(controls.heartRate - DEFAULT_HEART_CONTROLS.heartRate) > 1) done.push("rate");
   if (controls.contractility < 0.95) done.push("weak");
   if (controls.contractility > 1.05) done.push("strong");
-  return voice.pick(CARDIO_TEXT).reading({
-    sex, done,
+  const copy = voice.pick(CARDIO_TEXT);
+  return copy.reading({
+    body: copy.body({
+      sex: person.sex,
+      child: person.age < GROWN_UP,
+      weight: formatNumber(person.weight, person.weight < 40 ? 1 : 0),
+    }),
+    done,
     pressure: bloodPressure(summary),
     output: formatNumber(summary.mean_cardiac_output, 1),
     rate: formatNumber(controls.heartRate, 0),

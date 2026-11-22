@@ -51,6 +51,11 @@ export interface HeartConfig {
    * every point is a row of 34 numbers the worker has to hand back.
    */
   readonly course_points?: number;
+  /**
+   * What is set before the model is initialised: the body weight and the height of the person
+   * the table is solved for, which the organ volumes and the blood flows of the model follow.
+   */
+  readonly preinit?: readonly (readonly [string, number])[];
   readonly sbml_sha256?: string;
   readonly settings?: Readonly<Record<string, unknown>>;
 }
@@ -102,7 +107,7 @@ export function heartRequest(controls: Partial<HeartControls>, config: HeartConf
     start: 0,
     end,
     output: {times},
-    preinit: [],
+    preinit: (config.preinit ?? []).map(([id, value]) => [id, value] as [string, number]),
     changes: [{
       time: config.intervention,
       values: (Object.keys(HEART_PARAMETERS) as (keyof HeartControls)[])

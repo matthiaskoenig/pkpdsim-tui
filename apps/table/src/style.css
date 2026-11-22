@@ -539,3 +539,180 @@
 .hub-say[data-speaking="true"] .hub-say-waves {
   stroke: #ffffff;
 }
+
+/* The third question of the first screen: who the tables are solved for. The card is narrower
+   than the two before it, because it is read down rather than across: the body, the two lines
+   of the age and the weight, and the button which takes them to the tables. */
+.welcome-card--person {
+  gap: 1.1rem;
+  width: min(44rem, 100%);
+}
+
+.welcome-note {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--ink-dim);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.welcome-row--bodies {
+  gap: 1.1rem;
+}
+
+/* The two bodies are a switch, so the one which is on is filled rather than only outlined. */
+.welcome-pick--body {
+  width: 12rem;
+  padding: 1.1rem 1rem 0.9rem;
+}
+
+.welcome-pick--body .pick-art {
+  width: 5.4rem;
+  height: 3.7rem;
+}
+
+.welcome-pick--body[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.dials {
+  display: grid;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.dial-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.dial-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.dial-value {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A line with a knob, set by a finger anywhere along it. It is the one thing on these tables
+   which is dragged rather than pressed: an age is one of a hundred and sixteen values. */
+.dial-track {
+  position: relative;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.dial-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Where the reference body of this age and this body weighs, which the weight starts at. */
+.dial-mark {
+  position: absolute;
+  top: -0.3rem;
+  bottom: -0.3rem;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--panel-ink-dim);
+  opacity: 0.55;
+}
+
+.dial-knob {
+  position: absolute;
+  top: 50%;
+  width: 2.9rem;
+  height: 2.9rem;
+  margin-left: -1.45rem;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: 4px solid var(--surface);
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(15, 32, 56, 0.25);
+  pointer-events: none;
+}
+
+.dial-track:hover,
+.dial-track[data-arming="true"] {
+  border-color: var(--accent);
+}
+
+.dial-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* How tall this body is, which follows from the age and the body and is not set by hand. */
+.person-body {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 1.05rem;
+}
+
+.welcome-pick--go {
+  width: auto;
+  padding: 1rem 2.6rem;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.welcome-pick--go .welcome-pick-label {
+  font-size: 1.5rem;
+}
+
+/* The person of the moment, in the corner of the landing page beside the button which starts
+   again: a line which says who the tables are being solved for, and opens the question again. */
+.person-button {
+  position: fixed;
+  left: 2rem;
+  bottom: 5.4rem;
+  z-index: 41;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1.1rem 0.5rem 0.6rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.person-button .pick-art {
+  width: 2rem;
+  height: 1.5rem;
+}
+
+.person-button:hover,
+.person-button:focus-visible,
+.person-button[data-arming="true"] {
+  border-color: var(--accent);
+  outline: none;
+}

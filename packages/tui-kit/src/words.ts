@@ -43,6 +43,9 @@ export interface KitCopy {
   readonly bodySwitch: string;
   readonly male: string;
   readonly female: string;
+  /** The same two bodies before they are grown up, which is what a body of a child is called. */
+  readonly boy: string;
+  readonly girl: string;
   /** The button which puts a figure back the way it opened. */
   readonly reset: string;
   readonly resetInfo: Phrase;
@@ -120,6 +123,8 @@ const EN: KitCopy = {
   },
   male: "Man",
   female: "Woman",
+  boy: "Boy",
+  girl: "Girl",
   mouseHint: markers => ({
     child: `Press ${markers} to put an object down, drag it, and roll the wheel to turn it.`,
     adult: `Keys ${markers} put an object down, dragging moves it, the wheel turns it.`,
@@ -197,6 +202,8 @@ const DE: KitCopy = {
   },
   male: "Mann",
   female: "Frau",
+  boy: "Junge",
+  girl: "Mädchen",
   mouseHint: markers => ({
     child: `Drücke ${markers}, dann liegt ein Objekt da. Ziehen bewegt es, das Mausrad dreht es.`,
     adult: `Die Tasten ${markers} legen ein Objekt ab, Ziehen bewegt es, das Mausrad dreht es.`,
@@ -275,6 +282,8 @@ const ES: KitCopy = {
   },
   male: "Hombre",
   female: "Mujer",
+  boy: "Niño",
+  girl: "Niña",
   mouseHint: markers => ({
     child: `Pulsa ${markers} y aparece un objeto. Arrástralo para moverlo y gíralo con la rueda.`,
     adult: `Las teclas ${markers} colocan un objeto, arrastrarlo lo mueve, la rueda lo gira.`,
@@ -381,4 +390,17 @@ const ORGAN_NAMES: Readonly<Record<Locale, Readonly<Record<string, string>>>> = 
 /** What an organ of the physiology is called here, by the name of the export otherwise. */
 export function organName(voice: Voice, id: string, exported: string): string {
   return ORGAN_NAMES[voice.locale][id] ?? exported;
+}
+
+/** From when a body is called a woman or a man rather than a girl or a boy, in years. */
+export const GROWN_UP = 16;
+
+/**
+ * What the body of a person of this age is called. A table which says "woman" of a body of
+ * eight years is a table which was not listening: a visitor who sets a child is shown a child.
+ */
+export function bodyName(voice: Voice, sex: "female" | "male", age: number): string {
+  const copy = words(voice);
+  if (age < GROWN_UP) return sex === "female" ? copy.girl : copy.boy;
+  return sex === "female" ? copy.female : copy.male;
 }

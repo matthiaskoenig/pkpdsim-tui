@@ -9,7 +9,7 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 ## One application, four tables
 
-Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, with the four tables on a ring around them, each the same distance from the bodies. Every table is a big disc in a colour of its own, which its organ on the body and the sidebar carry too, and the stars its quiz has handed out stand under its name. Touching an icon, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
+Everything here is one application. It opens on the body of the person at the table, with the four tables on a ring around it, each the same distance from the body. Every table is a big disc in a colour of its own, which its organ on the body and the sidebar carry too, and the stars its quiz has handed out stand under its name. Touching an icon, or the organ it points at, opens that table. Who that person is - the body, an age from four to a hundred and twenty years and what they weigh - is the third question of the first screen, and every model is solved for them. In a table, **Back** in the panel returns to the body, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
@@ -81,7 +81,7 @@ Everything that is not needed at a glance waits behind the element it belongs to
 
 The table is made for a visitor who has a minute, not for a reader. What that costs the design:
 
-- **A landing page with nothing on it but the invitation.** A heading, what this is, the woman and the man side by side in the middle, and the four tables as big coloured icons on a ring around them, each in the colour of the organ it is about. A visit starts one screen earlier, with the language and who is looking; a finger on a card opens its table, the sidebar says what that table is, the settings stand open in a strip along the top, and the laboratory is in the corner with the square a phone is pointed at. No panel, no legend, no status, and no object: those belong to a table which is already open.
+- **A landing page with nothing on it but the invitation.** A heading, what this is, the body of the visitor in the middle at the height of their age, and the four tables as big coloured icons on a ring around it, each in the colour of the organ it is about. A visit starts one screen earlier, with the language, who is looking and who is at the table; a finger on a card opens its table, the sidebar says what that table is, and the gear and the laboratory stand together in the bottom corner. No panel, no legend, no status, and no object: those belong to a table which is already open.
 - **One side.** Everything is upright for the people at the panel's edge. Nothing is drawn twice, and the room that saves goes to the body.
 - **A card per object.** An object carries a picture of what it is, and the picture answers while it is turned: a vessel narrows, a heart beats at the rate it is set to, a clock hand walks through the days after an operation.
 - **Short words, with more behind them.** Two things to try, one sentence of state, and a note on everything else for whoever asks for it.

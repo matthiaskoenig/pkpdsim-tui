@@ -10,7 +10,7 @@ import type {TableMark} from "./host.ts";
 import {ICONS} from "./icons.mjs";
 import type {Pictogram} from "./settings.ts";
 import {sayHtml} from "./say.ts";
-import {reportStatus} from "./settings.ts";
+import {pictogram, reportStatus} from "./settings.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
 
@@ -114,7 +114,11 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
         `data-dwell="${escapeHtml(group.id)}:${escapeHtml(option.id)}"`,
         unavailable === "" ? "" : `disabled title="${escapeHtml(unavailable)}"`,
       ].filter(attribute => attribute !== "").join(" ");
-      return `<button ${attributes}>${escapeHtml(option.label)}</button>`;
+      // A switch whose options carry a picture is read rather than spelled: the body a table
+      // is solved for and the species of a liver are the figure itself over its name.
+      const art = option.picture === undefined ? "" : pictogram(option.picture);
+      return `<button ${attributes}>${art}`
+        + `<span class="choice-text">${escapeHtml(option.label)}</span></button>`;
     }).join("");
     return `<div class="choice-group"><span class="choice-label">${escapeHtml(group.label)}</span>`
       + `<span class="choice-options">${buttons}</span></div>`;

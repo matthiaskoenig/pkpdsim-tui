@@ -429,12 +429,15 @@ body {
   flex-wrap: wrap;
   gap: 0.2rem;
   padding: 0.22rem;
-  border: 1.5px solid rgba(243, 248, 251, 0.2);
+  border: 1.5px solid var(--panel-line, rgba(243, 248, 251, 0.2));
   border-radius: 999px;
-  background: rgba(243, 248, 251, 0.06);
+  background: color-mix(in srgb, var(--panel-ink, #f3f8fb) 5%, transparent);
 }
 
 .choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.38rem 0.95rem;
   border: 0;
   border-radius: 999px;
@@ -447,10 +450,17 @@ body {
   transition: background 120ms linear, color 120ms linear;
 }
 
+/* A switch which carries pictures is the picture first: the figure of the body or the animal
+   stands over its name, large enough to be told apart from across the table. */
+.choice .pick-art {
+  width: 2rem;
+  height: 1.4rem;
+}
+
 .choice:hover:not([disabled]),
 .choice[data-arming="true"] {
   color: var(--ink);
-  background: rgba(243, 248, 251, 0.12);
+  background: color-mix(in srgb, var(--panel-ink, #f3f8fb) 12%, transparent);
 }
 
 .choice[aria-pressed="true"] {
@@ -1457,4 +1467,34 @@ body {
 .lab:hover .lab-more,
 .lab[data-arming="true"] .lab-more {
   color: var(--ink);
+}
+
+/* Who the tables are solved for, at the top of the settings card: the line which says it, and
+   the way back into the question of the first screen. */
+.settings-person {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid var(--panel-line);
+  border-radius: 0.9rem;
+  background: transparent;
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-person .pick-art {
+  width: 1.9rem;
+  height: 1.4rem;
+}
+
+.settings-person:hover,
+.settings-person:focus-visible,
+.settings-person[data-arming="true"] {
+  border-color: var(--accent);
+  outline: none;
 }

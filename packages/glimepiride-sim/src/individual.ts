@@ -19,8 +19,8 @@ export interface GlimepirideControl {
   readonly value: number;
 }
 
-/** The sexes the body of the individual can be. */
-export const SEXES = ["male", "female"] as const;
+/** The sexes the body of the individual can be. The female body is the one a table opens with. */
+export const SEXES = ["female", "male"] as const;
 
 export type Sex = (typeof SEXES)[number];
 
@@ -39,8 +39,8 @@ export const HEIGHT_PARAMETER = "HEIGHT";
 
 /**
  * The reference individual takes 4 mg, has two wild type alleles, no cirrhosis, a creatinine
- * clearance of 110 ml/min and is the reference adult male of 73 kg. The female body is the same
- * individual at the female reference of 60 kg and 163 cm.
+ * clearance of 110 ml/min and is the reference adult female of 60 kg. The male body is the same
+ * individual at the male reference of 73 kg and 176 cm.
  */
 export const GLIMEPIRIDE_CONTROLS = {
   dose: {
@@ -60,8 +60,10 @@ export const GLIMEPIRIDE_CONTROLS = {
     min: 10, max: 110, value: 110,
   },
   weight: {
+    // From the lightest body of four years, which is where the tables start, to a heavy adult.
+    // What a dial of the table spans is narrower: it is what a body of that age can weigh.
     id: "weight", parameter: "BW", label: "Body weight", unit: "kg",
-    min: 40, max: 170, value: REFERENCE_BODIES.male.weight,
+    min: 10, max: 170, value: REFERENCE_BODIES.female.weight,
   },
 } as const satisfies Record<string, GlimepirideControl>;
 
@@ -73,7 +75,7 @@ export type GlimepirideIndividual = {
 export const NORMAL_CRCL = 110;
 
 /** The reference individual of a body, which is who is simulated with nothing on the table. */
-export function referenceIndividual(sex: Sex = "male"): GlimepirideIndividual {
+export function referenceIndividual(sex: Sex = "female"): GlimepirideIndividual {
   const individual = Object.fromEntries(
     Object.entries(GLIMEPIRIDE_CONTROLS).map(([key, control]) => [key, control.value]),
   ) as GlimepirideIndividual;
@@ -84,7 +86,7 @@ export function referenceIndividual(sex: Sex = "male"): GlimepirideIndividual {
  * The height of an individual of that body and that weight. The reference height of the sex is
  * kept, because a dial changes what a person weighs and not how tall they are.
  */
-export function heightOf(sex: Sex = "male"): number {
+export function heightOf(sex: Sex = "female"): number {
   return REFERENCE_BODIES[sex].height;
 }
 
@@ -109,14 +111,21 @@ export function normalizeIndividual(
  * The individual as the parameters of the model. The kidneys are the one control that is not a
  * parameter: the model takes the fraction of the renal function that is left, and a clearance
  * above the reference does not make the kidneys clear more than they can.
+ *
+ * The height is a number and not a sex, because the person at the table has an age: a body of
+ * nine years is the reference child of nine years, and only the grown ups are the two reference
+ * adults of the library.
  */
 export function parametersOf(
   individual: Partial<GlimepirideIndividual> = {},
-  sex: Sex = "male",
+  height: number = heightOf(),
 ): [string, number][] {
   const values = normalizeIndividual(individual);
+  if (!Number.isFinite(height) || height <= 0) {
+    throw new RangeError("The height must be a positive number of centimetres.");
+  }
   return [
-    [HEIGHT_PARAMETER, heightOf(sex)],
+    [HEIGHT_PARAMETER, height],
     [GLIMEPIRIDE_CONTROLS.dose.parameter, values.dose],
     [GLIMEPIRIDE_CONTROLS.cyp2c9.parameter, values.cyp2c9],
     [GLIMEPIRIDE_CONTROLS.cirrhosis.parameter, values.cirrhosis],

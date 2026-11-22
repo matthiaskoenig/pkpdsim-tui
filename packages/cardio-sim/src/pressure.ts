@@ -8,6 +8,26 @@
 
 import type {OrganFlow, PressureControls, PressureReference, PressureSolution} from "./types.ts";
 
+/**
+ * The same network at another body. The exported reference is the circulation of the reference
+ * adult: a body which moves `scale` of the blood that adult moves is that network with its
+ * resistances divided by `scale`, and the flow of every organ follows. The pressures are left
+ * alone, because what changes with a body is how much blood goes through it and not the head
+ * it is driven by.
+ */
+export function bodyReference(
+  reference: PressureReference, scale: number,
+): PressureReference {
+  if (!Number.isFinite(scale) || scale <= 0 || scale === 1) return reference;
+  return {
+    ...reference,
+    cardiac_output: reference.cardiac_output * scale,
+    portal_resistance: reference.portal_resistance / scale,
+    hepatic_resistance: reference.hepatic_resistance / scale,
+    organs: reference.organs.map(organ => ({...organ, resistance: organ.resistance / scale})),
+  };
+}
+
 export function defaultControls(reference: PressureReference): PressureControls {
   return {
     hepatic: 1, systemic: 1, portal: 1, renal: 1,

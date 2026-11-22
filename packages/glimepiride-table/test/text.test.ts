@@ -1,5 +1,6 @@
 import {describe, expect, it} from "vitest";
 
+import {individualOf} from "@pkpdsim-tui/cardio-sim";
 import {referenceIndividual} from "@pkpdsim-tui/glimepiride-sim";
 import {createVoice, LEVELS, LOCALES} from "@pkpdsim-tui/tui-kit";
 import {glimepirideReading} from "../src/audience.ts";
@@ -63,17 +64,20 @@ describe("what the glimepiride table reads", () => {
 
 describe("what the glimepiride table says", () => {
   const reference = referenceIndividual("male");
+  const man = individualOf(35, "male");
+  const woman = individualOf(35, "female");
+  const girl = individualOf(8, "female");
 
   it("says that nothing was changed about the person on the table", () => {
     const sentence = glimepirideReading(
-      english, reference, "male", readout(600, 300), readout(600, 300), reference, 1);
+      english, reference, man, readout(600, 300), readout(600, 300), reference, 1);
     expect(sentence).toContain("takes 4 mg of glimepiride");
   });
 
   it("names the slow liver and what it does to the exposure", () => {
     const slow = {...reference, cyp2c9: 0.2};
     const sentence = glimepirideReading(
-      english, slow, "male", readout(1500, 900), readout(600, 300), reference, 1);
+      english, slow, man, readout(1500, 900), readout(600, 300), reference, 1);
     expect(sentence).toContain("breaks glimepiride down slowly");
     expect(sentence).toContain("2.5 times as much");
     expect(sentence).toContain("half of it is gone after 15 hours");
@@ -82,18 +86,27 @@ describe("what the glimepiride table says", () => {
   it("says the same state in German and in Spanish", () => {
     const slow = {...reference, cyp2c9: 0.2};
     const german = glimepirideReading(
-      createVoice("de", "adult"), slow, "female", readout(1500, 900), readout(600, 300), reference, 1);
+      createVoice("de", "adult"), slow, woman, readout(1500, 900), readout(600, 300), reference, 1);
     expect(german).toContain("Glimepirid langsam abbaut");
     expect(german).toContain("Eine Frau");
     const spanish = glimepirideReading(
-      createVoice("es", "child"), slow, "male", readout(1500, 900), readout(600, 300), reference, 1);
+      createVoice("es", "child"), slow, man, readout(1500, 900), readout(600, 300), reference, 1);
     expect(spanish).toContain("metaboliza la glimepirida despacio");
     expect(spanish).toContain("Un hombre");
   });
 
+  it("calls the body of a child a girl, and says it the way German says it", () => {
+    const child = {...reference, weight: 26.8, cyp2c9: 0.2};
+    const german = glimepirideReading(
+      createVoice("de", "adult"), child, girl, readout(1500, 900), readout(600, 300),
+      {...reference, weight: 26.8}, 1);
+    expect(german).toContain("Ein Mädchen von 26.8 kg");
+    expect(german).toContain(", das ");
+  });
+
   it("says how long the person is on the tablet when it is more than one morning", () => {
     const sentence = glimepirideReading(
-      english, reference, "male", readout(600, 300), readout(600, 300), reference, 7);
+      english, reference, man, readout(600, 300), readout(600, 300), reference, 7);
     expect(sentence).toContain("7 mornings in a row");
   });
 });
