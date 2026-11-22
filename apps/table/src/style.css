@@ -136,20 +136,6 @@
   fill: #e2725b;
 }
 
-/* The laboratory in the bottom right corner, which opens the page about all of this. */
-.hub-lab-more {
-  text-anchor: end;
-  font-size: 13px;
-  font-weight: 600;
-  fill: var(--accent);
-  text-decoration: underline;
-}
-
-.hub-lab:hover .hub-lab-more,
-.hub-lab[data-arming="true"] .hub-lab-more {
-  fill: var(--ink);
-}
-
 /* A smaller table, a laptop or a window beside the simulator: the heading and the cards shrink. */
 @media (max-height: 820px) {
   .hub-heading {
@@ -163,43 +149,6 @@
   .hub-icon-title {
     font-size: 18px;
   }
-}
-
-
-/* The laboratory at the foot of the page: the square a phone reads, and who this is. */
-.hub-lab {
-  cursor: pointer;
-}
-
-.hub-qr-plate {
-  fill: #ffffff;
-}
-
-.hub-qr-code {
-  fill: #0f1d28;
-  /* Every module is its own square, so the path has to be filled as one shape. */
-  fill-rule: nonzero;
-  shape-rendering: crispEdges;
-}
-
-.hub-lab-name {
-  text-anchor: end;
-  font-size: 16px;
-  font-weight: 700;
-  fill: var(--ink);
-}
-
-.hub-lab-line {
-  text-anchor: end;
-  font-size: 13px;
-  fill: var(--ink-dim);
-}
-
-.hub-lab-link {
-  text-anchor: end;
-  font-size: 13px;
-  font-weight: 600;
-  fill: var(--accent);
 }
 
 /* ---------------------------------------------------------------------------------------- */

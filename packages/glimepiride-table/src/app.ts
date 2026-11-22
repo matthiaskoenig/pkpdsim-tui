@@ -21,7 +21,7 @@ import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
 import {
   chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
-  formatNumber, pointerPoints, visibleStats, words,
+  formatNumber, LAB_ROOM, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
@@ -62,7 +62,8 @@ function plotBox(viewport: {width: number; height: number}): Box {
   return {
     x, y: body.y + 40,
     width: Math.max(320, viewport.width - x - GAP * 2),
-    height: Math.max(220, viewport.height - body.y - BAND - GAP * 2),
+    // The laboratory stands in the bottom corner of every page, under the course.
+    height: Math.max(220, viewport.height - body.y - BAND - GAP * 2 - LAB_ROOM),
   };
 }
 

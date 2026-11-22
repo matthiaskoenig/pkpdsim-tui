@@ -17,7 +17,7 @@ import {
 import type {PerfusionSettings} from "@pkpdsim-tui/perfusion-sim";
 import {
   createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint, formatNumber,
-  pointerPoints, tokenPoints, visibleStats, words,
+  LAB_ROOM, pointerPoints, tokenPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
 import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
@@ -45,7 +45,8 @@ function boxes(viewport: Viewport): {circuit: Box; plot: Box} {
   const left = PANEL;
   const right = viewport.width - MARGIN;
   const top = BAND + 20;
-  const height = Math.max(240, viewport.height - top - MARGIN);
+  // The laboratory stands in the bottom corner of every page, under both of them.
+  const height = Math.max(240, viewport.height - top - MARGIN - LAB_ROOM);
   const split = Math.min((right - left) * 0.56, height * 1.1);
   return {
     circuit: {x: left, y: top, width: split, height},

@@ -1351,3 +1351,84 @@ body {
 :root[data-level="child"] .quiz-ask {
   font-size: 1.5rem;
 }
+
+/*
+ * The laboratory in the far bottom corner of every page: whose work this is, the address of it,
+ * and the square a phone is pointed at. It is furniture, like the gear in the other corner, and
+ * a table keeps the room it takes (LAB_ROOM) clear of its own scene.
+ */
+.lab {
+  pointer-events: auto;
+  position: absolute;
+  /* Over the first screen as well, which covers the page while it asks its two questions: the
+     square is there to be read from the moment somebody walks up. */
+  z-index: 41;
+  right: 1.4rem;
+  bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  cursor: pointer;
+}
+
+.lab-lines {
+  display: grid;
+  gap: 0.1rem;
+  justify-items: end;
+  text-align: right;
+}
+
+.lab-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lab-line {
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+
+.lab-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.lab-more {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.lab-qr {
+  width: 5.1rem;
+  height: 5.1rem;
+}
+
+.lab-qr-plate {
+  fill: #ffffff;
+}
+
+.lab-qr-code {
+  fill: #0f1d28;
+  /* Every module is its own square, so the path has to be filled as one shape. */
+  fill-rule: nonzero;
+  shape-rendering: crispEdges;
+}
+
+.lab:hover,
+.lab:focus-visible,
+.lab[data-arming="true"] {
+  border-color: var(--panel-line);
+  outline: none;
+}
+
+.lab:hover .lab-more,
+.lab[data-arming="true"] .lab-more {
+  color: var(--ink);
+}

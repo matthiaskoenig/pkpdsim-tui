@@ -17,10 +17,10 @@
  */
 
 import {
-  chooseQuery, createSettings, createVoice, languageOptions, LEVELS, voiceOf, words,
+  chooseQuery, createLab, createSettings, createVoice, languageOptions, LEVELS, voiceOf, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {
-  ChoiceGroup, GlyphKind, TableApp, TableHost, Voice,
+  ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
 } from "@pkpdsim-tui/tui-kit";
 import {startAbout} from "./about.ts";
 import {askWelcome} from "./welcome.ts";
@@ -28,6 +28,7 @@ import {startOverview} from "./hub.ts";
 import {
   ABOUT, entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf,
 } from "./tables.ts";
+import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
 import {HUB_TEXT} from "./text.ts";
 
 function element<T extends Element>(id: string): T {
@@ -87,14 +88,31 @@ function fail(voice: Voice, message: string): void {
 let voice = voiceOf(
   new URLSearchParams(window.location.search), window.navigator.languages ?? []);
 
+/** The laboratory of the far corner, said in one language. */
+function labOf(voice: Voice): LabOptions {
+  const copy = voice.pick(HUB_TEXT);
+  return {
+    name: copy.labName, place: copy.labPlace, url: LAB_URL,
+    qr: {path: LAB_QR_PATH, size: LAB_QR_SIZE},
+    more: copy.about.open, info: copy.labInfo,
+    onOpen: () => chooseQuery("app", ABOUT, OVERVIEW),
+  };
+}
+
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
   const entry = tableOf(parameters);
+  const about = entry === undefined && parameters.get("app") === ABOUT;
+  // Whose laboratory this is and the square a phone is pointed at: the same block in the same
+  // corner of every page, from the first question a visitor is asked to the table they open.
+  // The page about all of this is the one page without it: it is what the block opens, and it
+  // carries the square of the laboratory itself.
+  const lab = about ? undefined : createLab(element<HTMLElement>("chrome"), voice, labOf(voice));
   // A visitor who walks up to the table says two things before anything is shown: which
   // language they read, and how much a table should say. The address carries both afterwards,
   // so a table which is opened from the landing page is in the language they chose, and a
   // link which already says them walks straight in.
-  if (entry === undefined && parameters.get("app") !== ABOUT
+  if (entry === undefined && !about
     && (parameters.get("lang") === null || parameters.get("level") === null)) {
     element<HTMLElement>("boot").hidden = true;
     const picked = await askWelcome(element<HTMLElement>("chrome"));
@@ -103,11 +121,11 @@ async function start(): Promise<void> {
     window.history.replaceState(
       null, "", `${window.location.pathname}?${parameters.toString()}`);
     voice = createVoice(picked.locale, picked.level);
+    lab?.update(labOf(voice));
     element<HTMLElement>("boot").hidden = false;
   }
   const assets = new URL("assets/", document.baseURI);
   const copy = voice.pick(HUB_TEXT);
-  const about = entry === undefined && parameters.get("app") === ABOUT;
   const title = about
     ? copy.about.title
     : entry === undefined ? copy.heading : entryCopy(voice, entry.id).title;

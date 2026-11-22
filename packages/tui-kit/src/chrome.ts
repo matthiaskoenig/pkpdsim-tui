@@ -190,7 +190,9 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
   // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
   panel.addEventListener("click", event => {
     const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
+    // A picture inside a button is an SVG element and not an HTML one, so the press is
+    // read from any element: a finger or a mouse lands on the flag, not on the button.
+    if (!(target instanceof Element)) return;
     if (target.closest(".back") !== null) {
       options.onBack?.();
       return;

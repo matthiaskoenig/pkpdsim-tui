@@ -13,11 +13,10 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, ICONS, pointerPoints, readStars, reportStatus, svg,
-  watchStars, words,
+  attributes, chooseQuery, createInfo, ICONS, LAB_ROOM, pointerPoints, readStars, reportStatus,
+  svg, watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
-import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
 import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
@@ -45,8 +44,7 @@ const TITLE_LINES = 2;
 const STRUT = 30;
 /** The sidebar at the right: what the table a visitor is pointing at is, at length. */
 const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const;
-/** The room the laboratory block takes in the bottom corner, which the sidebar stops above. */
-const LAB_HEIGHT = 96;
+
 /**
  * Where the icons sit on the ring around the disc, in degrees, clockwise from the top. The
  * bodies in the middle and the tables around them say what the collection is: four ways of
@@ -310,30 +308,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     return {dot, name};
   });
   const boxCall = svg("text", {class: "hub-info-call"}, box);
-  // The foot of the page: whose laboratory this is, and the square a visitor points a phone at.
-  const foot = svg("g", {class: "hub-foot"}, scene);
-  const lab = svg("g", {
-    class: "hub-lab", role: "button", tabindex: 0, "data-dwell": "about",
-    "data-info": `${copy.labInfo} ${LAB_URL}`,
-  }, foot);
-  lab.addEventListener("click", () => chooseQuery("app", ABOUT, OVERVIEW));
-  lab.addEventListener("keydown", event => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    chooseQuery("app", ABOUT, OVERVIEW);
-  });
-  const qr = svg("g", {class: "hub-qr"}, lab);
-  svg("rect", {class: "hub-qr-plate", x: -2, y: -2, width: LAB_QR_SIZE + 4, height: LAB_QR_SIZE + 4, rx: 1.5}, qr);
-  svg("path", {class: "hub-qr-code", d: LAB_QR_PATH}, qr);
-  const labName = svg("text", {class: "hub-lab-name"}, lab);
-  labName.textContent = copy.labName;
-  const labPlace = svg("text", {class: "hub-lab-line"}, lab);
-  labPlace.textContent = copy.labPlace;
-  const labLink = svg("text", {class: "hub-lab-link"}, lab);
-  labLink.textContent = LAB_URL.replace("https://", "");
-  // What the laboratory block opens, under the three lines: the page about all of this.
-  const labMore = svg("text", {class: "hub-lab-more"}, lab);
-  labMore.textContent = copy.about.open;
 
   const open = (entry: TableEntry): void => {
     chooseQuery("app", entry.id, OVERVIEW);
@@ -418,7 +392,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const placeBox = (): void => {
     const left = viewport.width - INFO.margin - INFO.width;
     const height = Math.max(
-      320, viewport.height - INFO.top - ICON.margin - LAB_HEIGHT - 24);
+      320, viewport.height - INFO.top - ICON.margin - LAB_ROOM);
     attributes(boxPlate, {x: left, y: INFO.top, width: INFO.width, height});
     const inside = left + PADDING + 4;
     attributes(boxBar, {x: left, y: INFO.top, width: 6, height});
@@ -532,20 +506,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       line.textContent = motivationLines[index] ?? "";
       attributes(line, {x: middle, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The sidebar at the right, under the settings along the top.
+    // The sidebar at the right, under the settings along the top. The laboratory under it is
+    // furniture of the page: the application draws it in the same corner of every page.
     placeBox();
-    // The laboratory in the bottom right corner: the square a phone is pointed at, and the
-    // three lines beside it, which open the page about all of this.
-    const square = 84;
-    const base = viewport.height - ICON.margin - square;
-    const right = viewport.width - ICON.margin;
-    qr.setAttribute(
-      "transform", `translate(${right - square} ${base}) scale(${square / LAB_QR_SIZE})`);
-    const text = right - square - 14;
-    attributes(labName, {x: text, y: base + 24});
-    attributes(labPlace, {x: text, y: base + 46});
-    attributes(labLink, {x: text, y: base + 68});
-    attributes(labMore, {x: text, y: base + 90});
   };
 
   const update = (): void => {

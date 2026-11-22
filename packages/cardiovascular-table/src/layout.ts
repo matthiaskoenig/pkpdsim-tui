@@ -8,6 +8,7 @@
  * instead of letting the last one off the glass.
  */
 
+import {LAB_ROOM} from "@pkpdsim-tui/tui-kit";
 import type {Viewport} from "@pkpdsim-tui/tui-kit";
 
 export type PanelName = "pulse" | "beats" | "hepatic";
@@ -28,7 +29,8 @@ const ORDER: readonly PanelName[] = ["pulse", "beats", "hepatic"];
 export function columnScale(viewport: Viewport): number {
   const stack = ORDER.reduce((sum, name) => sum + COLUMN.height[name], 0)
     + COLUMN.gap * (ORDER.length - 1);
-  const room = viewport.height - COLUMN.top - COLUMN.bottom;
+  // The laboratory stands in the bottom corner of every page, under this column.
+  const room = viewport.height - COLUMN.top - COLUMN.bottom - LAB_ROOM;
   return Math.min(1, room / stack);
 }
 

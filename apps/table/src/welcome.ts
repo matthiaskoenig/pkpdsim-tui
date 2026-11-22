@@ -77,7 +77,9 @@ export function askWelcome(container: HTMLElement): Promise<Welcome> {
     drawLanguages();
     root.addEventListener("click", event => {
       const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
+      // The flag of a language is an SVG element: a press lands on it rather than on the
+      // button around it, so the press is read from any element and not from an HTML one.
+      if (!(target instanceof Element)) return;
       const pick = target.closest(".welcome-pick");
       if (!(pick instanceof HTMLElement)) return;
       const choice = pick.dataset["choice"] ?? "";
