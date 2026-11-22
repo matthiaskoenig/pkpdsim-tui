@@ -17,10 +17,13 @@
  */
 
 import {
-  chooseQuery, createSettings, languageOptions, LEVELS, voiceOf, words,
+  chooseQuery, createSettings, createVoice, languageOptions, LEVELS, voiceOf, words,
 } from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup, TableApp, TableHost, Voice} from "@pkpdsim-tui/tui-kit";
+import type {
+  ChoiceGroup, GlyphKind, TableApp, TableHost, Voice,
+} from "@pkpdsim-tui/tui-kit";
 import {startAbout} from "./about.ts";
+import {askWelcome} from "./welcome.ts";
 import {startOverview} from "./hub.ts";
 import {
   ABOUT, entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf,
@@ -81,12 +84,27 @@ function fail(voice: Voice, message: string): void {
   element<HTMLElement>("boot-message").textContent = message;
 }
 
-const voice = voiceOf(
+let voice = voiceOf(
   new URLSearchParams(window.location.search), window.navigator.languages ?? []);
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
   const entry = tableOf(parameters);
+  // A visitor who walks up to the table says two things before anything is shown: which
+  // language they read, and how much a table should say. The address carries both afterwards,
+  // so a table which is opened from the landing page is in the language they chose, and a
+  // link which already says them walks straight in.
+  if (entry === undefined && parameters.get("app") !== ABOUT
+    && (parameters.get("lang") === null || parameters.get("level") === null)) {
+    element<HTMLElement>("boot").hidden = true;
+    const picked = await askWelcome(element<HTMLElement>("chrome"));
+    parameters.set("lang", picked.locale);
+    parameters.set("level", picked.level);
+    window.history.replaceState(
+      null, "", `${window.location.pathname}?${parameters.toString()}`);
+    voice = createVoice(picked.locale, picked.level);
+    element<HTMLElement>("boot").hidden = false;
+  }
   const assets = new URL("assets/", document.baseURI);
   const copy = voice.pick(HUB_TEXT);
   const about = entry === undefined && parameters.get("app") === ABOUT;
@@ -122,6 +140,34 @@ async function start(): Promise<void> {
     pinned: overview,
   });
 
+  // The landing page is where a visit ends as well as begins: the button in the corner asks the
+  // two questions of the welcome again and forgets everything the last visitor did, so the next
+  // one meets the table in their own language.
+  if (overview) {
+    const again = document.createElement("button");
+    again.className = "again";
+    again.type = "button";
+    again.dataset["dwell"] = "again";
+    again.dataset["info"] = copy.startAgainInfo;
+    again.innerHTML = `<svg class="again-icon" viewBox="0 0 24 24" aria-hidden="true">`
+      + `<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path>`
+      + `<path d="M20.5 3.5v5.2h-5.2"></path></svg>`
+      + `<span class="again-label"></span>`;
+    const label = again.querySelector(".again-label");
+    if (label !== null) label.textContent = copy.startAgain;
+    again.addEventListener("click", () => {
+      const kept = new URLSearchParams();
+      for (const key of ["tuio", "tuio-version", "sex", "species"]) {
+        const value = parameters.get(key);
+        if (value !== null) kept.set(key, value);
+      }
+      const query = kept.toString();
+      window.location.href = query === "" ? window.location.pathname
+        : `${window.location.pathname}?${query}`;
+    });
+    element<HTMLElement>("chrome").appendChild(again);
+  }
+
   const host: TableHost = {
     surface: element<HTMLElement>("surface"),
     scene: element<SVGSVGElement>("scene"),
@@ -132,6 +178,8 @@ async function start(): Promise<void> {
     // Every table keeps its exported models and reference data in a folder of its own, so that
     // one page can serve all of them.
     assets: entry === undefined ? assets : new URL(entry.assets, assets),
+    // The colour and the picture of the card which opened this table, which its panel wears.
+    ...(entry === undefined ? {} : {mark: {picture: entry.picture as GlyphKind, color: entry.color}}),
     progress: message => {
       element<HTMLElement>("boot-message").textContent = message;
     },

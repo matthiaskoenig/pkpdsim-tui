@@ -384,3 +384,131 @@
   font-weight: 600;
   fill: var(--panel-ink);
 }
+
+/*
+ * The first screen: the language, and then how much the tables should say. It is a layer of its
+ * own over the whole surface, because a visitor who has just walked up has nothing else to do.
+ */
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: var(--surface);
+  pointer-events: auto;
+}
+
+.welcome-card {
+  display: grid;
+  gap: 2.4rem;
+  justify-items: center;
+  max-width: 64rem;
+}
+
+.welcome-ask {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink);
+}
+
+/* The first question is asked in all three languages at once, one under the other. */
+.welcome-ask--many {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 1.9rem;
+}
+
+.welcome-ask--many span:not(:first-child) {
+  color: var(--ink-dim);
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.welcome-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  justify-content: center;
+}
+
+.welcome-pick {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  width: 17rem;
+  padding: 1.6rem 1.2rem 1.4rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 1.4rem;
+  background: var(--panel);
+  color: var(--panel-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+
+.welcome-pick .pick-art {
+  width: 7rem;
+  height: 4.8rem;
+}
+
+.welcome-pick:hover,
+.welcome-pick:focus-visible,
+.welcome-pick[data-arming="true"] {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.welcome-pick-label {
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.welcome-pick-note {
+  color: var(--panel-ink-dim);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* The button which starts a visit over: it asks the language and who is looking again. */
+.again {
+  position: absolute;
+  left: 1.4rem;
+  bottom: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem 0.6rem 0.8rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.again-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.again:hover,
+.again:focus-visible,
+.again[data-arming="true"] {
+  border-color: var(--accent);
+  outline: none;
+}

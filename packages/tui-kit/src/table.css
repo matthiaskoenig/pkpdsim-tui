@@ -289,10 +289,44 @@ body {
 .edge .reading {
   margin: 0 0 0.6rem;
   padding: 0.45rem 0.6rem;
-  border-left: 3px solid var(--accent);
+  /* The colour of the table where it has one, the accent of the page on the pages which do
+     not: the landing page and the page about the models. */
+  border-left: 3px solid var(--table, var(--accent));
   border-radius: 0 0.4rem 0.4rem 0;
-  background: rgba(39, 179, 172, 0.1);
+  background: color-mix(in srgb, var(--table, var(--accent)) 12%, transparent);
   color: var(--ink);
+}
+
+/*
+ * What the table is, as a picture: the disc of its colour with its icon, the same one the card
+ * on the landing page carries. It is read from a distance, before a word of the panel is.
+ */
+.edge-mark {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  margin: 0 0 0.6rem;
+  border-radius: 50%;
+  background: var(--table, var(--accent));
+}
+
+.edge-mark-art {
+  width: 3.1rem;
+  height: 2.2rem;
+  fill: #ffffff;
+}
+
+@media (max-width: 1500px) {
+  .edge-mark {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .edge-mark-art {
+    width: 2.5rem;
+    height: 1.8rem;
+  }
 }
 
 .edge .tries {

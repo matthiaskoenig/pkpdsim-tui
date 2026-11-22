@@ -27,8 +27,13 @@ export interface PhraseLevels {
 export type Phrase = string | PhraseLevels;
 
 /** What `name` the switch of the language carries, and what the visitor calls their own. */
+/**
+ * The languages, in the order they are offered: the one of the room first, then the one of the
+ * visitors who do not speak it, then Spanish. `languageOptions` reads this order, so the
+ * welcome screen and the settings menu offer them the same way round.
+ */
 export const LOCALE_NAMES: Readonly<Record<Locale, string>> = {
-  en: "English", de: "Deutsch", es: "Español",
+  de: "Deutsch", en: "English", es: "Español",
 };
 
 export function isLocale(value: string): value is Locale {
