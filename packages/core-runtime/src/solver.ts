@@ -33,8 +33,10 @@ function listen(worker: SolverWorker, type: string, listener: (event: unknown) =
 }
 
 /**
- * A solver for one compiled model. The worker is started on the first run and torn down on an
- * error or an abort, so a run that is cancelled cannot leave a half finished integration behind.
+ * A solver for one compiled model. The worker is started on the first run and kept: a run which
+ * is abandoned, which is what every turn of an object does to the one before it, only drops its
+ * own answer, so the engine and the model are built once and not once per turn. An error or
+ * `close` tears the worker down.
  */
 export async function createSolver(options: SolverOptions): Promise<Solver> {
   const key = options.key ?? "model";
@@ -105,7 +107,19 @@ export async function createSolver(options: SolverOptions): Promise<Solver> {
       if (started === null) throw new Error("The simulation worker did not start.");
       return new Promise<SimulationResult>((resolve, reject) => {
         const id = ++nextId;
-        const abort = (): void => stop(signal?.reason ?? new DOMException("Aborted", "AbortError"));
+        /**
+         * A run nobody waits for any more is dropped, and the worker keeps the engine and the
+         * model it has already built. An object which is turned again while its last run is in
+         * flight is the usual case at a table, and it must not cost a new worker: the result of
+         * the dropped run is thrown away when it arrives, because its id is gone from `pending`.
+         */
+        const abort = (): void => {
+          const job = pending.get(id);
+          if (job === undefined) return;
+          pending.delete(id);
+          job.cleanup();
+          job.reject(signal?.reason ?? new DOMException("Aborted", "AbortError"));
+        };
         signal?.addEventListener("abort", abort, {once: true});
         pending.set(id, {
           resolve, reject,

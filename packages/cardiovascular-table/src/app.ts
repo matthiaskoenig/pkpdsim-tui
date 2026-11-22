@@ -2,8 +2,8 @@
  * The cardiovascular table: the objects on the surface are the resistances of the circulation
  * and the beat of the heart, and the anatomy answers while a hand is still on them.
  *
- * Two models run side by side. The steady network is algebraic and is solved on every frame, so
- * the organs and the vessels follow a hand without a wait. The compiled heart of pkpdsim is
+ * Two models run side by side. The steady network is algebraic and is solved as soon as an
+ * object has moved, so the organs and the vessels follow a hand without a wait. The compiled heart of pkpdsim is
  * solved in a Web Worker for the objects as they came to rest, and it is what the numbers at the
  * edges and the beat beside the heart are read from.
  *
@@ -305,8 +305,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       dirty = false;
       update();
     }
-    // The steady network is solved on every frame, so the monitor of the liver is drawn from
-    // the state the table is in right now rather than from the last run of the heart.
+    // The monitor of the liver is drawn from the steady network, which stands for the objects
+    // as they are now, rather than from the last run of the heart; it is sampled on the clock
+    // of the table so that its curves scroll as evenly as the beat beside them.
     hepatic.update(steady, now);
     if (cycle !== undefined) {
       phase = (phase + elapsed * (cycle.heartRate / 60)) % 1;

@@ -160,6 +160,9 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
   // The ceilings of the two scales, which rise with what the table has shown and never fall.
   let flowTopValue: number = FLOOR.flow;
   let pressureTopValue: number = FLOOR.pressure;
+  /** The largest sample the table has shown, which is what the scales are held above. */
+  let flowSeen = 0;
+  let pressureSeen = 0;
 
   /** Where a moment sits across a plot: now at the right, a minute ago at the left. */
   const across = (at: number, now: number): number => {
@@ -194,6 +197,8 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
           at: now, qh: solution.qh, qpo: solution.qpo, qha: solution.qha,
           ppo: solution.ppo, pli: solution.pli,
         });
+        flowSeen = Math.max(flowSeen, solution.qh, solution.qpo);
+        pressureSeen = Math.max(pressureSeen, solution.ppo);
         while (history.length > 0 && now - (history[0]?.at ?? now) > WINDOW * 1000) {
           history.shift();
         }
@@ -202,10 +207,11 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
       gradientNumber.textContent = `${formatNumber(solution.ppo - solution.pli, 1)} mmHg`;
       // The scales rise with what the table has shown and never fall again, so the curve moves
       // inside the box when an object is turned instead of the box moving around the curve.
-      flowTopValue = ceilingOf(flowTopValue, Math.max(
-        FLOOR.flow, ...history.map(sample => Math.max(sample.qh, sample.qpo) * 1.1)));
-      pressureTopValue = ceilingOf(pressureTopValue, Math.max(
-        FLOOR.pressure, ...history.map(sample => sample.ppo * 1.1)));
+      // The largest sample is kept as it arrives rather than looked for in the whole window on
+      // every frame, which is the same number: a scale which never falls does not care that a
+      // sample has left the window.
+      flowTopValue = ceilingOf(flowTopValue, Math.max(FLOOR.flow, flowSeen * 1.1));
+      pressureTopValue = ceilingOf(pressureTopValue, Math.max(FLOOR.pressure, pressureSeen * 1.1));
       flowTop.textContent = `${formatNumber(flowTopValue, 1)} l/min`;
       flowMiddle.textContent = formatNumber(flowTopValue / 2, 1);
       pressureTop.textContent = `${formatNumber(pressureTopValue, 0)} mmHg`;
