@@ -371,13 +371,14 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   watchStars(paintStars);
 
 
-  // The two bodies in the middle of the ring: a woman and a man, both drawn, with the one the
-  // tables are being solved for in full and the other one behind it. The landing page is about
-  // that person, and the four tables around them are four ways of looking at this one body,
-  // but a visitor who walks up sees at once that the collection knows both. The drawings are
-  // the grown up ones of the library, because that is what the anatomy carries; what the
-  // tables are solved with is the body of their age, which the figure stands at the height of.
-  const views: BodyView[] = (["female", "male"] as const).flatMap(sex => {
+  // The body in the middle of the ring: the one the tables are being solved for, and only
+  // that one. The landing page is about this person, and the four tables around them are four
+  // ways of looking at this one body; a second figure beside it is a body nothing on this page
+  // is about. Which body it is was answered on the screen before this one and is changed in
+  // the settings in the corner. The drawing is the grown up one of the library, because that
+  // is what the anatomy carries, stretched to the height of this body and to the width its
+  // weight at that height makes.
+  const views: BodyView[] = ([person.sex] as const).flatMap(sex => {
     const body = anatomy.bodies[sex];
     if (body === undefined) return [];
     const figure = svg("g", {
@@ -394,12 +395,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   });
   if (views.length === 0) throw new Error("The anatomy holds no body.");
 
-  /** One disc per organ a table is about, on each body: the organ is the table it belongs to. */
+  /** One disc per organ a table is about: the organ is the table it belongs to. */
   for (const view of views) {
-    // The organs are marked on the body the tables are solved for: two sets of discs would be
-    // two sets of targets for one table, and the body behind is there to be compared, not
-    // pressed.
-    if (view.sex !== person.sex) continue;
     const seen = new Set<string>();
     view.marks = TABLES.flatMap(entry => {
       if (seen.has(entry.organ)) return [];
@@ -522,8 +519,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       const spot = spots[index];
       if (spot !== undefined) placeIcon(icon, spot, spot.above);
     }
-    // The woman and the man stand side by side in the middle of the ring, both at the scale of
-    // the taller of them, so that the two can be compared rather than only looked at.
+    // The body stands in the middle of the ring, as tall as the room under the heading allows
+    // and as tall as this body is against the grown up it is drawn of.
     const disc = discOf(stage);
     const room = bodyBox(stage);
     const tallest = Math.max(...views.map(one => one.body.height));
@@ -534,7 +531,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const shape = figureScale(person, referenceBody(ADULT_DRAWN, person.sex));
     const scale = room0 * shape.y;
     const widths = views.map(one => one.art.getBBox().width * scale * shape.x);
-    // The two bodies stand close together, as one thing in the middle of the ring.
     const gap = Math.round(disc.r * 0.02);
     const total = widths.reduce((sum, width) => sum + width, 0) + gap * (views.length - 1);
     let cursor = stage.x + (stage.width - total) / 2;

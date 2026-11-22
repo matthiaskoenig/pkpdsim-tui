@@ -201,7 +201,16 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   const copy = words(options.voice);
   const root = document.createElement("div");
   root.className = "settings";
+  // Who the tables are solved for stands beside the gear rather than inside the card: it is
+  // the one setting a visitor changes while they are at a table, and a setting which has to be
+  // opened first is a setting nobody finds. The card behind the gear is for the booth.
   root.innerHTML = `
+    ${options.person === undefined ? "" : `<button class="settings-person" type="button"
+      data-dwell="settings:person" data-info="${escapeHtml(options.person.info)}"
+      title="${escapeHtml(options.person.label)}">
+      ${pictogram(options.person.picture)}
+      <span class="settings-person-line">${escapeHtml(options.person.line)}</span>
+    </button>`}
     <button class="settings-button" type="button" data-dwell="settings"
       aria-expanded="false" aria-label="${escapeHtml(copy.settings)}"
       title="${escapeHtml(copy.settings)}">
@@ -211,14 +220,6 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
     </button>
     <div class="settings-card" hidden>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
-      ${options.person === undefined ? "" : `<section class="setting">
-        <h3 class="setting-name">${escapeHtml(options.person.label)}</h3>
-        <button class="settings-person" type="button" data-dwell="settings:person"
-          data-info="${escapeHtml(options.person.info)}">
-          ${pictogram(options.person.picture)}
-          <span class="settings-person-line">${escapeHtml(options.person.line)}</span>
-        </button>
-      </section>`}
       <div class="settings-groups"></div>
       <p class="settings-tracker"><span class="dot"></span>
         <span class="settings-source"></span></p>

@@ -20,7 +20,7 @@
 
 import {
   chooseQuery, clearStars, createLab, createSettings, createVoice, languageOptions, LEVELS,
-  pictogram, voiceOf, watchSay, words,
+  voiceOf, watchSay, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {
   ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
@@ -255,19 +255,8 @@ async function start(): Promise<void> {
     });
     element<HTMLElement>("chrome").appendChild(again);
 
-    // Who the tables are being solved for, and the way back into the question. A visitor who
-    // walks up to a table somebody else just used sees whose body is on it before they start.
-    const who = document.createElement("button");
-    who.className = "person-button";
-    who.type = "button";
-    who.dataset["dwell"] = "person";
-    who.dataset["info"] = copy.person.changeInfo;
-    who.innerHTML = pictogram(personOf(parameters).sex === "female" ? "woman" : "man")
-      + `<span class="person-line"></span>`;
-    const line = who.querySelector(".person-line");
-    if (line !== null) line.textContent = personLine(voice, personOf(parameters));
-    who.addEventListener("click", openPerson);
-    element<HTMLElement>("chrome").appendChild(who);
+    // Who the tables are being solved for stands beside the gear in the far corner, on every
+    // page of the application, so there is no second copy of it here.
   }
 
   const person = personOf(parameters);

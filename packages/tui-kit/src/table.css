@@ -936,10 +936,12 @@ body {
 
 .settings {
   position: relative;
-  display: grid;
-  justify-items: end;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
   pointer-events: auto;
-  /* The square of the laboratory keeps the very corner, and the gear stands beside it. */
+  /* The square of the laboratory keeps the very corner, and the gear stands beside it, with
+     who the tables are solved for beside the gear. */
   order: 1;
 }
 
@@ -985,6 +987,10 @@ body {
 /* On the landing page the switches stand open, so a visitor sees what can be changed before
    they walk to the first table. They are a thin strip along the top edge there: the page is
    about the body in the middle, and the strip says what it is in and how much it says. */
+.settings-person .pick-label {
+  display: none;
+}
+
 .settings-card {
   /* The gear stands in the bottom corner, so its card opens upwards from it. */
   position: absolute;
@@ -1478,19 +1484,21 @@ body {
 
 /* Who the tables are solved for, at the top of the settings card: the line which says it, and
    the way back into the question of the first screen. */
+/* Who the tables are solved for, beside the gear in the corner: the one setting a visitor
+   changes at a table, so it is on the glass rather than behind a card. */
 .settings-person {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  width: 100%;
-  padding: 0.5rem 0.9rem;
+  padding: 0.5rem 1rem;
   border: 1.5px solid var(--panel-line);
-  border-radius: 0.9rem;
-  background: transparent;
+  border-radius: 999px;
+  background: var(--panel);
   color: var(--panel-ink);
   font: inherit;
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 

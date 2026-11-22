@@ -694,39 +694,6 @@
   font-size: 1.5rem;
 }
 
-/* The person of the moment, in the corner of the landing page beside the button which starts
-   again: a line which says who the tables are being solved for, and opens the question again. */
-.person-button {
-  position: fixed;
-  left: 2rem;
-  bottom: 5.4rem;
-  z-index: 41;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 1.1rem 0.5rem 0.6rem;
-  border: 1px solid var(--panel-line);
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--panel-ink);
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.person-button .pick-art {
-  width: 2rem;
-  height: 1.5rem;
-}
-
-.person-button:hover,
-.person-button:focus-visible,
-.person-button[data-arming="true"] {
-  border-color: var(--accent);
-  outline: none;
-}
-
 /* The two bodies of the person screen: the drawing of the library, at the height of that body.
    The pictogram stands in its place until the drawing has been fetched. */
 .welcome-body {
@@ -795,7 +762,7 @@
   fill: var(--ink-dim);
 }
 
-/* Both bodies stand in the middle; the one the tables are solved for is the one in full. */
+/* The body the tables are solved for stands in the middle, and it is the only one. */
 .hub-body[data-chosen="false"] {
   opacity: 0.4;
 }

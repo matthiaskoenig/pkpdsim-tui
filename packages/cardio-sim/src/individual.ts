@@ -110,29 +110,24 @@ export function referenceBody(age: number, sex: Sex = "female"): ReferenceBody {
 }
 
 /**
- * How much heavier or lighter than the reference a visitor can make this body. A person of a
- * weight far from the reference of their age is a person the physiology was never written for,
- * so the dial stays inside half again of the reference either way.
+ * What a body on these tables can weigh, in kilograms.
+ *
+ * The three numbers of a person are chosen one by one and none of them moves another: the age
+ * says which physiology the body is interpolated from, and the weight and the height are the
+ * body itself. So the range is the range of human bodies rather than the range of an age: it
+ * reaches from a small child to a strongly obese adult, which is a body these models are asked
+ * about as often as the reference one. The reference weight of the chosen age is a mark on the
+ * dial, so a visitor sees what is typical for it without the dial moving by itself.
  */
-export function weightRange(age: number, sex: Sex = "female"): {min: number; max: number} {
-  const {weight} = referenceBody(age, sex);
-  // A grown up at the top of the dial is strongly obese, which is a body these models are
-  // asked about: a third of the adults at a table carry more than their reference body, and a
-  // dial which stops at one and a half of it stops before the body they came to see. A child
-  // carries the share of that their age can, so the top of the dial grows with them.
-  const grown = Math.min(1, Math.max(0, (clampAge(age) - 12) / 6));
-  const heavy = weight * 1.6 * (1 - grown) + OBESE * grown;
-  return {
-    min: Math.max(3, Math.round(weight * 0.65 * 10) / 10),
-    max: Math.round(Math.max(heavy, weight * 1.2) * 10) / 10,
-  };
-}
+export const WEIGHT_RANGE = {min: 3, max: OBESE} as const;
 
-/** The body weight, held inside what the physiology of that age is written for. */
-export function clampWeight(weight: number, age: number, sex: Sex = "female"): number {
-  const range = weightRange(age, sex);
-  if (!Number.isFinite(weight)) return referenceBody(age, sex).weight;
-  return Math.min(range.max, Math.max(range.min, Math.round(weight * 10) / 10));
+/** The body weight, held inside what the dial of a person offers. */
+export function clampWeight(
+  weight: number, fallback: number = referenceBody(AGE_RANGE.value).weight,
+): number {
+  if (!Number.isFinite(weight)) return fallback;
+  return Math.min(
+    WEIGHT_RANGE.max, Math.max(WEIGHT_RANGE.min, Math.round(weight * 10) / 10));
 }
 
 /**
@@ -189,7 +184,7 @@ export function individualOf(
   return {
     age: years,
     sex,
-    weight: weight === undefined ? body.weight : clampWeight(weight, years, sex),
+    weight: weight === undefined ? body.weight : clampWeight(weight, body.weight),
     height: height === undefined ? body.height : clampHeight(height),
   };
 }
