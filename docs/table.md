@@ -137,3 +137,11 @@ Put the marker on the underside of a puck, and a label and an arrow on the top. 
 6. The panel, the numbers and the cards all read upright from the side the visitors stand at.
 7. A finger resting on a number, an organ or an object opens the note behind it.
 8. The first screen asks the language, who is looking and who is at the table, and **Restart the table** on the landing page asks all three again.
+
+## When something goes wrong during the day
+
+A table of an exhibition stands for hours with nobody looking after it, so it mends what it can by itself.
+
+**The tracker goes away.** The gear turns red and names what happened, and the page asks the tracker again after a second, then two, then four, then every eight until it answers. The objects on the glass are forgotten while it is gone, because the page no longer knows what is on the surface, and the first bundle of a tracker which came back brings them all. Nobody has to reload anything.
+
+**The table cannot start.** One sentence says so in the language of the visitor, the reason for whoever looks after the table stands small underneath, and the page loads itself again after twenty seconds. A model that was not copied in yet, or a file that did not arrive the first time, fixes itself as soon as it is there.

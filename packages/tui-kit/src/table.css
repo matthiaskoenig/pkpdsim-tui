@@ -34,6 +34,9 @@
   --fall: #2f6fd0;
   --accent-bright: #3a8ae8;
   --warn: #b06a0c;
+  /* How long a finger holds a switch before it presses. The info layer writes the time of its
+     own constant in here, so the fill of a switch and the press behind it cannot drift apart. */
+  --dwell: 620ms;
   color-scheme: light;
 }
 
@@ -165,7 +168,7 @@ body {
   border: 1px solid var(--panel-line);
   border-radius: 50%;
   color: var(--ink-dim);
-  font-size: 0.45em;
+  font-size: 0.55em;
   font-style: normal;
   font-weight: 700;
   line-height: 1;
@@ -214,6 +217,27 @@ body {
 .info-text {
   margin: 0;
   flex: 1;
+}
+
+/*
+ * A small round button of the table: the speaker beside a text and the bulb beside an object.
+ * The ring stays as small as the line it sits in, and the target behind it is a fingertip wide,
+ * because a finger on the glass is nothing like a mouse pointer.
+ */
+.say,
+.brief-more {
+  position: relative;
+}
+
+.say::after,
+.brief-more::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 /* The speaker beside a text, which reads it aloud. */
@@ -621,9 +645,36 @@ body {
   color: var(--warn);
 }
 
+/* What went wrong, for whoever looks after the table rather than for the visitor in front of it. */
+.boot-detail {
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+
+.boot-again {
+  display: inline-grid;
+  place-items: center;
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boot-again:hover,
+.boot-again:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
 .credit {
-  font-size: 0.72rem;
-  opacity: 0.75;
+  font-size: 0.78rem;
 }
 
 .stat-label {
@@ -895,7 +946,7 @@ body {
   background-repeat: no-repeat;
   background-position: left center;
   background-size: 0 100%;
-  animation: dwell-fill 620ms linear forwards;
+  animation: dwell-fill var(--dwell) linear forwards;
 }
 
 /* The sweep of a card or a switch which a finger is holding, in the scene as well as the panel. */
@@ -1033,7 +1084,7 @@ body {
 
 .setting-name {
   margin: 0 0 0.4rem;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1135,7 +1186,7 @@ body {
   gap: 0.4rem;
   margin: 0.9rem 0 0;
   color: var(--panel-ink-dim);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 
 /* ---------------------------------------------------------------------------------------- */
@@ -1716,7 +1767,10 @@ body {
 }
 
 .brief-more-close {
-  padding: 0.3rem 0.9rem;
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
   border: 1.5px solid var(--line);
   border-radius: 999px;
   background: transparent;

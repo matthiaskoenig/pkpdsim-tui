@@ -31,6 +31,12 @@ export interface MockTableInput extends TableInput {
   clear(): void;
 }
 
+/**
+ * What the mock says it is driven by. The settings card of a table says it in the language of
+ * the visitor, so it is a name to recognise rather than a sentence to read.
+ */
+export const MOCK_SOURCE = "mouse and keyboard";
+
 export function createMockTableInput(options: MockTableInputOptions): MockTableInput {
   const {element} = options;
   const markers = options.markers ?? [1, 2, 3, 4];
@@ -41,7 +47,7 @@ export function createMockTableInput(options: MockTableInputOptions): MockTableI
 
   let snapshot: TableSnapshot = emptySnapshot(options.sensor);
   let status: TableStatus = {
-    state: "idle", source: "mouse and keyboard",
+    state: "idle", source: MOCK_SOURCE,
     detail: "No tracker. The surface is driven from this machine.",
   };
   let nextSession = 1;

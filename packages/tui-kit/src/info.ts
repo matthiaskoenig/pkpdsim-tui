@@ -98,6 +98,8 @@ export function createInfo(
   speaker.className = "info-say";
   note.append(sentence, speaker);
   surface.appendChild(note);
+  // The fill of a switch runs for as long as the press behind it takes, from the one constant.
+  document.documentElement.style.setProperty("--dwell", `${PRESS}ms`);
   let open: Element | undefined;
   const dwelling = new Map<number, {element: Element; since: number}>();
   const pressing = new Map<number, {key: string; since: number; fired: boolean}>();
@@ -242,7 +244,10 @@ export function createInfo(
       }
       arm(armed);
       if (found !== undefined) place(found.element, found.text);
-      else if (points.length > 0 && live.size === 0) fade();
+      // A table has no pointer which could leave the note: the fingers are all there is, so a
+      // note starts to go as soon as none of them is on it, the empty surface of a visitor who
+      // has walked away included.
+      else if (live.size === 0) fade();
     },
     hide,
   };

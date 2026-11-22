@@ -67,7 +67,7 @@
 }
 
 .hub-icon[data-arming="true"] .hub-icon-arm {
-  animation: hub-icon-sweep 620ms linear forwards;
+  animation: hub-icon-sweep var(--dwell) linear forwards;
 }
 
 @keyframes hub-icon-sweep {

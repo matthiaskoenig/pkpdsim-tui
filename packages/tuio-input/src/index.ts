@@ -3,7 +3,7 @@
 export {signedAngle, TWO_PI, unwrapAngle, wrapAngle} from "./angle.ts";
 export {hitTest} from "./hit-test.ts";
 export type {Anchor, Point} from "./hit-test.ts";
-export {createMockTableInput} from "./mock.ts";
+export {createMockTableInput, MOCK_SOURCE} from "./mock.ts";
 export type {MockTableInput, MockTableInputOptions} from "./mock.ts";
 export {
   DEFAULT_TUIO_HOST, DEFAULT_TUIO_PATH, DEFAULT_TUIO_PORT, WebsocketTuioReceiver,
