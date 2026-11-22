@@ -9,10 +9,10 @@ export interface Named {
 
 /** What the sentence of the panel is built from, which every language says its own way. */
 export interface LobeFacts {
-  /** The pieces which were cut away, clamped at the vein, clamped at the artery. */
-  readonly cut: readonly string[];
-  readonly portal: readonly string[];
-  readonly arterial: readonly string[];
+  /** The operation on the table, by its name. */
+  readonly operation: string;
+  /** How much of the liver the operation took, as a share. */
+  readonly removed: string;
   /** How much liver is left, as a share of a whole one. */
   readonly remnant: number;
   readonly day: number;
@@ -29,7 +29,11 @@ export interface LobeCopy {
   readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "remnant" | "portal-pressure" | "gradient" | "portal-flow" | "arterial-flow", Named>>;
-  readonly roles: Readonly<Record<"portal" | "arterial" | "resect" | "day", Named>>;
+  readonly roles: Readonly<Record<"resection" | "day", Named>>;
+  /** What each operation of the export is called, by the id of its case. */
+  readonly operations: Readonly<Record<string, Phrase>>;
+  /** The plot of the curves: what it is, and the line of a whole liver. */
+  readonly regeneration: {readonly title: string; readonly whole: string};
   readonly traces: Readonly<Record<"volume" | "portal", string>>;
   readonly speciesSwitch: string;
   readonly species: Readonly<Record<string, string>>;
@@ -71,11 +75,11 @@ const EN: LobeCopy = {
       answer: "grows",
       because: "The liver is the only organ which grows back. The part which is left takes over"
         + " the work and is close to its old size again within days.",
-      tryIt: "Try it: resect a few segments, then wind the day dial forward.",
+      tryIt: "Try it: turn the scalpel to a bigger operation, then wind the day dial forward.",
     },
     {
-      id: "clamp",
-      ask: "A clamp closes the portal branch of one segment. What happens to that segment?",
+      id: "bigger",
+      ask: "Two livers, one missing a segment and one missing its whole right side. Which grows faster?",
       choices: [
         {id: "shrinks", label: "It gets less blood and shrinks"},
         {id: "grows", label: "It grows faster than the others"},
@@ -107,14 +111,14 @@ const EN: LobeCopy = {
   },
   tries: [
     {
-      child: "Put the knife on the four pieces on the right: that is what a doctor does to take a tumour out.",
-      adult: "Put the scalpel on the four pieces of the right lobe: that is the operation for a tumour.",
-      expert: "Put the scalpel on segments V to VIII: a right hemihepatectomy, and watch the remnant and the portal pressure.",
+      child: "Turn the knife: every turn is another operation, and you see what it takes away.",
+      adult: "Turn the scalpel to walk through the operations, from one segment to the whole right side.",
+      expert: "Turn the scalpel through the resections of the export and read the remnant and the portal pressure of each.",
     },
     {
-      child: "Turn dial 4 back to the operation and forward again, and watch the liver grow.",
-      adult: "Wind dial 4 back to the operation and forward again to watch the liver grow.",
-      expert: "Wind dial 4 back to day zero and forward to follow the regeneration of the remnant.",
+      child: "Turn the other dial back to the operation and forward again, and watch the liver grow.",
+      adult: "Wind the day dial back to the operation and forward again to watch the liver grow back.",
+      expert: "Wind the day dial back to day zero and forward to follow the regeneration of the remnant against the other operations.",
     },
   ],
   stats: {
@@ -160,28 +164,12 @@ const EN: LobeCopy = {
     },
   },
   roles: {
-    portal: {
-      label: {child: "Vein clamp", adult: "Portal clamp"},
+    resection: {
+      label: {child: "Knife", adult: "The operation"},
       info: {
-        child: "Put it on a piece, and the blood of the gut no longer reaches it.",
-        adult: "Closes the portal branch of the segment under it, which is a portal vein ligation.",
-        expert: "Portal vein ligation of the segment under it: that side atrophies, the other grows, which is how a remnant is prepared before a resection.",
-      },
-    },
-    arterial: {
-      label: {child: "Artery clamp", adult: "Arterial clamp"},
-      info: {
-        child: "Put it on a piece, and the fresh blood from the heart no longer reaches it.",
-        adult: "Closes the hepatic artery of the segment under it.",
-        expert: "Arterial clamping of the segment under it, which takes its oxygen supply while the portal inflow stays.",
-      },
-    },
-    resect: {
-      label: {child: "Knife", adult: "Scalpel"},
-      info: {
-        child: "Put it on a piece to take that piece away.",
-        adult: "Takes the segment under it away, which is a resection.",
-        expert: "Resection of the segment under it: its mass and its function are gone at once, and the remnant carries the whole load.",
+        child: "Turn it to choose how much of the liver is taken away.",
+        adult: "Turns through the operations a surgeon does, from one segment to the whole right side of the liver.",
+        expert: "The resections of the export, in the order of the mass they take: the segments they remove are gone at once and the remnant carries the whole load.",
       },
     },
     day: {
@@ -193,6 +181,19 @@ const EN: LobeCopy = {
       },
     },
   },
+  operations: {
+    intact: {child: "Nothing taken", adult: "No operation"},
+    resection_sg8: {child: "One piece (VIII)", adult: "Segment VIII", expert: "Segmentectomy VIII"},
+    left_hepatectomy: {child: "The left half", adult: "Left half (II, III, IV)", expert: "Left hemihepatectomy"},
+    right_hepatectomy: {child: "The right half", adult: "Right half (V to VIII)", expert: "Right hemihepatectomy"},
+    extended_right_hepatectomy: {child: "Almost everything", adult: "Right half and more (IV to VIII)", expert: "Extended right hepatectomy"},
+    resection_lll: {child: "The left piece", adult: "Left lateral lobe"},
+    resection_ll: {child: "The left piece", adult: "Left lobe"},
+    hepatectomy: {child: "Two thirds", adult: "Two thirds of the liver", expert: "Two thirds hepatectomy"},
+    hepatectomy70: {child: "Two thirds", adult: "70 % of the liver", expert: "70 % hepatectomy"},
+    hepatectomy90: {child: "Almost everything", adult: "90 % of the liver", expert: "90 % hepatectomy"},
+  },
+  regeneration: {title: "What grows back", whole: "whole"},
   traces: {volume: "liver volume", portal: "portal pressure"},
   speciesSwitch: "Species",
   species: {human: "Human", rat: "Rat", mouse: "Mouse"},
@@ -222,38 +223,20 @@ const EN: LobeCopy = {
   vessels: {portal: "portal", artery: "artery", hepatic: "hepatic veins"},
   whole: "The liver is whole.",
   reading: facts => {
-    const list = (names: readonly string[]): string => (names.length <= 1
-      ? names[0] ?? ""
-      : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
     const share = (fraction: number): string => (fraction > 0.995
       ? "the whole liver"
       : fraction > 0.74 ? "most of the liver"
         : fraction > 0.49 ? "about half of the liver"
           : fraction > 0.29 ? "a third of the liver" : "a small part of the liver");
-    const done: string[] = [];
-    if (facts.cut.length > 0) {
-      done.push(`piece${facts.cut.length > 1 ? "s" : ""} ${list(facts.cut)} `
-        + `${facts.cut.length > 1 ? "were" : "was"} cut away`);
-    }
-    if (facts.portal.length > 0) {
-      done.push(`the portal vein of piece${facts.portal.length > 1 ? "s" : ""} `
-        + `${list(facts.portal)} is clamped off`);
-    }
-    if (facts.arterial.length > 0) {
-      done.push(`the artery of piece${facts.arterial.length > 1 ? "s" : ""} `
-        + `${list(facts.arterial)} is clamped off`);
-    }
-    const first = done.slice(0, 2);
-    const operation = first.length === 1 ? first[0] : `${first[0]} and ${first[1]}`;
-    const left = facts.cut.length === 0 ? "" : `, which leaves ${share(facts.remnant)}`;
     const regrowth = facts.day < 0.05
-      ? `Right after it, ${facts.grown} of a liver is left`
+      ? `Right after the operation, ${facts.grown} of a liver is left`
       : `After ${facts.dayLabel} it is back to ${facts.grown} of a whole one`;
     const backing = facts.backing === undefined
       ? "."
       : `, and the blood backs up in front of it: ${facts.backing} mmHg above normal in the `
         + "portal vein.";
-    return `In this liver ${operation}${left}. ${regrowth}${backing}`;
+    return `${facts.operation}: ${facts.removed} of the liver is gone, which leaves `
+      + `${share(facts.remnant)}. ${regrowth}${backing}`;
   },
   loading: "Loading the lobed liver...",
   startingSolver: "Starting the solver...",
@@ -276,8 +259,8 @@ const DE: LobeCopy = {
       tryIt: "Probier es: Entferne ein paar Segmente und dreh dann das Tage-Rad vorwärts.",
     },
     {
-      id: "clamp",
-      ask: "Eine Klemme schließt den Pfortaderast eines Segments. Was passiert mit dem Segment?",
+      id: "bigger",
+      ask: "Zwei Lebern, einer fehlt ein Segment, der anderen die ganze rechte Seite. Welche wächst schneller?",
       choices: [
         {id: "shrinks", label: "Es bekommt weniger Blut und schrumpft"},
         {id: "grows", label: "Es wächst schneller als die anderen"},
@@ -286,7 +269,7 @@ const DE: LobeCopy = {
       answer: "shrinks",
       because: "Das meiste Blut eines Segments kommt durch die Pfortader. Genau so lässt man vor"
         + " einer Operation die andere Seite wachsen: man schließt die Pfortader der kranken.",
-      tryIt: "Probier es: Klemme ein Segment ab und sieh zu, was der Rest der Leber macht.",
+      tryIt: "Probier es: Dreh das Skalpell auf eine größere Operation und sieh zu, was der Rest der Leber macht.",
     },
     {
       id: "pressure",
@@ -309,14 +292,14 @@ const DE: LobeCopy = {
   },
   tries: [
     {
-      child: "Leg das Messer auf die vier Stücke rechts: so nehmen Ärzte einen Tumor heraus.",
-      adult: "Legen Sie das Skalpell auf die vier Stücke des rechten Lappens: das ist die Operation bei einem Tumor.",
-      expert: "Legen Sie das Skalpell auf die Segmente V bis VIII: eine rechte Hemihepatektomie, und beobachten Sie Rest und Pfortaderdruck.",
+      child: "Dreh das Messer: jede Drehung ist eine andere Operation, und du siehst, was sie wegnimmt.",
+      adult: "Drehen Sie das Skalpell durch die Operationen, von einem Segment bis zur ganzen rechten Seite.",
+      expert: "Drehen Sie das Skalpell durch die Resektionen des Exports und lesen Sie Rest und Pfortaderdruck jeder einzelnen.",
     },
     {
-      child: "Dreh Rad 4 zurück zur Operation und wieder vor, und sieh zu, wie die Leber wächst.",
-      adult: "Drehen Sie Rad 4 zurück zur Operation und wieder vor, um die Leber wachsen zu sehen.",
-      expert: "Drehen Sie Rad 4 auf Tag null zurück und vor, um der Regeneration des Restes zu folgen.",
+      child: "Dreh das andere Rad zurück zur Operation und wieder vor, und sieh zu, wie die Leber wächst.",
+      adult: "Drehen Sie das Tagesrad zurück zur Operation und wieder vor, um die Leber nachwachsen zu sehen.",
+      expert: "Drehen Sie das Tagesrad auf Tag null zurück und vor, um der Regeneration des Restes neben den anderen Operationen zu folgen.",
     },
   ],
   stats: {
@@ -362,28 +345,12 @@ const DE: LobeCopy = {
     },
   },
   roles: {
-    portal: {
-      label: {child: "Venenklemme", adult: "Pfortaderklemme"},
+    resection: {
+      label: {child: "Messer", adult: "Die Operation"},
       info: {
-        child: "Leg sie auf ein Stück, dann kommt das Blut aus dem Darm nicht mehr dorthin.",
-        adult: "Verschließt den Pfortaderast des Segments darunter, also eine Pfortaderligatur.",
-        expert: "Pfortaderligatur des Segments darunter: diese Seite atrophiert, die andere wächst, und so wird ein Rest vor einer Resektion vorbereitet.",
-      },
-    },
-    arterial: {
-      label: {child: "Arterienklemme", adult: "Arterienklemme"},
-      info: {
-        child: "Leg sie auf ein Stück, dann kommt das frische Blut vom Herzen nicht mehr dorthin.",
-        adult: "Verschließt die Leberarterie des Segments darunter.",
-        expert: "Arterielle Abklemmung des Segments darunter, die ihm den Sauerstoff nimmt, während der portale Zufluss bleibt.",
-      },
-    },
-    resect: {
-      label: {child: "Messer", adult: "Skalpell"},
-      info: {
-        child: "Leg es auf ein Stück, um dieses Stück wegzunehmen.",
-        adult: "Nimmt das Segment darunter weg, also eine Resektion.",
-        expert: "Resektion des Segments darunter: Masse und Funktion sind sofort weg, und der Rest trägt die ganze Last.",
+        child: "Dreh daran, um zu wählen, wie viel Leber weggenommen wird.",
+        adult: "Dreht durch die Operationen, die Chirurgen machen, von einem Segment bis zur ganzen rechten Seite der Leber.",
+        expert: "Die Resektionen des Exports, nach der Masse geordnet, die sie nehmen: die Segmente sind sofort weg, und der Rest trägt die ganze Last.",
       },
     },
     day: {
@@ -395,6 +362,19 @@ const DE: LobeCopy = {
       },
     },
   },
+  operations: {
+    intact: {child: "Nichts weggenommen", adult: "Keine Operation"},
+    resection_sg8: {child: "Ein Stück (VIII)", adult: "Segment VIII", expert: "Segmentresektion VIII"},
+    left_hepatectomy: {child: "Die linke Hälfte", adult: "Linke Hälfte (II, III, IV)", expert: "Linke Hemihepatektomie"},
+    right_hepatectomy: {child: "Die rechte Hälfte", adult: "Rechte Hälfte (V bis VIII)", expert: "Rechte Hemihepatektomie"},
+    extended_right_hepatectomy: {child: "Fast alles", adult: "Rechte Hälfte und mehr (IV bis VIII)", expert: "Erweiterte rechte Hepatektomie"},
+    resection_lll: {child: "Das linke Stück", adult: "Linker Lateralappen"},
+    resection_ll: {child: "Das linke Stück", adult: "Linker Lappen"},
+    hepatectomy: {child: "Zwei Drittel", adult: "Zwei Drittel der Leber", expert: "Zwei-Drittel-Hepatektomie"},
+    hepatectomy70: {child: "Zwei Drittel", adult: "70 % der Leber", expert: "70-%-Hepatektomie"},
+    hepatectomy90: {child: "Fast alles", adult: "90 % der Leber", expert: "90-%-Hepatektomie"},
+  },
+  regeneration: {title: "Was nachwächst", whole: "ganz"},
   traces: {volume: "Lebervolumen", portal: "Pfortaderdruck"},
   speciesSwitch: "Spezies",
   species: {human: "Mensch", rat: "Ratte", mouse: "Maus"},
@@ -424,37 +404,19 @@ const DE: LobeCopy = {
   vessels: {portal: "Pfortader", artery: "Arterie", hepatic: "Lebervenen"},
   whole: "Die Leber ist unversehrt.",
   reading: facts => {
-    const list = (names: readonly string[]): string => (names.length <= 1
-      ? names[0] ?? ""
-      : `${names.slice(0, -1).join(", ")} und ${names.at(-1)}`);
     const share = (fraction: number): string => (fraction > 0.995
       ? "die ganze Leber"
       : fraction > 0.74 ? "der größte Teil der Leber"
         : fraction > 0.49 ? "etwa die halbe Leber"
           : fraction > 0.29 ? "ein Drittel der Leber" : "ein kleiner Teil der Leber");
-    const done: string[] = [];
-    if (facts.cut.length > 0) {
-      done.push(`${facts.cut.length > 1 ? "die Stücke" : "das Stück"} ${list(facts.cut)} `
-        + `${facts.cut.length > 1 ? "wurden" : "wurde"} weggenommen`);
-    }
-    if (facts.portal.length > 0) {
-      done.push(`die Pfortader ${facts.portal.length > 1 ? "der Stücke" : "des Stücks"} `
-        + `${list(facts.portal)} abgeklemmt ist`);
-    }
-    if (facts.arterial.length > 0) {
-      done.push(`die Arterie ${facts.arterial.length > 1 ? "der Stücke" : "des Stücks"} `
-        + `${list(facts.arterial)} abgeklemmt ist`);
-    }
-    const first = done.slice(0, 2);
-    const operation = first.length === 1 ? first[0] : `${first[0]} und ${first[1]}`;
-    const left = facts.cut.length === 0 ? "" : `, womit ${share(facts.remnant)} bleibt`;
     const regrowth = facts.day < 0.05
-      ? `Direkt danach sind ${facts.grown} einer Leber übrig`
+      ? `Direkt nach der Operation sind ${facts.grown} einer Leber übrig`
       : `Nach ${facts.dayLabel} ist sie wieder bei ${facts.grown} einer ganzen`;
     const backing = facts.backing === undefined
       ? "."
       : `, und das Blut staut sich davor: ${facts.backing} mmHg über normal in der Pfortader.`;
-    return `In dieser Leber ${operation}${left}. ${regrowth}${backing}`;
+    return `${facts.operation}: ${facts.removed} der Leber sind weg, `
+      + `${share(facts.remnant)} bleibt. ${regrowth}${backing}`;
   },
   loading: "Die Leberlappen werden geladen...",
   startingSolver: "Der Solver wird gestartet...",
@@ -474,11 +436,11 @@ const ES: LobeCopy = {
       answer: "grows",
       because: "El hígado es el único órgano que vuelve a crecer. La parte que queda asume el"
         + " trabajo y en pocos días casi recupera su tamaño.",
-      tryIt: "Pruébalo: quita unos segmentos y luego gira el dial de los días.",
+      tryIt: "Pruébalo: gira el bisturí hacia una operación mayor y luego gira el dial de los días.",
     },
     {
-      id: "clamp",
-      ask: "Una pinza cierra la rama portal de un segmento. ¿Qué le pasa a ese segmento?",
+      id: "bigger",
+      ask: "Dos hígados: a uno le falta un segmento, al otro todo el lado derecho. ¿Cuál crece más rápido?",
       choices: [
         {id: "shrinks", label: "Recibe menos sangre y se encoge"},
         {id: "grows", label: "Crece más rápido que los demás"},
@@ -510,14 +472,14 @@ const ES: LobeCopy = {
   },
   tries: [
     {
-      child: "Pon el cuchillo en las cuatro piezas de la derecha: así quita un médico un tumor.",
-      adult: "Ponga el bisturí sobre las cuatro piezas del lóbulo derecho: esa es la operación de un tumor.",
-      expert: "Ponga el bisturí sobre los segmentos V a VIII: una hemihepatectomía derecha, y observe el remanente y la presión portal.",
+      child: "Gira el cuchillo: cada giro es otra operación, y ves lo que se lleva.",
+      adult: "Gire el bisturí para recorrer las operaciones, de un segmento a todo el lado derecho.",
+      expert: "Gire el bisturí por las resecciones del export y lea el remanente y la presión portal de cada una.",
     },
     {
-      child: "Gira el dial 4 hacia atrás hasta la operación y otra vez hacia delante, y mira crecer el hígado.",
-      adult: "Gire el dial 4 hacia atrás hasta la operación y de nuevo hacia delante para ver crecer el hígado.",
-      expert: "Gire el dial 4 al día cero y hacia delante para seguir la regeneración del remanente.",
+      child: "Gira el otro dial hacia atrás hasta la operación y otra vez hacia delante, y mira crecer el hígado.",
+      adult: "Gire el dial de los días hacia atrás hasta la operación y de nuevo hacia delante para ver crecer el hígado.",
+      expert: "Gire el dial de los días al día cero y hacia delante para seguir la regeneración del remanente junto a las otras operaciones.",
     },
   ],
   stats: {
@@ -563,28 +525,12 @@ const ES: LobeCopy = {
     },
   },
   roles: {
-    portal: {
-      label: {child: "Pinza de la vena", adult: "Pinza portal"},
+    resection: {
+      label: {child: "Cuchillo", adult: "La operación"},
       info: {
-        child: "Ponla sobre una pieza y la sangre del intestino ya no llega allí.",
-        adult: "Cierra la rama portal del segmento que tiene debajo, es decir, una ligadura de la vena porta.",
-        expert: "Ligadura portal del segmento de debajo: ese lado se atrofia y el otro crece, y así se prepara un remanente antes de una resección.",
-      },
-    },
-    arterial: {
-      label: {child: "Pinza de la arteria", adult: "Pinza arterial"},
-      info: {
-        child: "Ponla sobre una pieza y la sangre fresca del corazón ya no llega allí.",
-        adult: "Cierra la arteria hepática del segmento que tiene debajo.",
-        expert: "Pinzamiento arterial del segmento de debajo, que le quita el oxígeno mientras el aporte portal sigue.",
-      },
-    },
-    resect: {
-      label: {child: "Cuchillo", adult: "Bisturí"},
-      info: {
-        child: "Ponlo sobre una pieza para quitar esa pieza.",
-        adult: "Quita el segmento que tiene debajo, es decir, una resección.",
-        expert: "Resección del segmento de debajo: su masa y su función desaparecen de golpe, y el remanente carga con todo.",
+        child: "Gíralo para elegir cuánto hígado se quita.",
+        adult: "Gira por las operaciones que hacen los cirujanos, de un segmento a todo el lado derecho del hígado.",
+        expert: "Las resecciones del export, ordenadas por la masa que se llevan: los segmentos desaparecen de golpe y el remanente carga con todo.",
       },
     },
     day: {
@@ -596,6 +542,19 @@ const ES: LobeCopy = {
       },
     },
   },
+  operations: {
+    intact: {child: "No se quita nada", adult: "Sin operación"},
+    resection_sg8: {child: "Una pieza (VIII)", adult: "Segmento VIII", expert: "Segmentectomía VIII"},
+    left_hepatectomy: {child: "La mitad izquierda", adult: "Mitad izquierda (II, III, IV)", expert: "Hemihepatectomía izquierda"},
+    right_hepatectomy: {child: "La mitad derecha", adult: "Mitad derecha (V a VIII)", expert: "Hemihepatectomía derecha"},
+    extended_right_hepatectomy: {child: "Casi todo", adult: "Mitad derecha y más (IV a VIII)", expert: "Hepatectomía derecha ampliada"},
+    resection_lll: {child: "La pieza izquierda", adult: "Lóbulo lateral izquierdo"},
+    resection_ll: {child: "La pieza izquierda", adult: "Lóbulo izquierdo"},
+    hepatectomy: {child: "Dos tercios", adult: "Dos tercios del hígado", expert: "Hepatectomía de dos tercios"},
+    hepatectomy70: {child: "Dos tercios", adult: "70 % del hígado", expert: "Hepatectomía del 70 %"},
+    hepatectomy90: {child: "Casi todo", adult: "90 % del hígado", expert: "Hepatectomía del 90 %"},
+  },
+  regeneration: {title: "Lo que vuelve a crecer", whole: "entero"},
   traces: {volume: "volumen del hígado", portal: "presión portal"},
   speciesSwitch: "Especie",
   species: {human: "Humano", rat: "Rata", mouse: "Ratón"},
@@ -625,38 +584,20 @@ const ES: LobeCopy = {
   vessels: {portal: "porta", artery: "arteria", hepatic: "venas hepáticas"},
   whole: "El hígado está entero.",
   reading: facts => {
-    const list = (names: readonly string[]): string => (names.length <= 1
-      ? names[0] ?? ""
-      : `${names.slice(0, -1).join(", ")} y ${names.at(-1)}`);
     const share = (fraction: number): string => (fraction > 0.995
       ? "todo el hígado"
       : fraction > 0.74 ? "la mayor parte del hígado"
         : fraction > 0.49 ? "alrededor de medio hígado"
           : fraction > 0.29 ? "un tercio del hígado" : "una parte pequeña del hígado");
-    const done: string[] = [];
-    if (facts.cut.length > 0) {
-      done.push(`se ${facts.cut.length > 1 ? "quitaron las piezas" : "quitó la pieza"} `
-        + `${list(facts.cut)}`);
-    }
-    if (facts.portal.length > 0) {
-      done.push(`la vena porta de ${facts.portal.length > 1 ? "las piezas" : "la pieza"} `
-        + `${list(facts.portal)} está pinzada`);
-    }
-    if (facts.arterial.length > 0) {
-      done.push(`la arteria de ${facts.arterial.length > 1 ? "las piezas" : "la pieza"} `
-        + `${list(facts.arterial)} está pinzada`);
-    }
-    const first = done.slice(0, 2);
-    const operation = first.length === 1 ? first[0] : `${first[0]} y ${first[1]}`;
-    const left = facts.cut.length === 0 ? "" : `, con lo que queda ${share(facts.remnant)}`;
     const regrowth = facts.day < 0.05
-      ? `Justo después queda ${facts.grown} de un hígado`
+      ? `Justo después de la operación queda ${facts.grown} de un hígado`
       : `Tras ${facts.dayLabel} vuelve a estar en ${facts.grown} de uno entero`;
     const backing = facts.backing === undefined
       ? "."
       : `, y la sangre se acumula delante: ${facts.backing} mmHg por encima de lo normal en la `
         + "vena porta.";
-    return `En este hígado ${operation}${left}. ${regrowth}${backing}`;
+    return `${facts.operation}: falta ${facts.removed} del hígado, queda `
+      + `${share(facts.remnant)}. ${regrowth}${backing}`;
   },
   loading: "Cargando los lóbulos del hígado...",
   startingSolver: "Arrancando el solucionador...",

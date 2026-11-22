@@ -145,8 +145,10 @@ export function createMockTableInput(options: MockTableInputOptions): MockTableI
   const onKeyDown = (event: Event): void => {
     const key = (event as KeyboardEvent).key;
     const digit = Number.parseInt(key, 10);
-    if (Number.isInteger(digit) && digit >= 1 && digit <= markers.length) {
-      const marker = markers[digit - 1];
+    if (Number.isInteger(digit) && digit >= 0 && digit <= 9) {
+      // The panel names an object by its marker, so that is the key which puts it down. A
+      // table whose markers do not fit on the ten keys falls back to the place in its list.
+      const marker = markers.includes(digit) ? digit : markers[digit - 1];
       if (marker !== undefined) place(marker, cursor.x, cursor.y);
       return;
     }

@@ -173,16 +173,16 @@ const EN: HubCopy = {
       },
     },
     lobes: {
-      label: "Lobes", title: "The lobed liver",
-      blurb: {child: "Cut a piece off and watch it grow back.", adult: "Cut a piece away, watch it grow back."},
+      label: "Surgery", title: "Liver surgery",
+      blurb: {child: "Take a piece away and watch it grow back.", adult: "Operate, and watch the liver grow back."},
       about: {
-        child: "A liver is built of eight pieces. A doctor can take some away, and the rest grows until the liver is big enough again.",
-        adult: "A liver is built of eight pieces, each with its own blood supply. Clamp them or cut them away, and see how much of its work the rest can still do, and how it grows back over the days which follow.",
-        expert: "Couinaud segments as independent units: portal vein ligation and resection change the functional liver mass, and the regeneration follows the days after the operation on the model of pkpdsim.",
+        child: "A liver is built of eight pieces. A doctor can take some away, and the rest grows until the liver is big enough again. Every operation grows back at its own speed.",
+        adult: "A liver is built of eight pieces, each with its own blood supply. Turn the knife through the operations a surgeon does, from one segment to the whole right side, and watch what each of them leaves and how fast it grows back.",
+        expert: "The resections of the pkpdsim model on the Couinaud segments, from a segmentectomy to an extended right hepatectomy, with the regeneration curve of every one of them drawn against the others.",
       },
     },
     glimepiride: {
-      label: "Glimepiride", title: "One tablet, two people",
+      label: "Glimepiride", title: "How a drug is broken down",
       blurb: {child: "What happens to a tablet?", adult: "What the liver does to a tablet."},
       about: {
         child: "Swallow a tablet and it travels: into the gut, to the liver, into the blood, and out again. In two people the same tablet does different things.",
@@ -304,16 +304,16 @@ const DE: HubCopy = {
       },
     },
     lobes: {
-      label: "Lappen", title: "Die Leberlappen",
-      blurb: {child: "Schneide ein Stück weg und sieh zu, wie es nachwächst.", adult: "Ein Stück wegnehmen und nachwachsen sehen."},
+      label: "Chirurgie", title: "Operation der Leber",
+      blurb: {child: "Nimm ein Stück weg und sieh zu, wie es nachwächst.", adult: "Operieren und die Leber nachwachsen sehen."},
       about: {
-        child: "Eine Leber besteht aus acht Stücken. Ärzte können etwas davon wegnehmen, und der Rest wächst, bis die Leber wieder groß genug ist.",
-        adult: "Eine Leber ist aus acht Stücken gebaut, jedes mit eigener Blutversorgung. Klemmen Sie sie ab oder schneiden Sie sie weg, und sehen Sie, wie viel Arbeit der Rest noch schafft und wie er in den Tagen danach nachwächst.",
-        expert: "Die Couinaud-Segmente als eigenständige Einheiten: Pfortaderligatur und Resektion ändern die funktionelle Lebermasse, und die Regeneration folgt den Tagen nach dem Eingriff im Modell von pkpdsim.",
+        child: "Eine Leber besteht aus acht Stücken. Ärzte können etwas davon wegnehmen, und der Rest wächst, bis die Leber wieder groß genug ist. Jede Operation wächst unterschiedlich schnell nach.",
+        adult: "Eine Leber ist aus acht Stücken gebaut, jedes mit eigener Blutversorgung. Drehen Sie das Messer durch die Operationen, die Chirurgen machen, von einem Segment bis zur ganzen rechten Seite, und sehen Sie, was jede übrig lässt und wie schnell sie nachwächst.",
+        expert: "Die Resektionen des pkpdsim-Modells auf den Couinaud-Segmenten, von der Segmentresektion bis zur erweiterten rechten Hepatektomie, mit der Regenerationskurve jeder einzelnen neben den anderen.",
       },
     },
     glimepiride: {
-      label: "Glimepirid", title: "Eine Tablette, zwei Menschen",
+      label: "Glimepirid", title: "Medikamentenabbau",
       blurb: {child: "Was passiert mit einer Tablette?", adult: "Was die Leber mit einer Tablette macht."},
       about: {
         child: "Eine Tablette macht eine Reise: in den Darm, zur Leber, ins Blut und wieder hinaus. Bei zwei Menschen wirkt dieselbe Tablette verschieden.",
@@ -435,16 +435,16 @@ const ES: HubCopy = {
       },
     },
     lobes: {
-      label: "Lóbulos", title: "Los lóbulos del hígado",
-      blurb: {child: "Corta un trozo y mira cómo vuelve a crecer.", adult: "Quite un trozo y véalo crecer de nuevo."},
+      label: "Cirugía", title: "Cirugía del hígado",
+      blurb: {child: "Quita un trozo y mira cómo vuelve a crecer.", adult: "Opere y vea crecer el hígado de nuevo."},
       about: {
-        child: "Un hígado está hecho de ocho piezas. Los médicos pueden quitar algunas, y el resto crece hasta que el hígado vuelve a ser bastante grande.",
-        adult: "Un hígado está construido de ocho piezas, cada una con su propio aporte de sangre. Pínzelas o quítelas, y vea cuánto trabajo puede seguir haciendo el resto y cómo vuelve a crecer en los días siguientes.",
-        expert: "Los segmentos de Couinaud como unidades propias: la ligadura de la vena porta y la resección cambian la masa hepática funcional, y la regeneración sigue los días posteriores a la intervención en el modelo de pkpdsim.",
+        child: "Un hígado está hecho de ocho piezas. Los médicos pueden quitar algunas y el resto crece hasta que el hígado vuelve a ser bastante grande.",
+        adult: "Un hígado está construido de ocho piezas, cada una con su propio aporte de sangre. Gire el cuchillo por las operaciones que hacen los cirujanos, de un segmento a todo el lado derecho, y vea qué deja cada una y con qué rapidez vuelve a crecer.",
+        expert: "Las resecciones del modelo de pkpdsim sobre los segmentos de Couinaud, de la segmentectomía a la hepatectomía derecha ampliada, con la curva de regeneración de cada una junto a las demás.",
       },
     },
     glimepiride: {
-      label: "Glimepirida", title: "Una pastilla, dos personas",
+      label: "Glimepirida", title: "Cómo se degrada un fármaco",
       blurb: {child: "¿Qué le pasa a una pastilla?", adult: "Qué hace el hígado con una pastilla."},
       about: {
         child: "Una pastilla hace un viaje: al intestino, al hígado, a la sangre y otra vez fuera. En dos personas la misma pastilla hace cosas distintas.",

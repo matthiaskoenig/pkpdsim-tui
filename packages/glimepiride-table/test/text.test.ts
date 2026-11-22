@@ -43,7 +43,7 @@ describe("what the glimepiride table reads", () => {
         const voice = createVoice(locale, level);
         const roles = glimepirideRoles(24, voice);
         expect(roles.map(role => role.id)).toEqual(
-          ["dose", "cyp2c9", "cirrhosis", "renal", "weight", "hour"]);
+          ["dose", "weight", "cyp2c9", "cirrhosis", "renal", "hour"]);
         for (const role of roles) {
           expect(role.label.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(3);
           expect(role.description.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(20);

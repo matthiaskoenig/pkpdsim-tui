@@ -1,7 +1,7 @@
 /**
- * The lobed liver table: clamps and a scalpel on the Couinaud segments, and the days after the
- * operation on a dial. Every number comes from the compiled liver of pkpdsim, solved in a Web
- * Worker while the objects stay on the table.
+ * Hepatectomy and regeneration: the operations a surgeon does on one dial, the days after them
+ * on another, and the curve of every one of those operations under the liver. Every number
+ * comes from the compiled liver of pkpdsim, solved in a Web Worker while the objects are moved.
  *
  * The application starts this table for `?app=lobes`, with the body of `?sex` and the liver of
  * `?species` (`rat` or `mouse` instead of the human one); the tracker and the surface are the
@@ -16,7 +16,7 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -24,12 +24,14 @@ import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
   TableSnapshot, TableStatus, TokenRole,
 } from "@pkpdsim-tui/tuio-input";
-import {cardFor, lobeStats, lobeTraces} from "./cards.ts";
+import {cardFor, lobeStats} from "./cards.ts";
 import type {Sample} from "./cards.ts";
-import {blockAt} from "./layout.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
-import {instrumentsOn, statesFrom} from "./plan.ts";
-import {DAY_MARKER, lobeRoles, LOBE_MARKERS} from "./roles.ts";
+import {createRegeneration} from "./regeneration.ts";
+import {
+  DAY_MARKER, LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
+} from "./operations.ts";
+import type {Operation} from "./operations.ts";
 import {lobeReading} from "./audience.ts";
 import {LOBE_TEXT} from "./text.ts";
 import "./style.css";
@@ -75,11 +77,13 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     },
   ];
 
+  // The operations of this species, which the export carries a run for: the intact liver, one
+  // segment, and the hemihepatectomies, in the order of the mass they take.
+  const operations = operationsOf(liver);
   const solverBase = new URL(`solver_lobes/${species}/`, base);
   const config: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
   const days = config.end / (24 * 60);
-  const roles = lobeRoles(days, voice);
-  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: copy.days};
+  const roles = lobeRoles(days, voice, operations.length);
 
   host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
@@ -91,7 +95,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const surface = host.surface;
   const root = host.scene;
   const scene = createLiverScene(root, lobes, voice);
-  const plot = createPlot(root, lobeTraces(voice));
+  const plot = createRegeneration(root, voice, operations);
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
@@ -111,6 +115,17 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const {input, tracker} = await openTableInput({
     parameters, element: surface, markers: [...LOBE_MARKERS],
   });
+
+  /** The operation the knife is pointing at, which is nothing while it is off the table. */
+  const operationOnTable = (): Operation => {
+    const dial = roles.find(role => role.id === "resection");
+    if (dial === undefined) return operationAtDial(operations, 0);
+    for (const token of snapshot.tokens.values()) {
+      if (!dial.markers.includes(token.marker)) continue;
+      return operationAtDial(operations, valueFromAngle(dial, token.turn));
+    }
+    return operationAtDial(operations, 0);
+  };
 
   const origins = new Map<number, number>();
   let viewport = {width: window.innerWidth, height: window.innerHeight};
@@ -176,8 +191,8 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       if (!snapshot.tokens.has(sessionId)) origins.delete(sessionId);
     }
 
-    const instruments = instrumentsOn(roles, snapshot.tokens, scene.blocks, viewport);
-    states = statesFrom(lobes, instruments);
+    const operation = operationOnTable();
+    states = statesOf(lobes, operation);
     const next = JSON.stringify(caseChanges(states));
     if (next !== plan) {
       plan = next;
@@ -190,37 +205,28 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     const reference = sampleAt(baseline, day * 24 * 60);
     root.setAttribute("data-solving", String(solving));
     scene.update({states, sample, baseline: reference});
-    plot.update({series, baseline, cursor: day * 24 * 60, axis: DAY_AXIS});
+    plot.update({day, days, selected: operation, series});
     readout.update(sample, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
       card: (token, role) => cardFor(voice, token, role, {
-        block: role?.mode === "position"
-          ? blockAt(scene.blocks, token.x * viewport.width, token.y * viewport.height)
-          : undefined,
-        sample, baseline: reference, days, origins,
+        operation, sample, baseline: reference, days, origins,
       }),
     });
     chrome.update({
       title: host.title, about: voice.say(copy.about),
       tries: copy.tries.map(entry => voice.say(entry)),
-      reading: lobeReading(voice, lobes, states, day, sample, reference),
+      reading: lobeReading(voice, lobes, states, operation, day, sample, reference),
       back: true,
       choices: bodies,
       status, roles, notice,
-      value: role => {
-        if (role.mode === "position") {
-          const found = instruments.filter(instrument => instrument.role.id === role.id);
-          if (found.length === 0) return "-";
-          return found.map(instrument => instrument.token ?? "beside").join(", ");
-        }
-        return copy.dayValue(formatNumber(day, 1));
-      },
-      live: new Set([
-        ...instruments.filter(instrument => instrument.token !== undefined)
-          .map(instrument => instrument.role.id),
-        ...([...snapshot.tokens.values()].some(token => token.marker === DAY_MARKER) ? ["day"] : []),
-      ]),
+      value: role => (role.id === "resection"
+        ? operationName(voice, operation)
+        : copy.dayValue(formatNumber(day, 1))),
+      live: new Set([...snapshot.tokens.values()]
+        .flatMap(token => roles
+          .filter(role => role.markers.includes(token.marker))
+          .map(role => role.id))),
       unassigned: [...new Set([...snapshot.tokens.values()]
         .filter(token => !roles.some(role => role.markers.includes(token.marker)))
         .map(token => token.marker))],

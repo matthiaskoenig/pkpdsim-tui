@@ -35,7 +35,7 @@ npm run dev
 | Address | What it is |
 | --- | --- |
 | `http://localhost:5173/` | The body with the four tables around it, from which every table is opened |
-| `http://localhost:5173/?app=cardiovascular` | One table directly; `liver`, `lobes`, `glimepiride` and `perfusion` are the others |
+| `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
 | `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |

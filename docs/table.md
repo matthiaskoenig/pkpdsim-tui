@@ -98,7 +98,7 @@ Also worth doing on the machine at a booth: turn off the screen blanking and the
 
 ## Assign the markers
 
-Every table names the markers it reads, and the tables share them: the [circulation](apps/cardiovascular.md) uses 1 to 6, four resistances and the two of the heart, the [lobed liver](apps/lobes.md) 5 to 8, two clamps, the scalpel and the day dial, and [glimepiride](apps/glimepiride.md) 1 to 5 and 8. An object means whatever the table that is open reads it as, so one set of pucks serves all of them.
+Every table names the markers it reads, and every one of them starts at 1, so the same objects serve all of them: the [circulation](apps/cardiovascular.md) uses 1 to 4, the two of the heart and two resistances, [liver surgery](apps/lobes.md) 1 and 2, the knife and the days, and [the drug](apps/glimepiride.md) 1 to 6. An object means whatever the table that is open reads it as, so one set of pucks serves all of them.
 
 Put the marker on the underside of a puck, and put a label and an arrow on the top. The angle of the object is the value it carries, so the arrow is not decoration: it is the needle of the dial. An object whose marker nothing claims is drawn on the table as unassigned rather than ignored, which is how a mislabelled puck is found.
 

@@ -15,7 +15,7 @@ import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
 
 /** The marker of the dial of the hours, which is the only object that is not a property. */
-export const HOUR_MARKER = 8;
+export const HOUR_MARKER = 3;
 
 /** One dial of the individual, in the words of the visitor. */
 function dial(
@@ -35,10 +35,10 @@ function dial(
 export function individualRoles(voice: Voice, sex: Sex = "male"): readonly TokenRole[] {
   const roles: readonly TokenRole[] = [
     dial(GLIMEPIRIDE_CONTROLS.dose, 1, "dose", voice),
-    dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 2, "cyp2c9", voice),
-    dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 3, "cirrhosis", voice),
-    dial(GLIMEPIRIDE_CONTROLS.renal, 4, "renal", voice),
-    dial(GLIMEPIRIDE_CONTROLS.weight, 5, "weight", voice),
+    dial(GLIMEPIRIDE_CONTROLS.weight, 2, "weight", voice),
+    dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 4, "cyp2c9", voice),
+    dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 5, "cirrhosis", voice),
+    dial(GLIMEPIRIDE_CONTROLS.renal, 6, "renal", voice),
   ];
   return roles.map(role => (role.id === GLIMEPIRIDE_CONTROLS.weight.id
     ? {...role, reference: REFERENCE_BODIES[sex].weight}
@@ -65,4 +65,4 @@ export function glimepirideRoles(
 }
 
 /** The markers this table reads, which the input layer needs before a word is said. */
-export const GLIMEPIRIDE_MARKERS: readonly number[] = [1, 2, 3, 4, 5, HOUR_MARKER];
+export const GLIMEPIRIDE_MARKERS: readonly number[] = [1, 2, HOUR_MARKER, 4, 5, 6];

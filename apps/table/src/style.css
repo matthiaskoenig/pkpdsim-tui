@@ -21,11 +21,6 @@
   cursor: help;
 }
 
-/* The disc the two bodies stand on: one dark medallion in the middle of the ring of tables. */
-.hub-disc {
-  fill: var(--panel);
-}
-
 /* The icon of a table, on the ring around the bodies: a big disc of the colour of that table,
    which is the colour its organ on the body and its sidebar carry too. */
 .hub-icon {
@@ -100,14 +95,6 @@
   paint-order: stroke;
   stroke: var(--surface);
   stroke-width: 4;
-}
-
-/* The line from an icon to the organ its table is about, in the colour of that table. */
-.hub-link {
-  fill: none;
-  stroke-width: 1.8;
-  stroke-dasharray: 5 7;
-  opacity: 0.5;
 }
 
 .hub-organ {
@@ -334,14 +321,6 @@
 }
 
 /* The two bodies, and the word under each one. */
-.hub-body-name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  /* The names stand on the dark disc, where the ink of the page could not be read. */
-  fill: var(--panel-ink-dim);
-  letter-spacing: 0.02em;
-}
-
 /* The sidebar: what the table under the hand, or under the object, is about, at length. */
 .hub-info-plate {
   fill: var(--panel);
