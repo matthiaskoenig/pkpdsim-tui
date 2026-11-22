@@ -185,7 +185,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
     const current = readoutOf(series, hour);
     const reference = readoutOf(baseline, hour);
     root.setAttribute("data-solving", String(solving));
-    circuit.update(current, settings.flow);
+    circuit.update(current, settings);
     plot.update({series, baseline, cursor: hour * 60, axis});
     readout.update(current, reference);
     tokenLayer.update({

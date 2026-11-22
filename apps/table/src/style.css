@@ -229,11 +229,21 @@
   margin-top: 0.35rem;
 }
 
+/* The card of the laboratory runs the whole width of the page: a face, who this is, and the
+   code which carries the address, in one row, with the two houses under them. */
+.about-card--lab {
+  grid-column: 1 / -1;
+}
+
 .about-lab {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 1.4rem;
+}
+
+.about-lab .about-lines {
+  flex: 1;
 }
 
 .about-line {
@@ -715,4 +725,58 @@
 .person-button[data-arming="true"] {
   border-color: var(--accent);
   outline: none;
+}
+
+/* The two bodies of the person screen: the drawing of the library, at the height of that body.
+   The pictogram stands in its place until the drawing has been fetched. */
+.welcome-body {
+  display: grid;
+  place-items: end center;
+  height: 15rem;
+}
+
+.welcome-body svg {
+  width: auto;
+  max-width: 9rem;
+}
+
+.welcome-body-art {
+  display: block;
+  height: 14rem;
+}
+
+.welcome-body-art path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* One sentence to a line, wherever a page says what it is about. */
+.welcome-line {
+  display: block;
+}
+
+/* The person behind the tables, on the card of the laboratory: a face says who built this
+   faster than a line of type does, and the two houses follow underneath. */
+.about-photo {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(15, 29, 40, 0.18);
+}
+
+.about-contacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.9rem 1.6rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(15, 29, 40, 0.1);
+}
+
+.about-city {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
 }

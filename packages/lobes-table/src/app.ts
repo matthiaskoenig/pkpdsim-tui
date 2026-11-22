@@ -30,6 +30,7 @@ import {cardFor, lobeStats} from "./cards.ts";
 import type {Sample} from "./cards.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
 import {createRegeneration} from "./regeneration.ts";
+import {createMonitors} from "./monitors.ts";
 import {
   GROWTH_MARKER, LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
 } from "./operations.ts";
@@ -49,11 +50,13 @@ const POINTS = 181;
 
 /**
  * The animals a liver of this table belongs to, in the order the switch offers them, each with
- * the figure it is drawn as. The export of the female body carries the human alone, because the
- * female body is a human one: the switch offers all three there as well, and picking one of the
- * animals opens the export which has it.
+ * the figure it is drawn as. The export carries a mouse as well, which the table does not
+ * offer: the operations of this table are the ones of a person and the ones of the rat the
+ * regeneration is known from, and a third animal is one switch too many in front of an
+ * audience. The export of the female body carries the human alone, because the female body is
+ * a human one: the switch offers both there too, and picking the rat opens the export with it.
  */
-const SPECIES_ORDER = ["human", "rat", "mouse"] as const;
+const SPECIES_ORDER = ["human", "rat"] as const;
 
 const SPECIES_PICTURES: Readonly<Record<string, Pictogram>> = {
   human: "human", rat: "rat", mouse: "mouse",
@@ -97,8 +100,9 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       // are the ones done to a rat and to a mouse in the laboratory, and to a person in a
       // clinic, and the figure says which of the three is on the glass.
       id: "species", label: copy.speciesSwitch, selected: species,
-      options: (sex === "female" ? SPECIES_ORDER : SPECIES_ORDER.filter(id => id in data.species))
-        .map(id => ({
+      options: (sex === "female"
+        ? SPECIES_ORDER
+        : SPECIES_ORDER.filter(id => id in data.species)).map(id => ({
           id, label: copy.species[id] ?? id, picture: SPECIES_PICTURES[id] as Pictogram,
         })),
     },
@@ -133,6 +137,9 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const root = host.scene;
   const scene = createLiverScene(root, lobes, voice);
   const plot = createRegeneration(root, voice, operations);
+  // What the operation costs while the liver grows back: the pressure around it and the blood
+  // through it, beside the organ and against the liver nobody operated on.
+  const monitors = createMonitors(root, voice);
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
@@ -274,6 +281,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     root.setAttribute("data-solving", String(solving));
     scene.update({states, sample, baseline: reference});
     plot.update({day, days, selected: operation, runs});
+    monitors.update({series, baseline, day, days});
     readout.update(sample, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
@@ -324,6 +332,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     scene.resize(viewport);
     plot.resize(plotBox(viewport));
+    monitors.resize(viewport);
     readout.resize(viewport);
     schedule();
   };

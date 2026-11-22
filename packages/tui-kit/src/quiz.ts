@@ -14,6 +14,7 @@
 import type {Voice} from "./voice.ts";
 import {keepStars, starMarks, starsOf} from "./stars.ts";
 import {words} from "./words.ts";
+import {tableFoot} from "./chrome.ts";
 
 export interface QuizChoice {
   readonly id: string;
@@ -210,7 +211,7 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
       if (id !== undefined) pick(id);
     }
   });
-  container.appendChild(root);
+  tableFoot(container).appendChild(root);
   draw();
   return {
     open: () => show(true),

@@ -1,4 +1,4 @@
-# How a drug is broken down
+# One tablet, one day
 
 One individual on the table, six objects that say who they are, and the body of that individual with the drug moving through it.
 
@@ -31,7 +31,7 @@ Three of the dials say in words what they are set to, because that is how a clin
 
 The panel also carries a switch a finger touches rather than an object: the body of the individual. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it. The switch sets both, so the organs, their blood flows and the dose per kilogram all follow, and the detent of the weight dial moves with it.
 
-The tablets object is the course rather than a property of the person: one tablet every 24 hours for as many mornings as it is turned to, and one further day after the last of them, which is where a course of a drug is read. The table solves that course and the clock of the table then runs along it by itself, over and over, so a visitor sees the drug arrive and leave without having to wind anything.
+The tablets object is the course rather than a property of the person: one tablet every 24 hours for as many mornings as it is turned to, and the course runs to the end of the day of the last of them. One tablet is therefore one day, which is the question this table asks: what a single tablet does between this morning and the next. The table solves that course and the clock of the table then runs along it by itself, over and over, so a visitor sees the drug arrive and leave without having to wind anything.
 
 ## What the table shows
 

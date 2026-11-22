@@ -148,7 +148,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   // The course runs by itself and starts over whenever the individual changes, which is the
   // drug moving through the body rather than a dial a visitor has to find first.
   let started = performance.now();
-  let span = 2 * 24 * 60;
+  let span = 24 * 60;
 
   const readoutOf = (course: Series, hour: number): GlimepirideReadout => ({
     pk: pharmacokinetics(course, "[Cve_gli]", {factor: MICROMOLAR}),
@@ -221,7 +221,8 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     const minutes = Math.min(phase / CYCLE, 1) * span;
     const hour = minutes / 60;
     const axis = {
-      max: span, tick: span > 3 * 24 * 60 ? 24 * 60 : 600, scale: 1 / 60, unit: "h",
+      // A day of a tablet is read in hours, a course of many days in days.
+      max: span, tick: span > 3 * 24 * 60 ? 24 * 60 : 240, scale: 1 / 60, unit: "h",
     };
 
     const current = readoutOf(series, hour);

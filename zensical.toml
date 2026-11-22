@@ -17,10 +17,10 @@ nav = [
   { "Run on a table" = "table.md" },
   { "Languages and the voice" = "languages.md" },
   { "Applications" = [
-    { "Cardiovascular circulation" = "apps/cardiovascular.md" },
-    { "Liver surgery" = "apps/lobes.md" },
-    { "How a drug is broken down" = "apps/glimepiride.md" },
-    { "Machine perfusion" = "apps/perfusion.md" },
+    { "Follow the blood" = "apps/cardiovascular.md" },
+    { "The liver grows back" = "apps/lobes.md" },
+    { "One tablet, one day" = "apps/glimepiride.md" },
+    { "A liver without a body" = "apps/perfusion.md" },
   ] },
   { "Development" = "development.md" },
 ]

@@ -1,4 +1,4 @@
-# Cardiovascular circulation
+# Follow the blood
 
 The whole circulation on the table, four objects that change it, and a heart that beats while they are being moved.
 

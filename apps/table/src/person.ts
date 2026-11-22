@@ -15,7 +15,7 @@
  */
 
 import {
-  AGE_RANGE, clampAge, clampWeight, individualOf, referenceBody, weightRange,
+  AGE_RANGE, clampAge, clampWeight, individualOf, loadAnatomy, referenceBody, weightRange,
 } from "@pkpdsim-tui/cardio-sim";
 import type {Individual, Sex} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
@@ -25,6 +25,9 @@ import {HUB_TEXT} from "./text.ts";
 
 /** How long a finger rests on a card before it is pressed, as everywhere else on a table. */
 const PRESS = 620;
+
+/** How tall a grown up stands on this screen, in pixels, and the height the two are drawn at. */
+const FIGURE = {height: 230, grown: 176} as const;
 
 /** The address this table carries the person in. */
 export const PERSON_KEYS = ["age", "sex", "bw"] as const;
@@ -117,19 +120,28 @@ export function askPerson(
   };
 
   // The two bodies, named for the age which is set: a body of eight years is a girl or a boy.
+  // The picture is the body itself, the drawing every table of the collection is solved on,
+  // and it stands at the height of that body: the two sexes differ, and both of them grow and
+  // shrink with the age dial under them. The pictogram is what is shown until the drawing of
+  // the library has been fetched, so the screen is never empty.
   const bodyPick = (value: Sex): string =>
     `<button class="welcome-pick welcome-pick--body" type="button" data-choice="${value}"`
     + ` data-dwell="person:${value}" aria-pressed="${value === sex}">`
-    + `${pictogram(value === "female" ? "woman" : "man")}`
+    + `<span class="welcome-body" data-sex="${value}">`
+    + `${pictogram(value === "female" ? "woman" : "man")}</span>`
     + `<span class="welcome-pick-label">`
     + `${escapeHtml(bodyName(voice, value, age))}</span></button>`;
 
   const note = voice.say(text.note);
+  // Every sentence of the note starts a line of its own: two sentences on one line read as a
+  // paragraph, and nobody reads a paragraph while standing at a table.
+  const noteHtml = note.split(/(?<=[.!?])\s+/u)
+    .map(sentence => `<span class="welcome-line">${escapeHtml(sentence)}</span>`).join("");
   root.innerHTML = `<div class="welcome-card welcome-card--person">`
     + `<h1 class="welcome-title">${escapeHtml(copy.heading)}</h1>`
     + `<div class="welcome-question"><h2 class="welcome-ask">${escapeHtml(text.ask)}</h2>`
     + `${sayHtml(`${text.ask} ${note}`, sayLabel(voice))}</div>`
-    + `<p class="welcome-note">${escapeHtml(note)}</p>`
+    + `<p class="welcome-note">${noteHtml}</p>`
     + `<div class="welcome-row welcome-row--bodies">`
     + `${bodyPick("female")}${bodyPick("male")}</div>`
     + `<div class="dials">${dialHtml(ageDial)}${dialHtml(weightDial())}</div>`
@@ -195,6 +207,39 @@ export function askPerson(
     if (line !== null) {
       line.textContent = `${text.height} ${referenceBody(age, sex).height} cm`;
     }
+    // Both figures stand at the height of the body of this age, so that the two are compared
+    // with each other and the pair grows and shrinks as the age is set.
+    for (const figure of root.querySelectorAll<SVGSVGElement>(".welcome-body-art")) {
+      const value = figure.dataset["sex"] === "male" ? "male" : "female";
+      const height = referenceBody(age, value).height;
+      figure.style.height = `${(FIGURE.height * height / FIGURE.grown).toFixed(1)}px`;
+    }
+  };
+
+  /**
+   * The drawing of the library, in place of the pictogram: the same silhouette the body of the
+   * landing page is drawn from, one per sex. It is fetched after the screen is up, because the
+   * screen is answered with a finger and must be there before it arrives.
+   */
+  const drawBodies = async (): Promise<void> => {
+    const anatomy = await loadAnatomy(
+      new URL("assets/cardiovascular/cardiovascular-anatomy.json", document.baseURI));
+    for (const value of ["female", "male"] as const) {
+      const body = anatomy.bodies[value];
+      const slot = root.querySelector(`.welcome-body[data-sex="${value}"]`);
+      if (body === undefined || slot === null) continue;
+      slot.innerHTML = `<svg class="welcome-body-art" data-sex="${value}"`
+        + ` aria-hidden="true"><g>${body.svg}</g></svg>`;
+      const figure = slot.querySelector("svg");
+      const group = figure?.querySelector("g");
+      if (figure === null || figure === undefined || group === null || group === undefined) {
+        continue;
+      }
+      const bounds = group.getBBox();
+      figure.setAttribute(
+        "viewBox", `${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`);
+    }
+    draw();
   };
 
   /** The value a finger or a pointer at this place of the track stands for. */
@@ -221,6 +266,9 @@ export function askPerson(
   };
 
   draw();
+  // A body which cannot be fetched leaves the pictogram standing, which answers the question
+  // just as well: the screen is never held up by a drawing.
+  void drawBodies().catch(() => undefined);
 
   return new Promise<Individual>(resolve => {
     let stop = (): void => undefined;

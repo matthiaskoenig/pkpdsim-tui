@@ -20,10 +20,13 @@ export const SEXES = ["female", "male"] as const;
 export type Sex = (typeof SEXES)[number];
 
 /** The years a visitor can be on the glass, and the age a table opens at. */
-export const AGE_RANGE = {min: 4, max: 120, value: 35} as const;
+export const AGE_RANGE = {min: 3, max: 120, value: 35} as const;
 
 /** The age of the reference adult of ICRP 89, where the children meet the grown ups. */
 const ADULT_AGE = 35;
+
+/** Where the weight dial of a grown up ends, in kilograms: strong obesity. */
+const OBESE = 150;
 
 /**
  * The reference children and the reference adult of ICRP 89, by age in years: what a body of
@@ -110,9 +113,15 @@ export function referenceBody(age: number, sex: Sex = "female"): ReferenceBody {
  */
 export function weightRange(age: number, sex: Sex = "female"): {min: number; max: number} {
   const {weight} = referenceBody(age, sex);
+  // A grown up at the top of the dial is strongly obese, which is a body these models are
+  // asked about: a third of the adults at a table carry more than their reference body, and a
+  // dial which stops at one and a half of it stops before the body they came to see. A child
+  // carries the share of that their age can, so the top of the dial grows with them.
+  const grown = Math.min(1, Math.max(0, (clampAge(age) - 12) / 6));
+  const heavy = weight * 1.6 * (1 - grown) + OBESE * grown;
   return {
     min: Math.max(3, Math.round(weight * 0.65 * 10) / 10),
-    max: Math.round(weight * 1.6 * 10) / 10,
+    max: Math.round(Math.max(heavy, weight * 1.2) * 10) / 10,
   };
 }
 

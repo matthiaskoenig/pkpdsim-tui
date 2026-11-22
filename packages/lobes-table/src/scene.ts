@@ -13,7 +13,75 @@ import {
 import type {Box, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {LOBE_TEXT} from "./text.ts";
 import {liverLayout} from "./layout.ts";
+import {monitorWidth} from "./monitors.ts";
 import type {LobeBlock} from "./layout.ts";
+
+/**
+ * How far the organ stands out around the blocks it is drawn around, in pixels of the surface.
+ * The blocks are clipped to the outline, so the slack is what keeps the clip to their corners.
+ */
+const ORGAN = {x: 42, y: 34} as const;
+
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+
+/** A closed smooth curve through these points, as the cubics of a path. */
+function smoothLoop(points: readonly Point[]): string {
+  const at = (index: number): Point =>
+    points[((index % points.length) + points.length) % points.length] as Point;
+  const start = at(0);
+  let path = `M${start.x.toFixed(1)} ${start.y.toFixed(1)}`;
+  for (let index = 0; index < points.length; index += 1) {
+    const before = at(index - 1);
+    const from = at(index);
+    const to = at(index + 1);
+    const after = at(index + 2);
+    const first = {x: from.x + (to.x - before.x) / 6, y: from.y + (to.y - before.y) / 6};
+    const second = {x: to.x - (after.x - from.x) / 6, y: to.y - (after.y - from.y) / 6};
+    path += ` C${first.x.toFixed(1)} ${first.y.toFixed(1)} `
+      + `${second.x.toFixed(1)} ${second.y.toFixed(1)} ${to.x.toFixed(1)} ${to.y.toFixed(1)}`;
+  }
+  return `${path} Z`;
+}
+
+/**
+ * The outline of the organ the blocks are the segments of: a smooth curve around what they
+ * cover, which follows their own profile. A human liver reaches lower on its right lobe than
+ * on its left, and the blocks are laid out that way, so the organ drawn around them has the
+ * shape of a liver rather than of the box they were given.
+ */
+export function liverOutline(blocks: readonly LobeBlock[], box: Box): string {
+  if (blocks.length === 0) return "";
+  // The profile of the blocks, column by column: how high and how low they reach over each
+  // span of the width, which is where the outline is drawn around them.
+  const edges = [...new Set(blocks.flatMap(block => [block.x, block.x + block.width]))]
+    .sort((left, right) => left - right);
+  const columns: {x: number; top: number; bottom: number}[] = [];
+  for (let index = 0; index < edges.length - 1; index += 1) {
+    const middle = ((edges[index] ?? 0) + (edges[index + 1] ?? 0)) / 2;
+    const over = blocks.filter(block => block.x <= middle && block.x + block.width >= middle);
+    if (over.length === 0) continue;
+    columns.push({
+      x: middle,
+      top: Math.min(...over.map(block => block.y)),
+      bottom: Math.max(...over.map(block => block.y + block.height)),
+    });
+  }
+  const first = columns[0];
+  const last = columns[columns.length - 1];
+  if (first === undefined || last === undefined) return "";
+  const points: Point[] = [
+    // The round end of the organ at the left, over the top of every column to the right end,
+    // and back along the floor of every column.
+    {x: box.x - ORGAN.x, y: (first.top + first.bottom) / 2},
+    ...columns.map(column => ({x: column.x, y: column.top - ORGAN.y})),
+    {x: box.x + box.width + ORGAN.x, y: (last.top + last.bottom) / 2},
+    ...[...columns].reverse().map(column => ({x: column.x, y: column.bottom + ORGAN.y})),
+  ];
+  return smoothLoop(points);
+}
 
 /** The bands of numbers at the two edges. */
 const BAND = 132;
@@ -32,21 +100,29 @@ const NARROW = 190;
 /** A block narrower than this has no room for a number either. */
 const SLIVER = 96;
 
+/** The room between the panel in the near corner and the monitors at the far side. */
+function room(viewport: Viewport): {left: number; width: number} {
+  const left = PANEL;
+  const width = Math.max(360, viewport.width - left - monitorWidth(viewport) - GAP);
+  return {left, width};
+}
+
 export function liverBox(viewport: Viewport): Box {
   const top = BAND + GAP + OUTFLOW;
   const height = Math.max(240, viewport.height - BAND * 2 - PLOT_HEIGHT - GAP * 3 - HILUM - OUTFLOW);
-  // A liver is wider than it is tall, and the objects need the rest of the surface.
-  const width = clamp(Math.min(viewport.width * 0.62, height * 2), 320, viewport.width - 2 * GAP);
-  return {x: (viewport.width - width) / 2, y: top, width, height};
+  // A liver is wider than it is tall, and the monitors and the objects need the rest.
+  const space = room(viewport);
+  const width = clamp(Math.min(space.width - GAP * 2, height * 2), 320, space.width);
+  return {x: space.left + (space.width - width) / 2, y: top, width, height};
 }
 
 export function plotBox(viewport: Viewport): Box {
   const liver = liverBox(viewport);
-  // The course sits at the bottom of the table, where a panel holds one corner, so it keeps to
-  // the span between the panels however wide the liver is.
-  const width = Math.min(liver.width, Math.max(360, viewport.width - 2 * PANEL));
+  // The course sits under the liver, in the same room between the panel and the monitors.
+  const space = room(viewport);
+  const width = Math.min(Math.max(liver.width, 360), space.width - GAP * 2);
   return {
-    x: (viewport.width - width) / 2, y: liver.y + liver.height + HILUM + GAP,
+    x: space.left + (space.width - width) / 2, y: liver.y + liver.height + HILUM + GAP,
     width, height: PLOT_HEIGHT,
   };
 }
@@ -121,7 +197,16 @@ export function createLiverScene(
   const portalLabel = svg("text", {class: "trunk-label", x: 0, y: 0}, vessels);
   const arteryLabel = svg("text", {class: "trunk-label", x: 0, y: 0}, vessels);
   const hepaticLabel = svg("text", {class: "trunk-label", x: 0, y: 0}, vessels);
-  const blockLayer = svg("g", {class: "liver-blocks"}, root);
+  // The organ the blocks are the segments of: it stands behind them, and the blocks are
+  // clipped to it, so that the mosaic has the shape of a liver.
+  const shape = svg("path", {class: "liver-shape", d: ""}, root);
+  const defs = svg("defs", {}, root);
+  const clip = svg("clipPath", {id: "lobes-liver-clip"}, defs);
+  const clipPath = svg("path", {d: ""}, clip);
+  const blockLayer = svg("g", {class: "liver-blocks", "clip-path": "url(#lobes-liver-clip)"}, root);
+  // What the eight blocks are, in one line under the organ.
+  const caption = svg("text", {class: "liver-caption"}, root);
+  caption.textContent = voice.say(copy.segmentsNote);
 
   let blocks: LobeBlock[] = [];
   const elements = new Map<string, BlockElements>();
@@ -146,6 +231,12 @@ export function createLiverScene(
     resize(viewport: Viewport): void {
       const box = liverBox(viewport);
       blocks = liverLayout(lobes, box, BLOCK_GAP);
+      const outline = liverOutline(blocks, box);
+      attributes(shape, {d: outline});
+      attributes(clipPath, {d: outline});
+      // Over the organ, above the trunk of the hepatic veins and under the band of numbers.
+      // Just over the organ, and clear of the band of numbers above it.
+      attributes(caption, {x: box.x - ORGAN.x, y: box.y - ORGAN.y - 14, "text-anchor": "start"});
       for (const block of blocks) {
         let visual = elements.get(block.token);
         if (visual === undefined) {
@@ -215,6 +306,16 @@ export function createLiverScene(
           String(state === "portal" || resected));
         visual.arterialPip.setAttribute("data-closed",
           String(state === "arterial" || resected));
+        // What this segment is, for the finger that rests on it: where it lies, what share of
+        // the liver it carries, and what it is doing on the day the course is at.
+        visual.group.setAttribute("data-info", copy.segmentInfo({
+          name: shortName(voice, visual.block),
+          where: blockName(voice, visual.block),
+          share: `${formatNumber(visual.block.share * 100, 0)} %`,
+          state: resected
+            ? copy.resected
+            : `${formatNumber(volume * 100, 0)} %, ${formatNumber(flow * 1000, 0)} ml/min`,
+        }));
       }
 
       const qpo = view.sample["Qpo"] ?? 0;

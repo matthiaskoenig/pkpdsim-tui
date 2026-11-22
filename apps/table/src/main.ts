@@ -11,7 +11,7 @@
  *   ?tuio=/tuio           a tracker behind the server this page came from, on its port
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?sex=female           the female reference body, on the body and in every table
- *   ?age=35               the age of the person every table is solved for, 4 to 120 years
+ *   ?age=35               the age of the person every table is solved for, 3 to 120 years
  *   ?bw=60                what that person weighs, the reference of their age otherwise
  *   ?species=rat          the liver of a rat or a mouse, in the lobed liver table
  *   ?lang=de              the language of every word: en, de or es, and the browser otherwise
@@ -19,8 +19,8 @@
  */
 
 import {
-  chooseQuery, createLab, createSettings, createVoice, languageOptions, LEVELS, pictogram,
-  voiceOf, watchSay, words,
+  chooseQuery, clearStars, createLab, createSettings, createVoice, languageOptions, LEVELS,
+  pictogram, voiceOf, watchSay, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {
   ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
@@ -208,9 +208,10 @@ async function start(): Promise<void> {
     },
   });
 
-  // The landing page is where a visit ends as well as begins: the button in the corner asks the
-  // two questions of the welcome again and forgets everything the last visitor did, so the next
-  // one meets the table in their own language.
+  // The landing page is where a visit ends as well as begins: the button in the corner takes
+  // the whole table back to the first question and forgets everything the last visitor did,
+  // their language, their body and the stars they won, so that the next one starts at the
+  // start. A table's own "start again" resets that table; this one resets the visit.
   if (overview) {
     const again = document.createElement("button");
     again.className = "again";
@@ -224,6 +225,9 @@ async function start(): Promise<void> {
     const label = again.querySelector(".again-label");
     if (label !== null) label.textContent = copy.startAgain;
     again.addEventListener("click", () => {
+      // The stars of the quizzes outlive a page, so they are the one thing a reload does not
+      // take with it. A new visit starts without them.
+      clearStars();
       const kept = new URLSearchParams();
       for (const key of ["tuio", "tuio-version", "species"]) {
         const value = parameters.get(key);
@@ -271,12 +275,13 @@ async function start(): Promise<void> {
     choose,
     back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
     // A table starts again by loading itself again: the models come from the cache of the
-    // browser, and nothing of the last visitor survives a reload, which is what makes it a
-    // reset and not an undo. The language, the level and the tracker are of the booth and not
-    // of the visitor, so they stay.
+    // browser, and nothing the last visitor did to this table survives a reload, which is what
+    // makes it a reset and not an undo. It resets the table and only the table: the language,
+    // the level and the tracker are of the booth, and the body is of the visitor standing at
+    // it, so both stay. Everything goes at the landing page, which is where a visit ends.
     reset: () => {
       const kept = new URLSearchParams();
-      for (const key of ["app", "lang", "level", "tuio", "tuio-version"]) {
+      for (const key of ["app", "lang", "level", "tuio", "tuio-version", "sex", "age", "bw"]) {
         const value = parameters.get(key);
         if (value !== null) kept.set(key, value);
       }

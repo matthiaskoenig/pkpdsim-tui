@@ -206,10 +206,8 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
       aria-expanded="false" aria-label="${escapeHtml(copy.settings)}"
       title="${escapeHtml(copy.settings)}">
       <svg viewBox="-26 -26 52 52" aria-hidden="true">
-        <path class="pick-path" d="M -4 -24 h 8 l 1.4 7.2 a 18 18 0 0 1 5 2.9 l 6.9 -2.4 l 4 6.9 l -5.5 4.8 a 18 18 0 0 1 0 5.8 l 5.5 4.8 l -4 6.9 l -6.9 -2.4 a 18 18 0 0 1 -5 2.9 L 4 24 h -8 l -1.4 -7.2 a 18 18 0 0 1 -5 -2.9 l -6.9 2.4 l -4 -6.9 l 5.5 -4.8 a 18 18 0 0 1 0 -5.8 l -5.5 -4.8 l 4 -6.9 l 6.9 2.4 a 18 18 0 0 1 5 -2.9 z"></path>
-        <circle class="settings-eye" cx="0" cy="0" r="6.5"></circle>
+        <path class="pick-path" fill-rule="evenodd" d="M -4 -24 h 8 l 1.4 7.2 a 18 18 0 0 1 5 2.9 l 6.9 -2.4 l 4 6.9 l -5.5 4.8 a 18 18 0 0 1 0 5.8 l 5.5 4.8 l -4 6.9 l -6.9 -2.4 a 18 18 0 0 1 -5 2.9 L 4 24 h -8 l -1.4 -7.2 a 18 18 0 0 1 -5 -2.9 l -6.9 2.4 l -4 -6.9 l 5.5 -4.8 a 18 18 0 0 1 0 -5.8 l -5.5 -4.8 l 4 -6.9 l 6.9 2.4 a 18 18 0 0 1 5 -2.9 z M 0 -6.5 a 6.5 6.5 0 1 0 0 13 a 6.5 6.5 0 1 0 0 -13 z"></path>
       </svg>
-      <span class="settings-dot" data-state="idle"></span>
     </button>
     <div class="settings-card" hidden>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
@@ -229,7 +227,6 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   const button = root.querySelector(".settings-button") as HTMLButtonElement;
   const card = root.querySelector(".settings-card") as HTMLElement;
   const groups = root.querySelector(".settings-groups") as HTMLElement;
-  const dot = root.querySelector(".settings-dot") as HTMLElement;
   const tracker = root.querySelector(".settings-tracker");
   const source = root.querySelector(".settings-source");
   groups.innerHTML = options.groups.map(groupHtml).join("");
@@ -270,7 +267,8 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   container.appendChild(root);
   const settings: Settings = {
     status(state: TableStatus): void {
-      dot.dataset["state"] = state.state;
+      // The tracker is said in the card, in words, rather than as a dot on the gear: a visitor
+      // who sees a dot on a button learns nothing from it.
       if (tracker instanceof HTMLElement) tracker.dataset["state"] = state.state;
       if (source instanceof HTMLElement) source.textContent = state.source;
       const detail = state.detail === "" ? state.source : state.detail;

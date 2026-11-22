@@ -15,7 +15,7 @@ export interface TableMark {
 
 /** Who a table is solved for, as the first screen put them together. */
 export interface TableIndividual {
-  /** Their age in years, between 4 and 120. */
+  /** Their age in years, between 3 and 120. */
   readonly age: number;
   readonly sex: "female" | "male";
   /** What they weigh, in kilograms: the `BW` of every model. */

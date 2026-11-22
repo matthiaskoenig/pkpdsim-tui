@@ -28,7 +28,7 @@ import {wrapText} from "./wrap.ts";
  * copy of a level is written as lines, but a long one of them is wrapped to the room there is:
  * the sentence of an expert is twice the sentence of a child.
  */
-const MOTIVATION_LINES = 3;
+const MOTIVATION_LINES = 4;
 /** How wide a character of that line is, which is what wraps it: 21px of the sans of the page. */
 const MOTIVATION_WIDTH = 10.2;
 /** The icon of a table, in pixels: a big disc of the colour of that table, and its name. */
@@ -278,11 +278,24 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     "data-info": voice.say(copy.headingInfo),
   }, head);
   heading.textContent = copy.heading;
+  /**
+   * The heading is one line of SVG text, which does not wrap, so a long name of a collection is
+   * set in whatever size the room allows rather than running off the page.
+   */
+  const fitHeading = (room: number): void => {
+    heading.removeAttribute("font-size");
+    const width = heading.getComputedTextLength();
+    if (width <= room || width <= 0) return;
+    const base = Number.parseFloat(window.getComputedStyle(heading).fontSize);
+    const size = (Number.isFinite(base) ? base : 52) * room / width;
+    heading.setAttribute("font-size", `${size.toFixed(1)}px`);
+  };
   // The lines are drawn empty and filled at every layout: how many of them a sentence takes
   // depends on how wide the room over the ring is.
   const motivation = Array.from({length: MOTIVATION_LINES}, () =>
     svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head));
-  const said = copy.motivation[voice.level].join(" ");
+  const sentences = copy.motivation[voice.level];
+  const said = sentences.join(" ");
   const figures = svg("g", {class: "hub-bodies"}, scene);
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
@@ -468,8 +481,14 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const draw = (): void => {
     // What stands under the heading, wrapped to the room there is, and how much room the ring
     // is left with after it.
-    const motivationLines = wrapText(
-      said, Math.max(28, Math.floor(stageWidth(viewport) / MOTIVATION_WIDTH)), MOTIVATION_LINES);
+    // Every sentence starts a line of its own, and a sentence too long for the room it has is
+    // wrapped within its own lines: two sentences never share a line, which is what makes the
+    // two lines under the heading read as two things rather than as a paragraph.
+    fitHeading(Math.max(320, viewport.width - 2 * ICON.margin));
+    const columns = Math.max(28, Math.floor(stageWidth(viewport) / MOTIVATION_WIDTH));
+    const motivationLines = sentences
+      .flatMap(sentence => wrapText(sentence, columns, MOTIVATION_LINES))
+      .slice(0, MOTIVATION_LINES);
     const stage = stageOf(viewport, motivationLines.length);
     const spots = iconSpots(stage, TABLES.length);
     for (const [index, icon] of icons.entries()) {

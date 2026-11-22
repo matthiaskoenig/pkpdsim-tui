@@ -19,10 +19,10 @@ Everything here is one application: it opens on the two reference bodies of pkpd
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
-| Cardiovascular circulation | `?app=cardiovascular` | prototype | Two resistance objects on an anatomy, systemic and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
-| Liver surgery | `?app=lobes` | prototype | One object turns through the resections a surgeon does, another says how fast the liver grows back, and the days after the operation run by themselves. |
-| How a drug is broken down | `?app=glimepiride` | prototype | The dose, the body weight, how many daily tablets, the CYP2C9 genotype, the liver and the kidneys of one individual, with the drug moving through the body of that individual while the course runs. |
-| Machine perfusion | `?app=perfusion` | prototype | A liver kept alive outside the body: the pump, the oxygen and the temperature of the circuit, and a dial through the six hours of the perfusion. |
+| Follow the blood | `?app=cardiovascular` | prototype | Two resistance objects on an anatomy, systemic and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
+| The liver grows back | `?app=lobes` | prototype | One object turns through the resections a surgeon does, another says how fast the liver grows back, and the days after the operation run by themselves. |
+| One tablet, one day | `?app=glimepiride` | prototype | The dose, the body weight, how many daily tablets, the CYP2C9 genotype, the liver and the kidneys of one individual, with the drug moving through the body of that individual while the course runs. |
+| A liver without a body | `?app=perfusion` | prototype | A liver kept alive outside the body: the pump, the oxygen and the temperature of the circuit, and a dial through the six hours of the perfusion. |
 
 ## Quick start
 

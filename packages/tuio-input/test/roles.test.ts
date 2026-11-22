@@ -27,7 +27,7 @@ describe("roleForMarker", () => {
 
 describe("valueFromAngle, absolute", () => {
   it("reads the reference with the token pointing up", () => {
-    expect(valueFromAngle(role(), 0)).toBeCloseTo(1, 12);
+    expect(valueFromAngle(role({min: 0.5, max: 2, reference: 1}), 0)).toBeCloseTo(1, 12);
   });
 
   it("reaches the maximum at the clockwise stop and holds it in the dead band", () => {
@@ -47,8 +47,34 @@ describe("valueFromAngle, absolute", () => {
   });
 
   it("uses the geometric middle halfway, on a log scale", () => {
-    const r = role({min: 1, max: 16, reference: 1, scale: "log"});
-    expect(valueFromAngle(r, 0.5 * ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(4, 12);
+    const r = role({min: 1, max: 16, reference: 4, scale: "log"});
+    expect(valueFromAngle(r, 0.5 * ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(8, 12);
+    expect(valueFromAngle(r, -0.5 * ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(2, 12);
+  });
+
+  // An object whose reference is one end of its range used to carry that end over the whole
+  // half of the turn below it, so half of the object did nothing.
+  it("spends the whole turn on the range when the reference is an end", () => {
+    const r = role({min: 0, max: 4, reference: 0});
+    expect(valueFromAngle(r, TWO_PI - ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(0, 12);
+    expect(valueFromAngle(r, -0.5 * ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(1, 12);
+    expect(valueFromAngle(r, 0)).toBeCloseTo(2, 12);
+    expect(valueFromAngle(r, 0.5 * ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(3, 12);
+    expect(valueFromAngle(r, ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(4, 12);
+  });
+
+  it("spends the whole turn on the range when the reference is the maximum", () => {
+    const r = role({min: 1, max: 9, reference: 9});
+    expect(valueFromAngle(r, TWO_PI - ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(1, 12);
+    expect(valueFromAngle(r, 0)).toBeCloseTo(5, 12);
+    expect(valueFromAngle(r, ABSOLUTE_SPAN * Math.PI)).toBeCloseTo(9, 12);
+  });
+
+  it("is the inverse of angleForValue over a range the reference ends", () => {
+    const r = role({min: 0, max: 4, reference: 0});
+    for (const value of [0, 1, 2.5, 4]) {
+      expect(valueFromAngle(r, angleForValue(r, value))).toBeCloseTo(value, 9);
+    }
   });
 
   it("is the inverse of angleForValue", () => {
@@ -75,6 +101,20 @@ describe("valueFromAngle, relative", () => {
   it("clamps beyond the range", () => {
     expect(valueFromAngle(r, 10 * TWO_PI, 0)).toBeCloseTo(2, 12);
     expect(valueFromAngle(r, -10 * TWO_PI, 0)).toBeCloseTo(0.5, 12);
+  });
+});
+
+// A relative object carries its reference wherever it is put down, whether that reference is
+// an end of its range or not: the turn from there is the change.
+describe("valueFromAngle, relative with the reference at an end", () => {
+  const r = role({min: 0, max: 10, reference: 10, mode: "relative"});
+
+  it("reads the reference where it was put down", () => {
+    expect(valueFromAngle(r, 3.2, 3.2)).toBeCloseTo(10, 12);
+  });
+
+  it("turns down from there", () => {
+    expect(valueFromAngle(r, 3.2 - TWO_PI / 4, 3.2)).toBeCloseTo(5, 12);
   });
 });
 

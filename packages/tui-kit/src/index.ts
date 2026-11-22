@@ -1,6 +1,6 @@
 /** What every table application of pkpdsim shares. */
 
-export {createChrome} from "./chrome.ts";
+export {createChrome, tableFoot} from "./chrome.ts";
 export type {Chrome, ChoiceGroup, ChoiceOption, ChromeOptions, ChromeUpdate} from "./chrome.ts";
 export {
   clamp, describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,

@@ -1,5 +1,75 @@
 /* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
 
+/* The organ the blocks are the segments of: it stands behind them and they are clipped to it,
+   so that a mosaic of eight rectangles is read as a liver. */
+.liver-shape {
+  fill: rgba(150, 72, 52, 0.1);
+  stroke: rgba(120, 58, 42, 0.45);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* What the eight blocks are, under the organ. */
+.liver-caption {
+  fill: var(--ink-dim);
+  font-size: 0.92rem;
+}
+
+/* The two monitors beside the liver: the pressure around it and the blood through it. */
+.monitor-frame {
+  fill: var(--panel);
+  stroke: var(--panel-line);
+  stroke-width: 1;
+}
+
+.monitor-title {
+  fill: var(--panel-ink-dim);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.monitor-axis {
+  fill: none;
+  stroke: var(--panel-line);
+  stroke-width: 1.5;
+}
+
+.monitor-line {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* The same liver without the operation, behind the one on the table. */
+.monitor-reference {
+  fill: none;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 5;
+  opacity: 0.5;
+}
+
+.monitor-cursor {
+  fill: none;
+  stroke: var(--panel-ink-dim);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+}
+
+.monitor-key {
+  font-size: 0.92rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.monitor-tick {
+  fill: var(--panel-ink-dim);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* The segments of the liver. */
 .liver-blocks {
   transition: opacity 120ms linear;

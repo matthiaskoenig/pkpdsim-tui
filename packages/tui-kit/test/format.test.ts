@@ -107,9 +107,15 @@ describe("trackSpan", () => {
     expect(end).toBeCloseTo(ABSOLUTE_SPAN * 180, 6);
   });
 
-  it("covers one half when the reference is one end of the range", () => {
-    expect(trackSpan(role(0, 10, 0)).start).toBeCloseTo(0, 6);
-    expect(trackSpan(role(0, 10, 10)).end).toBeCloseTo(0, 6);
+  // A dial whose reference is one end of its range spends the whole turn on the range, so its
+  // track is the whole dial and not the half of it above the reference.
+  it("covers the whole dial when the reference is one end of the range", () => {
+    const low = trackSpan(role(0, 10, 0));
+    expect(low.start).toBeCloseTo(-ABSOLUTE_SPAN * 180, 6);
+    expect(low.end).toBeCloseTo(ABSOLUTE_SPAN * 180, 6);
+    const high = trackSpan(role(0, 10, 10));
+    expect(high.start).toBeCloseTo(-ABSOLUTE_SPAN * 180, 6);
+    expect(high.end).toBeCloseTo(ABSOLUTE_SPAN * 180, 6);
   });
 
   it("gives a relative dial the whole span, because it has no stop", () => {

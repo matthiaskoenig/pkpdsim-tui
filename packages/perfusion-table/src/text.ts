@@ -28,9 +28,16 @@ export interface PerfusionCopy {
   readonly roles: Readonly<Record<"flow" | "oxygen" | "temperature" | "hour", Named>>;
   readonly traces: Readonly<Record<"outflow" | "bile" | "alive", string>>;
   readonly parts: Readonly<Record<
-    "reservoir" | "pump" | "oxygenator" | "liver" | "bile", string>>;
+    "reservoir" | "pump" | "oxygenator" | "heater" | "liver" | "bile", string>>;
   readonly partInfo: Readonly<Record<
-    "tube" | "return" | "reservoir" | "pump" | "oxygenator" | "organ" | "bile", Phrase>>;
+    "tube" | "return" | "reservoir" | "pump" | "oxygenator" | "heater" | "organ" | "bile",
+    Phrase>>;
+  /** The units the machine writes on itself, beside the part each of them belongs to. */
+  readonly units: Readonly<Record<"flow" | "oxygen" | "temperature" | "bile", string>>;
+  /** The two ends of the zonation, which the sinusoid runs between. */
+  readonly zones: Readonly<Record<"periportal" | "pericentral", string>>;
+  /** Why a liver is put on a machine at all, under the drawing of one. */
+  readonly motivation: Phrase;
   readonly zoneInfo: {
     readonly first: Phrase;
     readonly last: Phrase;
@@ -193,7 +200,15 @@ const EN: PerfusionCopy = {
   },
   traces: {outflow: "oxygen leaving", bile: "bile", alive: "cells alive"},
   parts: {
-    reservoir: "Reservoir", pump: "Pump", oxygenator: "Oxygenator", liver: "Liver", bile: "Bile",
+    reservoir: "Reservoir", pump: "Pump", oxygenator: "Oxygenator", heater: "Heater",
+    liver: "Liver", bile: "Bile",
+  },
+  units: {flow: "ml/min", oxygen: "kPa", temperature: "C", bile: "ul/min"},
+  zones: {periportal: "periportal", pericentral: "pericentral"},
+  motivation: {
+    child: "A liver on its way to somebody must stay alive. Here you can watch it.",
+    adult: "A donor liver has to stay alive until it is transplanted, and a machine keeps it working and lets it be tested.",
+    expert: "Normothermic machine perfusion keeps a donor organ working until implantation, and makes inflow, outflow and bile measurable at once.",
   },
   partInfo: {
     tube: {
@@ -215,6 +230,10 @@ const EN: PerfusionCopy = {
     oxygenator: {
       child: "Here the liquid gets its oxygen. It is the lung of the machine.",
       adult: "The oxygenator, where the fluid meets the gas and takes its oxygen up. It is the lung of the circuit.",
+    },
+    heater: {
+      child: "This keeps the liquid as warm as a body.",
+      adult: "The heat exchanger, which holds the perfusate at the temperature of the bath. A warm liver works and a cold one waits.",
     },
     organ: {
       child: "The liver on the machine.",
@@ -401,8 +420,15 @@ const DE: PerfusionCopy = {
   },
   traces: {outflow: "Sauerstoff im Abfluss", bile: "Galle", alive: "Zellen am Leben"},
   parts: {
-    reservoir: "Reservoir", pump: "Pumpe", oxygenator: "Oxygenator", liver: "Leber",
-    bile: "Galle",
+    reservoir: "Reservoir", pump: "Pumpe", oxygenator: "Oxygenator", heater: "Heizung",
+    liver: "Leber", bile: "Galle",
+  },
+  units: {flow: "ml/min", oxygen: "kPa", temperature: "C", bile: "ul/min"},
+  zones: {periportal: "periportal", pericentral: "perivenös"},
+  motivation: {
+    child: "Eine Leber auf dem Weg zu jemandem muss am Leben bleiben. Hier kann man ihr zusehen.",
+    adult: "Eine Spenderleber muss bis zur Transplantation am Leben bleiben; die Maschine hält sie in Funktion und macht sie prüfbar.",
+    expert: "Die normotherme Maschinenperfusion hält ein Spenderorgan bis zur Implantation in Funktion und macht Zufluss, Abfluss und Galle gleichzeitig messbar.",
   },
   partInfo: {
     tube: {
@@ -424,6 +450,10 @@ const DE: PerfusionCopy = {
     oxygenator: {
       child: "Hier bekommt die Flüssigkeit ihren Sauerstoff. Das ist die Lunge der Maschine.",
       adult: "Der Oxygenator, wo die Flüssigkeit auf das Gas trifft und seinen Sauerstoff aufnimmt. Er ist die Lunge des Kreislaufs.",
+    },
+    heater: {
+      child: "Das hält die Flüssigkeit so warm wie einen Körper.",
+      adult: "Der Wärmetauscher, der das Perfusat auf der Temperatur des Bades hält. Eine warme Leber arbeitet, eine kalte wartet.",
     },
     organ: {
       child: "Die Leber an der Maschine.",
@@ -612,8 +642,15 @@ const ES: PerfusionCopy = {
   },
   traces: {outflow: "oxígeno a la salida", bile: "bilis", alive: "células vivas"},
   parts: {
-    reservoir: "Depósito", pump: "Bomba", oxygenator: "Oxigenador", liver: "Hígado",
-    bile: "Bilis",
+    reservoir: "Depósito", pump: "Bomba", oxygenator: "Oxigenador", heater: "Calentador",
+    liver: "Hígado", bile: "Bilis",
+  },
+  units: {flow: "ml/min", oxygen: "kPa", temperature: "C", bile: "ul/min"},
+  zones: {periportal: "periportal", pericentral: "perivenosa"},
+  motivation: {
+    child: "Un hígado de camino a alguien debe seguir vivo. Aquí se le puede mirar.",
+    adult: "Un hígado donado debe seguir vivo hasta el trasplante; la máquina lo mantiene funcionando y permite evaluarlo.",
+    expert: "La perfusión normotérmica mantiene funcionando un órgano donado hasta el implante y hace medibles a la vez la entrada, la salida y la bilis.",
   },
   partInfo: {
     tube: {
@@ -635,6 +672,10 @@ const ES: PerfusionCopy = {
     oxygenator: {
       child: "Aquí el líquido recibe su oxígeno. Es el pulmón de la máquina.",
       adult: "El oxigenador, donde el líquido se encuentra con el gas y toma su oxígeno. Es el pulmón del circuito.",
+    },
+    heater: {
+      child: "Esto mantiene el líquido tan caliente como un cuerpo.",
+      adult: "El intercambiador de calor, que mantiene el perfundido a la temperatura del baño. Un hígado caliente trabaja, uno frío espera.",
     },
     organ: {
       child: "El hígado en la máquina.",

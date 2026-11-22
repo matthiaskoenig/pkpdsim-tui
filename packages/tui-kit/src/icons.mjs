@@ -12,7 +12,20 @@
 export const ICONS = {
   vessel: [],
   heart: ["M 0 19 C -21 5 -19 -13 -7 -15 C -2 -16 0 -12 0 -9 C 0 -12 2 -16 7 -15 C 19 -13 21 5 0 19 Z"],
-  tablet: ["M -10 -10 a 10 10 0 0 1 20 0 v 20 a 10 10 0 0 1 -20 0 z"],
+  /*
+   * A capsule lying on the diagonal, split into its two halves, with what it breaks down into
+   * falling away from the lower end. It was a plain rounded tablet, which is a shape, while
+   * this table is about what the body does with a drug: the breaking down is the picture.
+   */
+  // A scored tablet, with two crumbs off it: round and scored says medicine at a glance, and
+  // the crumbs say it is being broken down. The score line is a subpath, so it is cut out of
+  // the disc by the even odd rule the icons are filled with.
+  tablet: [
+    "M 0 -12 a 12 12 0 1 1 0 24 a 12 12 0 1 1 0 -24 z",
+    "M -9 -1.5 h 18 v 3 h -18 z",
+    "M 13.4 11 a 2.8 2.8 0 1 1 2.8 2.8 a 2.8 2.8 0 1 1 -2.8 -2.8 z",
+    "M 18.6 16.4 a 1.8 1.8 0 1 1 1.8 1.8 a 1.8 1.8 0 1 1 -1.8 -1.8 z",
+  ],
   enzyme: ["M 15 -11 A 19 19 0 1 0 15 11 L 0 0 Z"],
   liver: ["M -21 -7 C -17 -17 1 -20 12 -15 C 21 -11 21 3 10 9 C -3 16 -19 10 -21 -7 Z"],
   kidney: ["M 5 -17 C 16 -13 19 6 6 15 C -5 22 -15 12 -15 0 C -15 -13 -6 -21 5 -17 Z"],

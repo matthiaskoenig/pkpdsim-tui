@@ -42,9 +42,16 @@ describe("the weight of a body", () => {
   it("stays inside what the physiology of that age is written for", () => {
     const range = weightRange(35, "female");
     expect(range.min).toBeCloseTo(39, 6);
-    expect(range.max).toBeCloseTo(96, 6);
+    // A grown up reaches strong obesity, which is a body these models are asked about.
+    expect(range.max).toBeCloseTo(150, 6);
     expect(clampWeight(200, 35, "female")).toBe(range.max);
     expect(clampWeight(1, 35, "female")).toBe(range.min);
+    // A child carries the share of that their age can: the top of the dial grows with them.
+    expect(weightRange(6, "female").max).toBeCloseTo(
+      Math.round(referenceBody(6, "female").weight * 1.6 * 10) / 10, 6);
+    expect(weightRange(15, "female").max).toBeGreaterThan(
+      referenceBody(15, "female").weight * 1.6);
+    expect(weightRange(15, "female").max).toBeLessThan(150);
   });
 
   it("is the body and the height of every human model", () => {
