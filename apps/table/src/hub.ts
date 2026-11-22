@@ -38,8 +38,8 @@ const PADDING: number = 26;
 /** The name under an icon, which may need two lines. */
 const TITLE_COLUMNS = 16;
 const TITLE_LINES = 2;
-/** How long the strut between the circle and an icon is, in pixels. */
-const STRUT = 54;
+/** What the bodies in the middle keep clear of the icons around them, in pixels. */
+const STRUT = 30;
 /** The sidebar at the right: what the table a visitor is pointing at is, at length. */
 const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const;
 /** The room the laboratory block takes in the bottom corner, which the sidebar stops above. */
@@ -118,13 +118,7 @@ function iconSpots(
   stage: CardBox, count: number,
 ): readonly {x: number; y: number; above: boolean}[] {
   const centre = {x: stage.x + stage.width / 2, y: stage.y + stage.height / 2};
-  // The ring is a circle: every table is the same distance from the bodies in the middle, so
-  // none of them looks nearer than the others. It is as wide as the narrower side allows once
-  // the icon and its name are on it, and the name of an icon may run to two lines with the
-  // stars of its quiz under them.
-  const across = stage.width / 2 - ICON.radius - 92;
-  const down = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
-  const radius = Math.min(across, down);
+  const radius = ringRadius(stage);
   return Array.from({length: count}, (_unused, index) => {
     const degrees = RING[index % RING.length] ?? 0;
     const angle = degrees * Math.PI / 180;
@@ -141,9 +135,20 @@ function iconSpots(
 /** The dark disc the two bodies stand on, in the middle of the ring of icons. */
 function discOf(stage: CardBox): {x: number; y: number; r: number} {
   const centre = {x: stage.x + stage.width / 2, y: stage.y + stage.height / 2};
-  const rx = stage.width / 2 - ICON.radius - 92;
-  const ry = stage.height / 2 - ICON.radius - ICON.label - ICON.line;
-  return {...centre, r: Math.max(150, Math.min(rx, ry) - ICON.radius - STRUT)};
+  // What the ring leaves in the middle: the room inside it, less what an icon takes of it.
+  return {...centre, r: Math.max(130, ringRadius(stage) - ICON.radius - STRUT)};
+}
+
+/**
+ * The ring the tables stand on. It is a circle, so every table is the same distance from the
+ * bodies in the middle and none of them looks nearer than the others, and it is as wide as the
+ * narrower side of the stage allows once an icon, its name over two lines and the stars of its
+ * quiz are on it.
+ */
+function ringRadius(stage: CardBox): number {
+  const across = stage.width / 2 - ICON.radius - 92;
+  const down = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
+  return Math.min(across, down);
 }
 
 /**
@@ -152,9 +157,10 @@ function discOf(stage: CardBox): {x: number; y: number; r: number} {
  */
 function bodyBox(stage: CardBox): CardBox {
   const disc = discOf(stage);
-  // As tall as the circle takes with the names under the feet still inside it.
-  const height = disc.r * 1.4;
-  return {x: disc.x - disc.r, y: disc.y - height / 2 - disc.r * 0.1, width: 2 * disc.r, height};
+  // As tall as the ring leaves room for, which is what makes the two of them the thing in the
+  // middle rather than a pair of marks between the icons.
+  const height = disc.r * 1.9;
+  return {x: disc.x - disc.r, y: disc.y - height / 2, width: 2 * disc.r, height};
 }
 
 function anchorOf(body: Body, id: string): {x: number; y: number} {
