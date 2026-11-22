@@ -37,3 +37,41 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Where the drug is: a bubble on every part of the body, as big as what that part holds. */
+.drug-bubble {
+  fill: var(--accent);
+  fill-opacity: 0.32;
+  stroke: var(--accent);
+  stroke-width: 2;
+  transition: r 120ms linear;
+}
+
+.drug-bubble--gut {
+  fill: #b7791f;
+  stroke: #b7791f;
+}
+
+.drug-bubble--gone {
+  fill: var(--ink-dim);
+  stroke: var(--ink-dim);
+}
+
+/* The thread from a name at the side to the bubble it belongs to. */
+.drug-leader {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1.4;
+}
+
+.drug-name {
+  fill: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.drug-value {
+  fill: var(--ink-dim);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}

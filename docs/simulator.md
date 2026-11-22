@@ -163,7 +163,7 @@ The applications read TUIO 1.1 as well, with `&tuio-version=1.1` in the address,
 | Click with the middle button | Removes the token under the pointer |
 | Double click with the right button | Places a mobile, which is a TUIO 2.0 object with a random id |
 
-The marker is what an application reads to know what an object is, so set **Next Object ID** before each token. The [cardiovascular table](apps/cardiovascular.md) uses markers 1 to 6, the [lobed liver](apps/lobes.md) 5 to 8 and [glimepiride](apps/glimepiride.md) 1 to 5 and 8.
+The marker is what an application reads to know what an object is, so set **Next Object ID** before each token. Every table numbers its objects from 1: the [cardiovascular table](apps/cardiovascular.md) uses markers 1 to 4, [liver surgery](apps/lobes.md) 1 and 2, [the drug](apps/glimepiride.md) 1 to 6 and [machine perfusion](apps/perfusion.md) 1 to 4.
 
 ## Point an application at it
 

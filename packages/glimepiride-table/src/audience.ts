@@ -34,6 +34,7 @@ export function glimepirideReading(
   current: GlimepirideReadout,
   reference: GlimepirideReadout,
   referenceIndividual: GlimepirideIndividual,
+  doses: number,
 ): string {
   const copy = voice.pick(GLIMEPIRIDE_TEXT);
   const who: string[] = [];
@@ -69,6 +70,7 @@ export function glimepirideReading(
         reference: formatNumber(reference.pk.halflife / 60, 0),
       }
       : undefined,
+    doses,
   });
 }
 

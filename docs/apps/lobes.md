@@ -17,7 +17,7 @@ Why a pharmacokinetic model cares: the liver is where most drugs are broken down
 | Marker | Object | What it does |
 | --- | --- | --- |
 | 1 | The operation | Turns through the resections a surgeon does, from one segment to the whole right side of the liver |
-| 2 | Day after the operation | Winds the days of the course, from the end back to the operation |
+| 2 | Regeneration rate | How fast what is left grows back, between a third of the rate of a healthy liver of this species and three times it |
 
 The panel also carries two switches a finger touches rather than an object: the body of the individual, male or female, and the species. The female export is the human liver only, so the female body cannot be chosen for the rat or the mouse.
 

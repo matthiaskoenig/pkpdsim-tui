@@ -1,6 +1,6 @@
 /**
  * The tangible vocabulary of the glimepiride table: one object per property of the individual,
- * and one dial for the hours after the dose.
+ * and one dial for how many daily tablets are taken.
  *
  * Every dial reads absolutely, so the orientation of the object is the value and a printed scale
  * around it tells the truth. Where the reference individual sits at one end of the range, for
@@ -8,14 +8,14 @@
  * the table draws only that half.
  */
 
-import {GLIMEPIRIDE_CONTROLS, REFERENCE_BODIES} from "@pkpdsim-tui/glimepiride-sim";
+import {GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSES, REFERENCE_BODIES} from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideControl, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import type {Voice} from "@pkpdsim-tui/tui-kit";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
 
-/** The marker of the dial of the hours, which is the only object that is not a property. */
-export const HOUR_MARKER = 3;
+/** The marker of the dial of the tablets, which is the only object that is not a property. */
+export const DOSE_COUNT_MARKER = 3;
 
 /** One dial of the individual, in the words of the visitor. */
 function dial(
@@ -46,23 +46,25 @@ export function individualRoles(voice: Voice, sex: Sex = "male"): readonly Token
 }
 
 /**
- * The dial of the hours. It is relative and starts at the end of the course wherever it is put
- * down, so it is wound backwards towards the dose. Half a turn covers the whole course.
+ * The dial of the tablets: one every morning, for up to ten mornings. It reads absolutely, so
+ * the orientation of the object is how long the person is on the drug.
  */
-export function hourRole(hours: number, voice: Voice): TokenRole {
-  const copy = voice.pick(GLIMEPIRIDE_TEXT).roles.hour;
+export function doseCountRole(voice: Voice): TokenRole {
+  const copy = voice.pick(GLIMEPIRIDE_TEXT).roles.doses;
   return {
-    id: "hour", label: voice.say(copy.label), unit: "h", markers: [HOUR_MARKER],
+    id: "doses", label: voice.say(copy.label), unit: "", markers: [DOSE_COUNT_MARKER],
     description: voice.say(copy.info),
-    min: 0, max: hours, reference: hours, mode: "relative", scale: "linear", turns: 1,
+    min: GLIMEPIRIDE_DOSES.min, max: GLIMEPIRIDE_DOSES.max, reference: GLIMEPIRIDE_DOSES.value,
+    mode: "absolute", scale: "linear", turns: 1,
   };
 }
 
-export function glimepirideRoles(
-  hours: number, voice: Voice, sex: Sex = "male",
-): readonly TokenRole[] {
-  return [...individualRoles(voice, sex), hourRole(hours, voice)];
+/** The objects of the table, in the order of their markers, which is how the panel lists them. */
+export function glimepirideRoles(voice: Voice, sex: Sex = "male"): readonly TokenRole[] {
+  const [dose, weight, ...rest] = individualRoles(voice, sex);
+  return [...(dose === undefined ? [] : [dose]), ...(weight === undefined ? [] : [weight]),
+    doseCountRole(voice), ...rest];
 }
 
 /** The markers this table reads, which the input layer needs before a word is said. */
-export const GLIMEPIRIDE_MARKERS: readonly number[] = [1, 2, HOUR_MARKER, 4, 5, 6];
+export const GLIMEPIRIDE_MARKERS: readonly number[] = [1, 2, DOSE_COUNT_MARKER, 4, 5, 6];

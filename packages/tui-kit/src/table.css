@@ -127,16 +127,22 @@ body {
 /* What the table is, for somebody who walked up to it a moment ago. */
 .edge h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.9rem;
+  /* A title of one long word, as German builds them, shrinks rather than running off the
+     panel: the panel is as wide as the table lets it be. */
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.01em;
+  /* A title of one long word, as German builds them, breaks at a syllable rather than running
+     off the panel: the page carries the language of the visitor, which is what hyphenates it. */
+  hyphens: auto;
+  overflow-wrap: break-word;
   color: var(--panel-ink);
 }
 
 /* A table for a six year old says less, in larger type. */
 :root[data-level="child"] .edge h1 {
-  font-size: 2.1rem;
+  font-size: 1.95rem;
 }
 
 :root[data-level="child"] .edge {

@@ -60,10 +60,16 @@ describe("glimepirideRequest", () => {
     expect(request.changes).toEqual([]);
   });
 
-  it("reads the whole window at the resolution of the table", () => {
-    const request = glimepirideRequest();
-    expect(request.output.times).toHaveLength(GLIMEPIRIDE_SIMULATION.points);
-    expect(request.output.times.at(-1)).toBe(GLIMEPIRIDE_SIMULATION.end);
+  it("runs one day after the last tablet, at the resolution of the table", () => {
+    const one = glimepirideRequest();
+    expect(one.output.times.at(-1)).toBe(2 * 24 * 60);
+    expect(one.output.times.length).toBeGreaterThan(200);
+    expect(one.changes).toEqual([]);
+    const ten = glimepirideRequest({dose: 2}, "male", undefined, 10);
+    expect(ten.output.times.at(-1)).toBe(11 * 24 * 60);
+    // A tablet every morning after the first one, which is the dose put back in the stomach.
+    expect(ten.changes).toHaveLength(9);
+    expect(ten.changes[0]).toEqual({time: 24 * 60, values: [["PODOSE_gli", 2]]});
   });
 
   it("asks for the plasma of the parent and of both metabolites", () => {

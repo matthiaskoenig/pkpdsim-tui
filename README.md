@@ -19,10 +19,9 @@ Everything here is one application: it opens on the two reference bodies of pkpd
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
-| Cardiovascular circulation | `?app=cardiovascular` | prototype | Four resistance objects on an anatomy, hepatic, systemic, portal and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
-| The liver | `?app=liver` | prototype | Why the body needs a liver: its two blood supplies as two objects, what one lobule of it is served with, and the way into the three liver tables which follow it. |
-| Lobed liver | `?app=lobes` | prototype | A clamp on a segment of the liver is a portal vein ligation, the scalpel is a resection, and a dial winds the five days of the regeneration that follows. |
-| Glimepiride | `?app=glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial, on the whole body model of glimepiride. |
+| Cardiovascular circulation | `?app=cardiovascular` | prototype | Two resistance objects on an anatomy, systemic and renal, and two for the heart itself. The angle of an object is its value, the pressures, flows and perfusion follow, and the compiled heart beats on the table at the rate it is given. |
+| Liver surgery | `?app=lobes` | prototype | One object turns through the resections a surgeon does, another says how fast the liver grows back, and the days after the operation run by themselves. |
+| How a drug is broken down | `?app=glimepiride` | prototype | The dose, the body weight, how many daily tablets, the CYP2C9 genotype, the liver and the kidneys of one individual, with the drug moving through the body of that individual while the course runs. |
 | Machine perfusion | `?app=perfusion` | prototype | A liver kept alive outside the body: the pump, the oxygen and the temperature of the circuit, and a dial through the six hours of the perfusion. |
 
 ## Quick start

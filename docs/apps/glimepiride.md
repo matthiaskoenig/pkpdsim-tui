@@ -1,6 +1,6 @@
-# Glimepiride
+# How a drug is broken down
 
-One individual on the table, and six objects that say who they are.
+One individual on the table, six objects that say who they are, and the body of that individual with the drug moving through it.
 
 The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiride-model), a whole body PBPK model of the sulfonylurea glimepiride and of its two metabolites M1 and M2. A tablet is swallowed, the liver turns glimepiride into M1 with CYP2C9, M1 becomes M2, and the kidneys clear both into the urine. Every dial on this table is one of the things that make two people respond differently to the same tablet.
 
@@ -19,11 +19,11 @@ This is what a physiologically based model is for. It does not fit a curve to a 
 | Marker | Object | What it changes | Range | Reference |
 | --- | --- | --- | --- | --- |
 | 1 | Dose | The tablet that is swallowed | 0 to 8 mg | 4 mg |
-| 2 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
-| 3 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
-| 4 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
-| 5 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 73 kg, or 60 kg for the female body |
-| 8 | Hours after the dose | Winds the fifty hours of the course, from the end back to the tablet | 0 to 50 h | the end |
+| 2 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 73 kg, or 60 kg for the female body |
+| 3 | Tablets, one a day | How many mornings in a row a tablet is taken | 1 to 10 | 1 |
+| 4 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
+| 5 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
+| 6 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
 
 Every object of the individual is a dial, and its angle is the value: pointing away from the person is the reference individual, turning it to the right raises the value and to the left lowers it. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half. Lifting an object puts that property back to the reference.
 
@@ -31,24 +31,24 @@ Three of the dials say in words what they are set to, because that is how a clin
 
 The panel also carries a switch a finger touches rather than an object: the body of the individual. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it. The switch sets both, so the organs, their blood flows and the dose per kilogram all follow, and the detent of the weight dial moves with it.
 
-The hours object is relative, like the day dial of the [lobed liver](lobes.md): it starts at the end of the course wherever it is put down, and winding it back walks towards the moment of the dose. It solves nothing, it only moves the moment the table is read at.
+The tablets object is the course rather than a property of the person: one tablet every 24 hours for as many mornings as it is turned to, and one further day after the last of them, which is where a course of a drug is read. The table solves that course and the clock of the table then runs along it by itself, over and over, so a visitor sees the drug arrive and leave without having to wind anything.
 
 ## What the table shows
 
-Across the top, the way the drug takes through the individual: the tablet, the liver with its CYP2C9 and its Child-Pugh class, the plasma, the kidneys with their clearance and the urine with what has arrived in it. A station the objects moved away from the reference is outlined.
+The individual, with a bubble on every part of the body the model carries: the gut with the tablet which has not been taken up, the liver, the blood, the lungs, the kidneys, the rest of the body and what has left it. The area of a bubble is what that part holds, counted in millimoles of glimepiride and of the two metabolites together, because one molecule of the drug becomes one of M1 and then one of M2: the bubbles are the dose which was swallowed, wherever it has got to. The names stand in a column at each side of the figure, with a thread to the bubble they belong to, because the chest of a body holds three of them.
 
 The six numbers of the band, with the change against the reference individual under each one. Hovering one, or resting a finger on it, says what it is:
 
 | Number | What it is |
 | --- | --- |
-| Plasma now | The plasma concentration of glimepiride at the hour the dial points at, in uM |
+| Plasma now | The plasma concentration of glimepiride at the hour the running clock has reached, in uM |
 | Peak plasma | The highest plasma concentration of the course |
 | Time of the peak | When it is reached, in hours after the dose |
 | Half life | The half life of the terminal part of the course, from a straight line through its logarithm |
-| Exposure | The area under the course over the fifty hours that were simulated |
+| Exposure | The area under the course that was simulated |
 | M1 and M2 in urine | What has arrived in the urine at the end of the course, in umole |
 
-The plot is the plasma course of glimepiride, M1 and M2. The three are read in the same unit and therefore share one scale, so their heights can be compared, and the same individual at the reference is drawn behind them as a dashed line.
+The plot beside the body is the plasma course of glimepiride, M1 and M2. The three are read in the same unit and therefore share one scale, so their heights can be compared, and the same individual at the reference is drawn behind them as a dashed line. The cursor of the running clock walks along it, and the bubbles on the body are that same moment.
 
 ## Things to try
 

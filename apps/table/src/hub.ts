@@ -118,17 +118,19 @@ function iconSpots(
   stage: CardBox, count: number,
 ): readonly {x: number; y: number; above: boolean}[] {
   const centre = {x: stage.x + stage.width / 2, y: stage.y + stage.height / 2};
-  // The ring is as wide as the stage allows once the disc and the longest name are on it.
-  const rx = stage.width / 2 - ICON.radius - 92;
-  // The name of an icon may run to two lines, and the one at the foot of the ring reads under
-  // it, so the ring keeps that much off the edge of the surface.
-  const ry = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
+  // The ring is a circle: every table is the same distance from the bodies in the middle, so
+  // none of them looks nearer than the others. It is as wide as the narrower side allows once
+  // the icon and its name are on it, and the name of an icon may run to two lines with the
+  // stars of its quiz under them.
+  const across = stage.width / 2 - ICON.radius - 92;
+  const down = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
+  const radius = Math.min(across, down);
   return Array.from({length: count}, (_unused, index) => {
     const degrees = RING[index % RING.length] ?? 0;
     const angle = degrees * Math.PI / 180;
     return {
-      x: centre.x + rx * Math.cos(angle),
-      y: centre.y + ry * Math.sin(angle),
+      x: centre.x + radius * Math.cos(angle),
+      y: centre.y + radius * Math.sin(angle),
       // The name of the icon over the heads is read above it, where the heading leaves room:
       // under it is where the bodies stand.
       above: degrees === -90,
@@ -481,7 +483,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const tallest = Math.max(...views.map(one => one.body.height));
     const scale = room.height / tallest;
     const widths = views.map(one => one.art.getBBox().width * scale);
-    const gap = Math.round(disc.r * 0.12);
+    // The two bodies stand close together, as one thing in the middle of the ring.
+    const gap = Math.round(disc.r * 0.02);
     const total = widths.reduce((sum, width) => sum + width, 0) + gap * (views.length - 1);
     let cursor = stage.x + (stage.width - total) / 2;
     for (const [index, one] of views.entries()) {

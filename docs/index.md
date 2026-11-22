@@ -9,13 +9,13 @@ Every application also runs without a table, on a mouse and the keyboard, so it 
 
 ## One application, four tables
 
-Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, in a dark disc with the four tables on a ring around it and a line from each icon to the organ its table is about. Every table is a big disc in a colour of its own, which its organ on the body and the sidebar carry too. Touching an icon, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
+Everything here is one application. It opens on the two reference bodies of the pkpdsim physiology, a woman and a man, with the four tables on a ring around them, each the same distance from the bodies. Every table is a big disc in a colour of its own, which its organ on the body and the sidebar carry too, and the stars its quiz has handed out stand under its name. Touching an icon, or the organ it points at, opens that table; touching a body is what every table is then solved for. In a table, **Back** in the panel returns to the bodies, and the gear in the far corner holds the table, the language and the level. One build, one address, one port.
 
 | Table | Opened by | State | What the objects do |
 | --- | --- | --- | --- |
 | [Cardiovascular circulation](apps/cardiovascular.md) | `?app=cardiovascular` | prototype | Two resistance objects on an anatomy, systemic and renal, and two for the heart itself, which beats on the table while they are moved. |
-| [Lobed liver](apps/lobes.md) | `?app=lobes` | prototype | A clamp on a segment is a portal vein ligation, the scalpel is a resection, and a dial winds the days of the regeneration that follows. |
-| [Glimepiride](apps/glimepiride.md) | `?app=glimepiride` | prototype | The dose, the CYP2C9 genotype, the liver, the kidneys and the body weight of one individual, each on its own dial. |
+| [Liver surgery](apps/lobes.md) | `?app=lobes` | prototype | One object turns through the resections a surgeon does, another says how fast the liver grows back, and the days after the operation run by themselves. |
+| [How a drug is broken down](apps/glimepiride.md) | `?app=glimepiride` | prototype | The dose, the body weight, how many daily tablets, the CYP2C9 genotype, the liver and the kidneys of one individual, with the drug moving through the body of that individual. |
 | [Machine perfusion](apps/perfusion.md) | `?app=perfusion` | prototype | The pump, the oxygen and the temperature of a liver kept alive outside the body, and a dial through the hours of the perfusion. |
 
 The three liver tables are one story: a liver which takes drugs apart, a liver which can be cut and grows back, and a liver which stays alive on a machine when it is outside the body.
