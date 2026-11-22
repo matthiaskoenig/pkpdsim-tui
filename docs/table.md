@@ -30,11 +30,13 @@ That is a decision about what these tables are for. A booth has a front, and the
 
 A table has no click, so everything which is pressed rather than turned is pressed by **resting a finger on it**: a card on the landing page, the organ the card points at, a switch in the panel, or **Back**, which every table carries above its title and which returns to the landing page. The element fills while the finger is on it, so that holding is visibly doing something, and lifting the finger before it is full cancels it. A hand sweeping across the glass opens nothing.
 
-The landing page carries no panel: a heading, two lines of what the table is for, the woman and the man side by side in a dark disc in the middle, and the four tables as big coloured icons on a ring around it, each joined to the organ its table is about by a thin line of its own colour. It is one person seen four ways, which is the thing to understand before a visitor walks to the first table. Both bodies are shown, and nothing on the page asks a visitor to pick one: which body a model is solved for is a question of a table, and every table carries that switch in its panel.
+The landing page carries no panel: a heading, what the tables are for, the woman and the man side by side in the middle, and the four tables as big coloured icons on a ring around them, each the same distance from the bodies and each in the colour of the organ it is about, which carries that colour on both bodies. It is one person seen four ways, which is the thing to understand before a visitor walks to the first table. Both bodies are shown, and nothing on the page asks a visitor to pick one: which body a model is solved for is a question of a table, and every table carries that switch in its panel.
 
 What a table is about stands in the **sidebar at the right**: the icon a hand is over, or an organ a finger is on, fills it with the whole of what that table shows, in the colour of that table. It is one place to read rather than a note wherever the hand happens to be, which is what a table across a room wants. While nothing is chosen the sidebar is the key of the four colours, so that an icon on the ring and an organ on the body are read as one table.
 
-The **first object of the surface, marker 0, is the table switch**. Turning it walks around the ring, the card it points at lights up and the box at the right says what it is; holding the object still on one opens that table, and the card fills while it is held, as it does under a finger. It is the one object a visitor is handed before they have opened anything, and it is how a table is left for another one without walking back to a card.
+The landing page reads **no object at all**. The objects of the surface belong to a table, which numbers them from 1, and a visitor who has just walked up has their hands: a card is opened by resting a finger on it or on the organ it points at. One set of pucks therefore serves every table, and nothing on the glass of the landing page has to be handed to anybody.
+
+A visit begins before the landing page. The first screen asks **which language** to speak, with every language written in its own tongue so that the question is readable by whoever walked up, and the second asks **who is looking**: a child, an adult, or somebody of the field. Both answers go into the address, so every table opened from the landing page is in that language and at that level, and a link which already says them walks straight in. **Von vorn** in the corner of the landing page asks both questions again and forgets what the last visitor did, which is what a booth wants between two of them.
 
 The settings of the table stand **open in a strip along the top of the landing page**, where a visitor reads what can be changed before anything is open; every table keeps the same switches behind the gear in its corner.
 
@@ -42,12 +44,14 @@ The laboratory is in the bottom right corner with the square a phone is pointed 
 
 Everything about the table itself, rather than about what is on it, waits behind the **gear in the far corner** of a table, and stands open on the landing page: which table is open, the language and the level. They are three rows of either-or switches with a tick on the one which is on, drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The address of the tracker is in that card too, where it belongs to whoever set the booth up, rather than on the glass in front of the audience; the dot on the gear is green while the table is connected and amber while it is not. The gear says nothing and reads nothing aloud: the settings are not something a table explains. The choices hold while a visitor walks from one table to another and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
 
+Every table wears **its own colour and its own picture** over the title of its panel: the red heart of the circulation, the purple scalpel of the operations, the green tablet of the drug, the blue pump of the machine, each the icon of the card which opened it. A visitor who pressed a green circle a moment ago meets a green circle at the table they walked to, and what the table says of itself, the sentence under its title, is marked in that colour too.
+
 ## Two surfaces
 
 A table has exactly two kinds of surface, and a visitor can tell what they are looking at from across the room.
 
 - **The white canvas** is what is being shown: the body, the lobule, the segments, the machine, the course of a curve. It carries the heading of the table in the far corner of the panel, large enough to be read while walking up.
-- **The dark card** is what is being said: the panel, the note behind an element, the card beside an object, the quiz. Everything which speaks is a dark card on the white canvas, and nothing else is.
+- **The blue card** is what is being said: the panel, the note behind an element, the card beside an object. Everything which speaks is a pale blue card on the white canvas, the way a note in the margin of an atlas is, and nothing else is. The dark is left to the furniture of the table: the gear in the corner, the quiz and the ring of a tick.
 
 ## The quiz
 
@@ -105,10 +109,10 @@ Put the marker on the underside of a puck, and put a label and an arrow on the t
 ## What to check before an audience arrives
 
 1. The body is on the surface, and a finger held on a card opens its table.
-2. The panel in the corner shows a teal dot and the address of the table.
+2. The gear in the corner shows a green dot and the address of the table.
 3. Every puck is recognised: put each one down in turn and watch its card appear with the right name and its picture inside the ring.
 4. Turning a puck moves both the picture inside it and the numbers at the edge.
 5. Lifting a puck returns its number to the reference.
 6. The panel, the numbers and the cards all read upright from the side the visitors stand at.
 7. A finger resting on a number, an organ or an object opens the note behind it.
-8. The first object of the surface, marker 0, walks around the ring of the landing page, and holding it still opens the table it points at.
+8. The first screen asks the language and who is looking, the landing page opens the table a finger rests on, and **Von vorn** in its corner asks both questions again.

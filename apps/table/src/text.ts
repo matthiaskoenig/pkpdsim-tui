@@ -20,6 +20,12 @@ export interface EntryCopy {
 
 export interface HubCopy {
   readonly heading: string;
+  /** The two questions of the first screen: the language, and who the visitor is. */
+  readonly askLanguage: string;
+  readonly askLevel: string;
+  /** The button of the landing page which asks both of them again. */
+  readonly startAgain: string;
+  readonly startAgainInfo: string;
   /** The two lines under the heading: what there is to learn here. */
   readonly motivation: Readonly<Record<Level, readonly string[]>>;
   readonly headingInfo: Phrase;
@@ -33,12 +39,9 @@ export interface HubCopy {
   /** What a body is, behind it. Both of them stand on the landing page, side by side. */
   readonly bodyInfo: Readonly<Record<"male" | "female", Phrase>>;
   /** The object which picks a table: what it is called and what it does. */
-  readonly topic: {readonly label: string; readonly info: Phrase};
   /** What stands in the box at the right while no table is picked. */
   readonly pickTitle: string;
   readonly pickText: Phrase;
-  /** What the box says under a table the object is pointing at. */
-  readonly holdToOpen: string;
   /** What the boot screen says while the bodies are loading, and when nothing can be shown. */
   readonly loadingBodies: string;
   readonly loadingTable: string;
@@ -106,6 +109,10 @@ const EN: HubCopy = {
   labPlace: "University of Lübeck and Humboldt-Universität zu Berlin",
   labInfo: "The laboratory these models come from. The square takes a phone to",
   heading: "The body on the table",
+  askLanguage: "Choose your language",
+  askLevel: "Who is looking?",
+  startAgain: "Start again",
+  startAgainInfo: "Asks for the language and who is looking again, and forgets what was open.",
   motivation: {
     child: [
       "Four models of the human body you can move with your hands.",
@@ -143,21 +150,12 @@ const EN: HubCopy = {
       expert: "The female reference individual of the pkpdsim physiology, 60 kg at 163 cm, with its own organ volumes and blood flows.",
     },
   },
-  topic: {
-    label: "The table",
-    info: {
-      child: "Turn it, and it walks around the cards. Hold it still, and that table opens.",
-      adult: "Turn this object to walk around the four tables. Hold it still on one, and it opens.",
-      expert: "The first object of the surface, marker 0, is the table switch: its angle picks one of the four tables and holding it still opens that one.",
-    },
-  },
   pickTitle: "Four tables, one body",
   pickText: {
-    child: "Put the round object on the table and turn it. Every card is one thing you can try out.",
-    adult: "Put the first object on the glass and turn it to walk around the four tables, or press a card. Each one opens a model of the same body.",
-    expert: "Each card opens a model of pkpdsim, solved in this browser: the circulation, the liver, the lobes of the liver, a drug through the body, and a liver on a machine.",
+    child: "Press one of the four big circles. Every one of them is something you can try out.",
+    adult: "Press one of the four circles, or the organ it points at on the body. Each one opens a model of the same body, and the objects of the surface belong to the table it opens.",
+    expert: "Each card opens a model of pkpdsim, solved in this browser: the circulation, the operations of the liver, a drug through the body, and a liver on a machine.",
   },
-  holdToOpen: "Hold the object still to open it",
   loadingBodies: "Loading the bodies...",
   loadingTable: "Loading the table...",
   failed: "The table could not start",
@@ -237,6 +235,10 @@ const DE: HubCopy = {
   labPlace: "Universität zu Lübeck und Humboldt-Universität zu Berlin",
   labInfo: "Das Labor, aus dem diese Modelle kommen. Das Quadrat bringt ein Telefon zu",
   heading: "Der Körper auf dem Tisch",
+  askLanguage: "Sprache wählen",
+  askLevel: "Wer schaut?",
+  startAgain: "Von vorn",
+  startAgainInfo: "Fragt wieder nach Sprache und danach, wer schaut, und vergisst, was offen war.",
   motivation: {
     child: [
       "Vier Modelle des menschlichen Körpers, die du mit den Händen bewegen kannst.",
@@ -274,21 +276,12 @@ const DE: HubCopy = {
       expert: "Das weibliche Referenzindividuum der Physiologie von pkpdsim, 60 kg bei 163 cm, mit eigenen Organvolumina und Blutflüssen.",
     },
   },
-  topic: {
-    label: "Der Tisch",
-    info: {
-      child: "Dreh es, dann wandert es um die Karten. Halt es still, dann geht der Tisch auf.",
-      adult: "Drehen Sie dieses Objekt, um durch die vier Tische zu wandern. Halten Sie es still, dann öffnet sich der Tisch.",
-      expert: "Das erste Objekt der Oberfläche, Marker 0, ist der Tischwähler: sein Winkel wählt einen der vier Tische, Stillhalten öffnet ihn.",
-    },
-  },
   pickTitle: "Vier Tische, ein Körper",
   pickText: {
-    child: "Stell das runde Objekt auf den Tisch und dreh es. Jede Karte ist etwas zum Ausprobieren.",
-    adult: "Stellen Sie das erste Objekt auf das Glas und drehen Sie es, um durch die vier Tische zu wandern, oder berühren Sie eine Karte. Jede öffnet ein Modell desselben Körpers.",
-    expert: "Jede Karte öffnet ein Modell aus pkpdsim, gelöst in diesem Browser: der Kreislauf, die Leber, die Leberlappen, ein Medikament durch den Körper und eine Leber an der Maschine.",
+    child: "Drück einen der vier großen Kreise. Jeder ist etwas zum Ausprobieren.",
+    adult: "Berühren Sie einen der vier Kreise oder das Organ, auf das er zeigt. Jeder öffnet ein Modell desselben Körpers; die Objekte der Oberfläche gehören zum geöffneten Tisch.",
+    expert: "Jede Karte öffnet ein Modell aus pkpdsim, gelöst in diesem Browser: der Kreislauf, die Operationen der Leber, ein Medikament durch den Körper und eine Leber an der Maschine.",
   },
-  holdToOpen: "Objekt stillhalten, dann geht der Tisch auf",
   loadingBodies: "Die Körper werden geladen...",
   loadingTable: "Der Tisch wird geladen...",
   failed: "Der Tisch konnte nicht starten",
@@ -368,6 +361,10 @@ const ES: HubCopy = {
   labPlace: "Universidad de Lübeck y Humboldt-Universität zu Berlin",
   labInfo: "El laboratorio del que vienen estos modelos. El cuadrado lleva un teléfono a",
   heading: "El cuerpo sobre la mesa",
+  askLanguage: "Elige tu idioma",
+  askLevel: "¿Quién mira?",
+  startAgain: "Desde el principio",
+  startAgainInfo: "Vuelve a preguntar el idioma y quién mira, y olvida lo que estaba abierto.",
   motivation: {
     child: [
       "Cuatro modelos del cuerpo humano que puedes mover con las manos.",
@@ -405,21 +402,12 @@ const ES: HubCopy = {
       expert: "El individuo femenino de referencia de la fisiología de pkpdsim, 60 kg y 163 cm, con sus propios volúmenes de órganos y flujos sanguíneos.",
     },
   },
-  topic: {
-    label: "La mesa",
-    info: {
-      child: "Gíralo y recorre las tarjetas. Mantenlo quieto y esa mesa se abre.",
-      adult: "Gire este objeto para recorrer las cuatro mesas. Manténgalo quieto sobre una y se abre.",
-      expert: "El primer objeto de la superficie, el marcador 0, es el selector de mesa: su ángulo elige una de las cuatro y mantenerlo quieto la abre.",
-    },
-  },
   pickTitle: "Cuatro mesas, un cuerpo",
   pickText: {
-    child: "Pon el objeto redondo sobre la mesa y gíralo. Cada tarjeta es algo para probar.",
-    adult: "Ponga el primer objeto sobre el cristal y gírelo para recorrer las cuatro mesas, o toque una tarjeta. Cada una abre un modelo del mismo cuerpo.",
-    expert: "Cada tarjeta abre un modelo de pkpdsim, resuelto en este navegador: la circulación, el hígado, los lóbulos del hígado, un fármaco por el cuerpo y un hígado en una máquina.",
+    child: "Toca uno de los cuatro círculos grandes. Cada uno es algo para probar.",
+    adult: "Toque uno de los cuatro círculos, o el órgano al que apunta. Cada uno abre un modelo del mismo cuerpo, y los objetos de la superficie pertenecen a la mesa que abre.",
+    expert: "Cada tarjeta abre un modelo de pkpdsim, resuelto en este navegador: la circulación, las operaciones del hígado, un fármaco por el cuerpo y un hígado en una máquina.",
   },
-  holdToOpen: "Mantenga el objeto quieto para abrirla",
   loadingBodies: "Cargando los cuerpos...",
   loadingTable: "Cargando la mesa...",
   failed: "La mesa no pudo arrancar",

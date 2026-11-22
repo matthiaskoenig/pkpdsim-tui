@@ -6,6 +6,8 @@
  */
 
 import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
+import type {TableMark} from "./host.ts";
+import {ICONS} from "./icons.mjs";
 import type {Pictogram} from "./settings.ts";
 import {reportStatus} from "./settings.ts";
 import type {Voice} from "./voice.ts";
@@ -73,6 +75,12 @@ export interface ChromeUpdate {
 export interface ChromeOptions {
   /** The language and the level the panel says its own words in. */
   readonly voice: Voice;
+  /**
+   * The colour and the picture this table is known by, from the card which opened it. The
+   * panel wears them over its title, and everything of the panel which was in the accent
+   * colour takes the colour of the table, so that a table is recognised from across the room.
+   */
+  readonly mark?: TableMark | undefined;
   /** What a touch on a choice does, which only the application knows. */
   readonly onChoose?: (group: string, option: string) => void;
   /** What the way out does, which only the application knows. */
@@ -112,7 +120,16 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
   }).join("");
 }
 
-function panelHtml(state: ChromeUpdate, voice: Voice): string {
+/** The picture of the table over its title: a disc of its colour with its icon in white. */
+function markHtml(mark: TableMark | undefined): string {
+  if (mark === undefined) return "";
+  const paths = (ICONS[mark.picture] ?? []).join(" ");
+  return `<div class="edge-mark" aria-hidden="true">`
+    + `<svg class="edge-mark-art" viewBox="-26 -18 52 36">`
+    + `<path d="${escapeHtml(paths)}"></path></svg></div>`;
+}
+
+function panelHtml(state: ChromeUpdate, voice: Voice, mark?: TableMark): string {
   const copy = words(voice);
   // What an object does is the note behind its row: the legend stays a list of names and
   // values, and the sentence is there for the visitor who wants it.
@@ -140,7 +157,11 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
     + ` data-info="${escapeHtml(voice.say(copy.backInfo))}">${escapeHtml(copy.back)}</button>`;
   return `
     ${back}
-    <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<i class="info-dot" aria-hidden="true">i</i></h1>
+    ${markHtml(mark)}
+    <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<!--
+      The dot stays with the last word of the title: a title which wraps takes it along rather
+      than leaving it alone on a line of its own.
+    -->&#160;<i class="info-dot" aria-hidden="true">i</i></h1>
     <p class="reading">${escapeHtml(state.reading)}</p>
     <button class="reset" type="button" data-dwell="reset"
       data-info="${escapeHtml(voice.say(copy.resetInfo))}">
@@ -164,6 +185,8 @@ function panelHtml(state: ChromeUpdate, voice: Voice): string {
 export function createChrome(container: HTMLElement, options: ChromeOptions): Chrome {
   const panel = document.createElement("aside");
   panel.className = "edge edge--near";
+  // The colour of the table, which the mark, the reading and the switches of the panel read.
+  if (options.mark !== undefined) panel.style.setProperty("--table", options.mark.color);
   // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
   panel.addEventListener("click", event => {
     const target = event.target;
@@ -189,7 +212,7 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
     update(state: ChromeUpdate): void {
       // What drives the surface belongs to the settings of the table and not to its words.
       reportStatus(state.status);
-      const html = panelHtml(state, options.voice);
+      const html = panelHtml(state, options.voice, options.mark);
       if (html === previous) return;
       previous = html;
       panel.innerHTML = html;

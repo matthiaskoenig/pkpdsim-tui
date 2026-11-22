@@ -4,7 +4,14 @@
  * what lets the body, the circulation, the liver and the drug be one deployment and one port.
  */
 
+import type {GlyphKind} from "./glyph.ts";
 import type {Voice} from "./voice.ts";
+
+/** The colour and the picture a table is known by, from the card which opens it. */
+export interface TableMark {
+  readonly picture: GlyphKind;
+  readonly color: string;
+}
 
 export interface TableHost {
   /** The element a mouse or a finger is read from while no tracker is connected. */
@@ -23,6 +30,13 @@ export interface TableHost {
   readonly voice: Voice;
   /** What this table is called, in the language of the voice: the title of its panel. */
   readonly title: string;
+  /**
+   * The colour and the picture of this table, which are the ones its icon carries on the
+   * landing page. A visitor who walked to a table across the room sees the same red heart or
+   * green tablet they pressed a moment ago, so the table says which of the four it is without
+   * being read. The landing page itself has none.
+   */
+  readonly mark?: TableMark;
   /** Where the exported models and reference data of this table are. */
   readonly assets: URL;
   /** What the starting table says it is doing, which the boot screen shows. */

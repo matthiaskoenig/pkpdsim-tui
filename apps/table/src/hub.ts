@@ -3,9 +3,9 @@
  * around them, and a heading which says what the whole thing is for. It carries no panel: what
  * a table is stands in the box at the right, for the card a visitor is pointing at.
  *
- * A card is opened by holding a finger on it, by touching the organ it points at, with the
- * mouse, or with the first object of the surface: marker 0 is the table switch, its angle walks
- * around the ring, and holding it still on a table opens that one.
+ * A card is opened by holding a finger on it, by touching the organ it points at, or with the
+ * mouse. The landing page carries no object of its own: the objects of the surface belong to
+ * the tables, which number them from 1, and a visitor who has just walked up has their hands.
  */
 
 import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
@@ -13,21 +13,24 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, readStars,
-  reportStatus, svg, tokenPoints, watchStars, words,
+  attributes, chooseQuery, createInfo, ICONS, pointerPoints, readStars, reportStatus, svg,
+  watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
-import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
 import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
-import {
-  ABOUT, entryCopy, OVERVIEW, TABLES, tableAtDial, TOPIC_MARKER, topicRole,
-} from "./tables.ts";
+import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
 import {HUB_TEXT} from "./text.ts";
 import {wrapText} from "./wrap.ts";
 
-/** How many lines of motivation stand under the heading, which the layout keeps room for. */
-const MOTIVATION_LINES = 2;
+/**
+ * How many lines of motivation stand under the heading, which the layout keeps room for. The
+ * copy of a level is written as lines, but a long one of them is wrapped to the room there is:
+ * the sentence of an expert is twice the sentence of a child.
+ */
+const MOTIVATION_LINES = 3;
+/** How wide a character of that line is, which is what wraps it: 21px of the sans of the page. */
+const MOTIVATION_WIDTH = 10.2;
 /** The icon of a table, in pixels: a big disc of the colour of that table, and its name. */
 const ICON = {radius: 58, margin: 28, label: 34, line: 26, ring: 6} as const;
 /** The room the stars of a table take under its name, in pixels. */
@@ -44,8 +47,6 @@ const STRUT = 30;
 const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const;
 /** The room the laboratory block takes in the bottom corner, which the sidebar stops above. */
 const LAB_HEIGHT = 96;
-/** How long the object of the table switch is held still before that table opens, in ms. */
-const HOLD = 1500;
 /**
  * Where the icons sit on the ring around the disc, in degrees, clockwise from the top. The
  * bodies in the middle and the tables around them say what the collection is: four ways of
@@ -101,14 +102,19 @@ interface OrganMark {
 
 /** The room the bodies and the ring of icons share: everything under the heading, left of the
  * sidebar which says what a table is. */
-function stageOf(viewport: Viewport): CardBox {
-  const top = HEAD.top + HEAD.line * MOTIVATION_LINES + HEAD.bottom;
-  // The sidebar says what the table under the object is, and the ring keeps clear of it.
+/** How wide the room over and around the ring is: the page without the sidebar at the right. */
+function stageWidth(viewport: Viewport): number {
+  // The sidebar says what the table under the hand is, and the ring keeps clear of it.
   const column = viewport.width > 1180 ? INFO.width + 2 * INFO.margin : ICON.margin;
+  return Math.max(420, viewport.width - column - ICON.margin);
+}
+
+function stageOf(viewport: Viewport, lines: number): CardBox {
+  const top = HEAD.top + HEAD.line * lines + HEAD.bottom;
   return {
     x: ICON.margin,
     y: top,
-    width: Math.max(420, viewport.width - column - ICON.margin),
+    width: stageWidth(viewport),
     height: Math.max(360, viewport.height - ICON.margin - top),
   };
 }
@@ -257,7 +263,6 @@ function placeIcon(
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
   const voice = host.voice;
   const copy = voice.pick(HUB_TEXT);
-  const kit = words(voice);
   host.progress(copy.loadingBodies);
   // The figures are the ones the circulation is drawn on: the bodies of the pkpdsim physiology,
   // and they come with that export.
@@ -272,11 +277,11 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     "data-info": voice.say(copy.headingInfo),
   }, head);
   heading.textContent = copy.heading;
-  const motivation = copy.motivation[voice.level].map(text => {
-    const line = svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head);
-    line.textContent = text;
-    return line;
-  });
+  // The lines are drawn empty and filled at every layout: how many of them a sentence takes
+  // depends on how wide the room over the ring is.
+  const motivation = Array.from({length: MOTIVATION_LINES}, () =>
+    svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head));
+  const said = copy.motivation[voice.level].join(" ");
   const figures = svg("g", {class: "hub-bodies"}, scene);
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
@@ -334,9 +339,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     chooseQuery("app", entry.id, OVERVIEW);
   };
 
-  const roles = [topicRole(voice)];
+  // The fingers of the surface, and nothing else: the landing page has no object to read.
   const {input, tracker} = await openTableInput({
-    parameters: host.parameters, element: host.surface, markers: [TOPIC_MARKER],
+    parameters: host.parameters, element: host.surface, markers: [],
   });
   // What a visitor is invited to do, which depends on what the page is driven by.
   const call = !tracker.tracker
@@ -402,19 +407,12 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
   // The hold which opens a card, and the note behind the heading and the laboratory: one layer.
-  createInfo(host.surface, () => [
-    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
-  ], voice);
-  // The object which picks a table draws its ring and its card like the objects of a table do.
-  const tokenLayer = createTokenLayer(root, host);
+  createInfo(host.surface, () => pointerPoints(snapshot, viewport), voice);
 
-  /** The table a hand is pointing at, which is read before the one the object points at. */
+  /** The table a hand is pointing at, which is what the sidebar is about. */
   let pointed: TableEntry | undefined;
-  /** The table the object points at, and since when it has been pointing at the same one. */
-  let turned: TableEntry | undefined;
-  let turnedAt = 0;
-  /** The object has to be turned once before it opens anything: it opens what a visitor chose. */
-  let moved = false;
+  /** How many lines the sidebar is saying, which is what the key below it stands under. */
+  let boxLineCount = 3;
 
   /** The sidebar stands from under the settings to over the laboratory, whatever it says. */
   const placeBox = (): void => {
@@ -431,8 +429,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const [index, line] of boxLines.entries()) {
       attributes(line, {x: inside, y: INFO.top + 190 + index * 27});
     }
-    // The key stands under what the sidebar says, which is three lines while nothing is chosen.
-    const under = INFO.top + 190 + 3 * 27 + 26;
+    // The key stands under what the sidebar says, however many lines that is.
+    const under = INFO.top + 190 + boxLineCount * 27 + 26;
     for (const [index, key] of keys.entries()) {
       attributes(key.dot, {cx: inside + 11, cy: under + index * 44});
       attributes(key.name, {x: inside + 36, y: under + index * 44 + 7});
@@ -458,25 +456,29 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     boxDisc.setAttribute("fill", colour);
     boxDisc.setAttribute("opacity", entry === undefined ? "0" : "1");
     const lines = wrapText(text, INFO.columns, INFO.lines);
+    boxLineCount = lines.length;
     for (const [index, line] of boxLines.entries()) line.textContent = lines[index] ?? "";
     legend.setAttribute("opacity", entry === undefined ? "1" : "0");
-    boxCall.textContent = entry === undefined
-      ? "" : turned?.id === entry.id ? copy.holdToOpen : call;
+    boxCall.textContent = entry === undefined ? "" : call;
     for (const icon of icons) {
       icon.group.setAttribute("data-selected", String(icon.entry.id === entry?.id));
     }
     placeBox();
   };
 
-  /** A hand on a card or on an organ, which is read before the object. */
+  /** A hand on a card or on an organ, which is what the sidebar follows. */
   const point = (entry: TableEntry | undefined): void => {
     pointed = entry;
-    showBox(pointed ?? turned);
+    showBox(pointed);
   };
   showBox(undefined);
 
   const draw = (): void => {
-    const stage = stageOf(viewport);
+    // What stands under the heading, wrapped to the room there is, and how much room the ring
+    // is left with after it.
+    const motivationLines = wrapText(
+      said, Math.max(28, Math.floor(stageWidth(viewport) / MOTIVATION_WIDTH)), MOTIVATION_LINES);
+    const stage = stageOf(viewport, motivationLines.length);
     const spots = iconSpots(stage, TABLES.length);
     for (const [index, icon] of icons.entries()) {
       const spot = spots[index];
@@ -527,6 +529,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const middle = stage.x + stage.width / 2;
     attributes(heading, {x: middle, y: HEAD.top});
     for (const [index, line] of motivation.entries()) {
+      line.textContent = motivationLines[index] ?? "";
       attributes(line, {x: middle, y: HEAD.top + 44 + index * HEAD.line});
     }
     // The sidebar at the right, under the settings along the top.
@@ -551,60 +554,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       ...status,
       detail: status.detail === "" ? hintFor(voice, tracker, status.state) : status.detail,
     });
-    // The object which picks a table: its angle is which of the five it is pointing at.
-    const values = valuesFromTokens(roles, snapshot.tokens);
-    const value = values.get("topic");
-    const next = value === undefined ? undefined : tableAtDial(value);
-    if (next?.id !== turned?.id) {
-      // The first reading of an object which was just put down is where it happens to lie, so
-      // it chooses nothing until it has been turned.
-      if (turned !== undefined && next !== undefined) moved = true;
-      turned = next;
-      turnedAt = performance.now();
-      if (next === undefined) moved = false;
-      showBox(pointed ?? turned);
-    }
-    tokenLayer.update({
-      snapshot, roles, viewport,
-      card: (token, role) => {
-        if (role === undefined) {
-          return {kind: "unassigned", title: kit.markerTitle(token.marker), value: kit.noRole,
-            note: voice.say(kit.noRoleNote)};
-        }
-        const entry = tableAtDial(
-          valuesFromTokens(roles, new Map([[token.sessionId, token]])).get("topic") ?? 0);
-        return {
-          kind: "dial", title: role.label,
-          value: entryCopy(voice, entry.id).title,
-          note: moved ? copy.holdToOpen : "",
-          info: role.description,
-          glyph: {kind: entry.picture as GlyphKind, level: 1},
-        };
-      },
-    });
   };
-
-  /**
-   * The object opens the table it has been held still on. A hand presses a card by resting on
-   * it, and an object does the same by standing still: the card fills while it is held, so that
-   * waiting is visibly doing something.
-   */
-  const holding = (now: number): void => {
-    window.requestAnimationFrame(holding);
-    const entry = turned;
-    const icon = icons.find(one => one.entry.id === entry?.id);
-    for (const one of icons) {
-      if (one !== icon) one.arm.setAttribute("stroke-dashoffset", String(ARM_LENGTH));
-    }
-    if (entry === undefined || icon === undefined || !moved) return;
-    const held = Math.min(1, (now - turnedAt) / HOLD);
-    icon.arm.setAttribute("stroke-dashoffset", (ARM_LENGTH * (1 - held)).toFixed(1));
-    if (held >= 1) {
-      icon.arm.setAttribute("stroke-dashoffset", String(ARM_LENGTH));
-      open(entry);
-    }
-  };
-  window.requestAnimationFrame(holding);
 
   const resize = (): void => {
     viewport = {width: window.innerWidth, height: window.innerHeight};

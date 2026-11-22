@@ -9,7 +9,7 @@ export {
 export {createGlyph} from "./glyph.ts";
 export {ICONS} from "./icons.mjs";
 export type {Glyph, GlyphKind, TokenGlyph} from "./glyph.ts";
-export type {TableApp, TableHost} from "./host.ts";
+export type {TableApp, TableHost, TableMark} from "./host.ts";
 export {createMirror, MIRROR_SOURCE} from "./mirror.ts";
 export type {Mirror, MirroredObject, MirrorState} from "./mirror.ts";
 export {createInfo, pointerPoints, tokenPoints} from "./info.ts";
