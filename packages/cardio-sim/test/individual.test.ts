@@ -1,7 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {
   AGE_RANGE, bodyParameters, cardiacOutput, clampAge, clampWeight, flowScale, individualOf,
-  referenceBody, renalFactor, weightRange,
+  referenceBody, renalFactor, WEIGHT_RANGE,
 } from "../src/individual.ts";
 
 describe("the reference body of an age", () => {
@@ -39,19 +39,25 @@ describe("the weight of a body", () => {
     expect(individualOf(5, "male").weight).toBe(19);
   });
 
-  it("stays inside what the physiology of that age is written for", () => {
-    const range = weightRange(35, "female");
-    expect(range.min).toBeCloseTo(39, 6);
+  it("spans the bodies these tables are asked about, whatever the age is", () => {
+    // The three numbers of a person are chosen one by one: the range of the weight is the
+    // range of human bodies and not the range of an age, so moving the age moves nothing.
+    expect(WEIGHT_RANGE.min).toBe(3);
     // A grown up reaches strong obesity, which is a body these models are asked about.
-    expect(range.max).toBeCloseTo(150, 6);
-    expect(clampWeight(200, 35, "female")).toBe(range.max);
-    expect(clampWeight(1, 35, "female")).toBe(range.min);
-    // A child carries the share of that their age can: the top of the dial grows with them.
-    expect(weightRange(6, "female").max).toBeCloseTo(
-      Math.round(referenceBody(6, "female").weight * 1.6 * 10) / 10, 6);
-    expect(weightRange(15, "female").max).toBeGreaterThan(
-      referenceBody(15, "female").weight * 1.6);
-    expect(weightRange(15, "female").max).toBeLessThan(150);
+    expect(WEIGHT_RANGE.max).toBe(150);
+    expect(clampWeight(200)).toBe(WEIGHT_RANGE.max);
+    expect(clampWeight(1)).toBe(WEIGHT_RANGE.min);
+    expect(clampWeight(82.34)).toBe(82.3);
+    // A weight which is no number at all falls back to the one it is given.
+    expect(clampWeight(Number.NaN, 19)).toBe(19);
+  });
+
+  it("keeps the weight a visitor set, whatever the age of the body is", () => {
+    // A body of four years which weighs eighty kilograms is not a body the physiology was
+    // written for, but it is the body the visitor asked for, and the tables solve what they
+    // are given rather than quietly moving a dial back.
+    expect(individualOf(4, "female", 80).weight).toBe(80);
+    expect(individualOf(80, "male", 12).weight).toBe(12);
   });
 
   it("is the body and the height of every human model", () => {

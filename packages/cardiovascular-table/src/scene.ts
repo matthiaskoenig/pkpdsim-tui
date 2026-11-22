@@ -49,7 +49,9 @@ const NAME = {left: -31, right: 31} as const;
 /** The share of the room under the band of numbers the body takes. */
 const BODY_SHARE = 0.96;
 /** What the figure keeps clear of: the panel, the plots, and the band of numbers above it. */
-const EDGES = {panel: 404, plots: 468, band: 118, foot: 16} as const;
+// The foot keeps the row of the corner free: the gear, who the tables are solved for, and the
+// square of the laboratory stand there, and the feet of the figure are not drawn into them.
+const EDGES = {panel: 404, plots: 468, band: 118, foot: 72} as const;
 /** The ventricle on the anatomy, which empties and fills with the solved beat. */
 const VENTRICLE_RADIUS = 3.1;
 

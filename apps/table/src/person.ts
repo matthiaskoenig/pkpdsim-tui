@@ -16,7 +16,7 @@
 
 import {
   AGE_RANGE, clampAge, clampHeight, clampWeight, figureScale, HEIGHT_RANGE, individualOf,
-  loadAnatomy, referenceBody, weightRange,
+  loadAnatomy, referenceBody, WEIGHT_RANGE,
 } from "@pkpdsim-tui/cardio-sim";
 import type {Individual, Sex} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
@@ -110,20 +110,22 @@ export function askPerson(
 
   let age = clampAge(start.age);
   let sex: Sex = start.sex;
-  let weight = clampWeight(start.weight, age, sex);
+  let weight = clampWeight(start.weight);
   let height = clampHeight(start.height);
 
   const ageDial: DialOptions = {
     id: "age", label: text.age, unit: text.years, info: text.ageInfo,
     min: AGE_RANGE.min, max: AGE_RANGE.max, step: 1,
   };
-  const weightDial = (): DialOptions => {
-    const range = weightRange(age, sex);
-    return {
-      id: "weight", label: text.weight, unit: "kg", info: text.weightInfo,
-      min: range.min, max: range.max, step: 0.5, reference: referenceBody(age, sex).weight,
-    };
-  };
+  // What this body weighs. The dial spans what a body on these tables can weigh, from a small
+  // child to a strongly obese adult, and it does not move when the age does: the three numbers
+  // of a person are chosen one by one. The mark on it is the reference weight of the chosen
+  // age, so a visitor sees what is typical for it without anything moving by itself.
+  const weightDial = (): DialOptions => ({
+    id: "weight", label: text.weight, unit: "kg", info: text.weightInfo,
+    min: WEIGHT_RANGE.min, max: WEIGHT_RANGE.max, step: 0.5,
+    reference: referenceBody(age, sex).weight,
+  });
   // How tall this body is. It opens at the reference of the age and is then the visitor's to
   // set, because a body of a given age is not one height, and every model of the collection
   // scales its organs from the height as well as from the weight.
@@ -188,7 +190,10 @@ export function askPerson(
       } else {
         mark.hidden = false;
         mark.style.left = `${(((options.reference - options.min) / span) * 100).toFixed(2)}%`;
-        mark.title = `${options.reference.toFixed(1)} kg ${text.reference}`;
+        const shown = options.step < 1
+          ? options.reference.toFixed(1)
+          : String(Math.round(options.reference));
+        mark.title = `${shown} ${options.unit} ${text.reference}`;
       }
     }
     const low = dial.querySelector(".dial-min");
@@ -269,14 +274,11 @@ export function askPerson(
   const setFrom = (track: Element, x: number): void => {
     const id = (track as HTMLElement).dataset["dialTrack"];
     if (id === "age") {
+      // The age is the physiology the body is interpolated from, and nothing else: what the
+      // visitor has put on the weight and the height dials stays where they put it.
       age = clampAge(valueAt(ageDial, track, x));
-      // The body belongs to the age: a body of four years does not keep the sixty kilograms
-      // and the hundred and sixty centimetres of the adult it was a moment ago, so both dials
-      // follow to the reference of the new age.
-      weight = referenceBody(age, sex).weight;
-      height = referenceBody(age, sex).height;
     } else if (id === "weight") {
-      weight = clampWeight(valueAt(weightDial(), track, x), age, sex);
+      weight = clampWeight(valueAt(weightDial(), track, x));
     } else if (id === "height") {
       height = clampHeight(valueAt(heightDial(), track, x));
     } else {
@@ -307,7 +309,6 @@ export function askPerson(
       sex = choice;
       // What was set stays set: a visitor who has put their own weight and their own height on
       // the dials and then looks at the other body wants the same body, not the reference one.
-      weight = clampWeight(weight, age, sex);
       draw();
     };
 

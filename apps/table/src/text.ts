@@ -164,8 +164,8 @@ const EN: HubCopy = {
     ask: "Whose body should it be?",
     note: {
       child: "Say how old you are and whether the body is a girl or a boy. Then everything you see is a body like yours.",
-      adult: "Everything you see is solved for this body. The age gives its size, the weight and the height move it from there, and every model of the collection is run again for it.",
-      expert: "The age and the sex give the reference body of ICRP 89, the weight and the height move it from there, and BW and HEIGHT go into every model of the collection. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
+      adult: "Everything you see is solved for this body. Age, weight and height are set one by one, each on its own dial, and every model of the collection is run again for the three of them.",
+      expert: "The age and the sex say which reference body of ICRP 89 the physiology is interpolated from; the weight and the height are set independently of it and go into every model as BW and HEIGHT. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
     },
     age: "Age",
     years: "years",
@@ -177,9 +177,9 @@ const EN: HubCopy = {
     changeInfo: "Changes the age, the body, the weight and the height everything is solved for.",
     reference: "reference",
     solvedFor: "Every table of the collection is solved for this body.",
-    ageInfo: "Three to a hundred years. The body of a child is the reference child of ICRP 89 of that age.",
-    weightInfo: "What this body weighs. It starts at the reference of that age and that body, and the organs and their blood flows follow it.",
-    heightInfo: "How tall this body is. It starts at the reference of that age and moves from there, and the organs are scaled with it.",
+    ageInfo: "Three to a hundred years, which says which physiology the body is built from. It leaves the weight and the height where they are.",
+    weightInfo: "What this body weighs, from a small child to a strongly obese adult. The mark on the line is what is typical for the age that is set; the dial itself stays where it is put.",
+    heightInfo: "How tall this body is, and the organs are scaled with it. The mark on the line is what is typical for the age that is set; the dial itself stays where it is put.",
   },
   motivation: {
     child: [
@@ -321,8 +321,8 @@ const DE: HubCopy = {
     ask: "Welcher Körper soll es sein?",
     note: {
       child: "Sag, wie alt du bist und ob der Körper ein Mädchen oder ein Junge ist. Dann ist alles, was du siehst, ein Körper wie deiner.",
-      adult: "Alles, was Sie sehen, wird für diesen Körper gerechnet. Das Alter gibt den Ausgangspunkt, Gewicht und Größe verschieben ihn, und jedes Modell der Sammlung läuft damit neu.",
-      expert: "Alter und Geschlecht geben den Referenzkörper der ICRP 89, Gewicht und Größe verschieben ihn von dort aus, und BW und HEIGHT gehen in jedes Modell der Sammlung. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
+      adult: "Alles, was Sie sehen, wird für diesen Körper gerechnet. Alter, Gewicht und Größe stellen Sie einzeln ein, jedes auf seinem eigenen Regler, und jedes Modell der Sammlung läuft mit allen dreien neu.",
+      expert: "Alter und Geschlecht sagen, aus welchem Referenzkörper der ICRP 89 die Physiologie interpoliert wird; Gewicht und Größe werden unabhängig davon eingestellt und gehen als BW und HEIGHT in jedes Modell. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
     },
     age: "Alter",
     years: "Jahre",
@@ -334,9 +334,9 @@ const DE: HubCopy = {
     changeInfo: "Ändert Alter, Körper, Gewicht und Größe, für die alles gerechnet wird.",
     reference: "Referenz",
     solvedFor: "Für diesen Körper wird alles in der Sammlung gerechnet.",
-    ageInfo: "Drei bis hundert Jahre. Der Körper eines Kindes ist das Referenzkind der ICRP 89 dieses Alters.",
-    weightInfo: "Was dieser Körper wiegt. Er beginnt bei der Referenz dieses Alters und dieses Körpers, und die Organe und ihre Durchblutung folgen ihm.",
-    heightInfo: "Wie groß dieser Körper ist. Er beginnt bei der Referenz dieses Alters, lässt sich von dort verschieben, und die Organe werden damit skaliert.",
+    ageInfo: "Drei bis hundert Jahre, was sagt, aus welcher Physiologie der Körper gebaut wird. Gewicht und Größe bleiben dabei, wo sie sind.",
+    weightInfo: "Was dieser Körper wiegt, vom kleinen Kind bis zum stark übergewichtigen Erwachsenen. Die Marke auf der Linie ist der typische Wert für das eingestellte Alter; der Regler selbst bleibt, wo er steht.",
+    heightInfo: "Wie groß dieser Körper ist, und die Organe werden damit skaliert. Die Marke auf der Linie ist der typische Wert für das eingestellte Alter; der Regler selbst bleibt, wo er steht.",
   },
   motivation: {
     child: [
@@ -478,8 +478,8 @@ const ES: HubCopy = {
     ask: "¿Qué cuerpo quieres?",
     note: {
       child: "Di cuántos años tienes y si el cuerpo es de una niña o de un niño. Entonces todo lo que ves es un cuerpo como el tuyo.",
-      adult: "Todo lo que ves se resuelve para este cuerpo. La edad da el punto de partida, el peso y la altura lo mueven, y cada modelo de la colección vuelve a correr con él.",
-      expert: "La edad y el sexo dan el cuerpo de referencia de la ICRP 89, el peso y la altura lo mueven desde ahí, y BW y HEIGHT entran en cada modelo de la colección. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
+      adult: "Todo lo que ves se resuelve para este cuerpo. La edad, el peso y la altura se ajustan uno a uno, cada uno en su propia barra, y cada modelo de la colección vuelve a correr con los tres.",
+      expert: "La edad y el sexo dicen de qué cuerpo de referencia de la ICRP 89 se interpola la fisiología; el peso y la altura se ajustan con independencia de ella y entran en cada modelo como BW y HEIGHT. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
     },
     age: "Edad",
     years: "años",
@@ -491,9 +491,9 @@ const ES: HubCopy = {
     changeInfo: "Cambia la edad, el cuerpo, el peso y la altura con los que se resuelve todo.",
     reference: "referencia",
     solvedFor: "Cada mesa de la colección se resuelve para este cuerpo.",
-    ageInfo: "De tres a cien años. El cuerpo de un niño es el niño de referencia de la ICRP 89 de esa edad.",
-    weightInfo: "Lo que pesa este cuerpo. Empieza en la referencia de esa edad y ese cuerpo, y los órganos y su flujo de sangre lo siguen.",
-    heightInfo: "Lo que mide este cuerpo. Empieza en la referencia de esa edad, se mueve desde ahí, y los órganos se escalan con ella.",
+    ageInfo: "De tres a cien años, que dice de qué fisiología se construye el cuerpo. Deja el peso y la altura donde están.",
+    weightInfo: "Lo que pesa este cuerpo, desde un niño pequeño hasta un adulto con obesidad grave. La marca de la barra es lo típico para la edad ajustada; la barra misma se queda donde se la pone.",
+    heightInfo: "Lo que mide este cuerpo, y los órganos se escalan con ello. La marca de la barra es lo típico para la edad ajustada; la barra misma se queda donde se la pone.",
   },
   motivation: {
     child: [

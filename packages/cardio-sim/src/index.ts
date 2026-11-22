@@ -15,6 +15,6 @@ export type {HeartConfig, HeartControls} from "./heart.ts";
 export {loadHeartConfig, parseHeartConfig} from "./config.ts";
 export {
   AGE_RANGE, bodyParameters, cardiacOutput, clampAge, clampHeight, clampWeight, figureScale,
-  flowScale, HEIGHT_RANGE, individualOf, referenceBody, renalFactor, SEXES, weightRange,
+  flowScale, HEIGHT_RANGE, individualOf, referenceBody, renalFactor, SEXES, WEIGHT_RANGE,
 } from "./individual.ts";
 export type {Individual, ReferenceBody, Sex} from "./individual.ts";
