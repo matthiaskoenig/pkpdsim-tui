@@ -13,6 +13,7 @@ import {
   GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSE_STEPS, GLIMEPIRIDE_DOSES, NORMAL_CRCL, startingDose,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideControl} from "@pkpdsim-tui/glimepiride-sim";
+import {namedRole} from "@pkpdsim-tui/tui-kit";
 import type {TableIndividual, Voice} from "@pkpdsim-tui/tui-kit";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
@@ -26,16 +27,10 @@ function dial(
   id: "dose" | "absorption" | "cyp2c9" | "cirrhosis" | "renal",
   voice: Voice, steps?: readonly number[],
 ): TokenRole {
-  const copy = voice.pick(GLIMEPIRIDE_TEXT);
-  const more = copy.roles[id].more;
-  return {
-    id: control.id, label: voice.say(copy.roles[id].label), unit: control.unit, markers: [marker],
-    description: voice.say(copy.roles[id].info),
-    min: control.min, max: control.max, reference: control.value,
-    mode: "absolute", scale: "linear", turns: 1,
-    ...(more === undefined ? {} : {background: voice.say(more)}),
-    ...(steps === undefined ? {} : {steps}),
-  };
+  return namedRole(voice.pick(GLIMEPIRIDE_TEXT).roles[id], voice, {
+    id: control.id, unit: control.unit,
+    min: control.min, max: control.max, reference: control.value, markers: [marker],
+  }, steps === undefined ? {} : {steps});
 }
 
 /**
@@ -70,14 +65,10 @@ export function individualRoles(
  * the orientation of the object is how long the person is on the drug.
  */
 export function doseCountRole(voice: Voice): TokenRole {
-  const copy = voice.pick(GLIMEPIRIDE_TEXT).roles.doses;
-  return {
-    id: "doses", label: voice.say(copy.label), unit: "", markers: [DOSE_COUNT_MARKER],
-    description: voice.say(copy.info),
+  return namedRole(voice.pick(GLIMEPIRIDE_TEXT).roles.doses, voice, {
+    id: "doses", unit: "", markers: [DOSE_COUNT_MARKER],
     min: GLIMEPIRIDE_DOSES.min, max: GLIMEPIRIDE_DOSES.max, reference: GLIMEPIRIDE_DOSES.value,
-    mode: "absolute", scale: "linear", turns: 1,
-    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
-  };
+  });
 }
 
 /** The objects of the table, in the order of their markers, which is how the panel lists them. */

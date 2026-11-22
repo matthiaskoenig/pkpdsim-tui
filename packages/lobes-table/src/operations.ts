@@ -10,6 +10,7 @@
 
 import type {Lobe, LobeCase, LobeSpecies, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {intactStates} from "@pkpdsim-tui/lobes-sim";
+import {namedRole} from "@pkpdsim-tui/tui-kit";
 import type {Voice} from "@pkpdsim-tui/tui-kit";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
 import {LOBE_TEXT} from "./text.ts";
@@ -76,13 +77,10 @@ export function operationName(voice: Voice, operation: Operation): string {
  * getting bigger.
  */
 export function resectionRole(voice: Voice, count: number): TokenRole {
-  const copy = voice.pick(LOBE_TEXT).roles.resection;
-  return {
-    id: "resection", label: voice.say(copy.label), description: voice.say(copy.info), unit: "",
-    markers: [RESECTION_MARKER], min: 0, max: Math.max(1, count - 1), reference: 0,
-    mode: "absolute", scale: "linear", turns: 1,
-    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
-  };
+  return namedRole(voice.pick(LOBE_TEXT).roles.resection, voice, {
+    id: "resection", unit: "", markers: [RESECTION_MARKER],
+    min: 0, max: Math.max(1, count - 1), reference: 0,
+  });
 }
 
 /** The operation the dial is pointing at. */
@@ -101,14 +99,10 @@ export function operationAtDial(
  * liver of a healthy individual, which is the course the species is known for.
  */
 export function growthRole(voice: Voice): TokenRole {
-  const copy = voice.pick(LOBE_TEXT).roles.growth;
-  return {
-    id: "growth", label: voice.say(copy.label), unit: "x", markers: [GROWTH_MARKER],
-    description: voice.say(copy.info),
+  return namedRole(voice.pick(LOBE_TEXT).roles.growth, voice, {
+    id: "growth", unit: "x", markers: [GROWTH_MARKER],
     min: 1 / GROWTH_SPAN, max: GROWTH_SPAN, reference: 1,
-    mode: "absolute", scale: "log", turns: 1,
-    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
-  };
+  }, {scale: "log"});
 }
 
 export function lobeRoles(voice: Voice, count: number): readonly TokenRole[] {

@@ -57,6 +57,10 @@ export function roleForMarker(roles: readonly TokenRole[], marker: number): Toke
   return roles.find(role => role.markers.includes(marker));
 }
 
+/**
+ * Its own, because the one of `tui-kit` is in the package above this one: the input layer is
+ * what a table is built on and depends on nothing of the table.
+ */
 function clamp(value: number, low: number, high: number): number {
   return Math.min(high, Math.max(low, value));
 }
