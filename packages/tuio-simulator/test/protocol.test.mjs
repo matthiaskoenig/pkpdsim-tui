@@ -3,8 +3,8 @@
 import {describe, expect, it} from "vitest";
 
 import {
-  DEFAULT_PORT, DEFAULT_SETTINGS, describeTracker, normalizeSettings, sameTracker, TRANSPORTS,
-  TUIO_VERSIONS,
+  DEFAULT_PORT, DEFAULT_SETTINGS, describeTracker, loopback, normalizeSettings, originAllowed,
+  sameTracker, TRANSPORTS, TUIO_VERSIONS,
 } from "../src/protocol.mjs";
 
 describe("the settings of the tracker", () => {
@@ -49,5 +49,42 @@ describe("the settings of the tracker", () => {
     expect(describeTracker(normalizeSettings({}))).toBe("TUIO 2.0 on ws://localhost:3333");
     expect(describeTracker(normalizeSettings({version: "1.1", transport: "udp", port: 3333})))
       .toBe("TUIO 1.1 on udp://localhost:3333");
+  });
+});
+
+describe("originAllowed", () => {
+  it("lets a page of this machine drive the simulator", () => {
+    expect(originAllowed("http://localhost:3344", [])).toBe(true);
+    expect(originAllowed("http://127.0.0.1:5173", [])).toBe(true);
+    expect(originAllowed("http://[::1]:5173", [])).toBe(true);
+  });
+
+  it("turns a page of the internet away, which cannot be allowed to move the objects", () => {
+    expect(originAllowed("https://evil.example", [])).toBe(false);
+    expect(originAllowed("http://192.168.1.14:5173", [])).toBe(false);
+    // A name which only begins like the loopback address is somewhere else.
+    expect(originAllowed("http://127.0.0.1.evil.example", [])).toBe(false);
+    expect(originAllowed("not an origin", [])).toBe(false);
+  });
+
+  it("lets a page in which was named on the command line", () => {
+    expect(originAllowed("https://table.local", ["https://table.local"])).toBe(true);
+    expect(originAllowed("https://table.local", ["https://other.local"])).toBe(false);
+    expect(originAllowed("https://anything.example", ["*"])).toBe(true);
+  });
+
+  it("lets a client which is no browser through, because it sends no origin", () => {
+    expect(originAllowed(undefined, [])).toBe(true);
+    expect(originAllowed("", [])).toBe(true);
+  });
+});
+
+describe("loopback", () => {
+  it("knows this machine from every other", () => {
+    expect(loopback("localhost")).toBe(true);
+    expect(loopback("127.0.0.1")).toBe(true);
+    expect(loopback("::1")).toBe(true);
+    expect(loopback("0.0.0.0")).toBe(false);
+    expect(loopback("192.168.1.14")).toBe(false);
   });
 });

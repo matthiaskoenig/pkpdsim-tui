@@ -58,6 +58,31 @@ export function normalizeSettings(raw, fallback = DEFAULT_SETTINGS) {
   };
 }
 
+/**
+ * Which pages may drive the simulator. A browser tells a socket the origin of the page it was
+ * opened from, so the control page itself, and an application which carries it through a proxy
+ * of its own, are let in and a page of the internet is not: without this any site open in the
+ * same browser could put objects on the table and point the tracker of the machine wherever it
+ * liked. A client which sends no origin is not a browser, so a script on the machine still
+ * works.
+ */
+export function loopback(hostname) {
+  // The address of this machine and nothing which only reads like it: `127.0.0.1.example.com`
+  // is a name somebody else owns, and a URL spells the loopback address of IPv6 in brackets.
+  return hostname === "localhost" || hostname === "::1" || hostname === "[::1]"
+    || /^127(\.\d{1,3}){3}$/u.test(hostname);
+}
+
+export function originAllowed(origin, allowed) {
+  if (origin === undefined || origin === "") return true;
+  if (allowed.includes("*") || allowed.includes(origin)) return true;
+  try {
+    return loopback(new URL(origin).hostname);
+  } catch {
+    return false;
+  }
+}
+
 /** Whether two settings describe the same tracker, which is what makes a change worth a restart. */
 export function sameTracker(left, right) {
   return left.transport === right.transport && left.port === right.port && left.host === right.host;

@@ -869,8 +869,18 @@ function wantedApp() {
   const wanted = new URL(window.location.href).searchParams.get("table");
   if (wanted === null || wanted.trim() === "") return "";
   const value = wanted.trim();
-  if (value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://")) {
-    return value;
+  // A table of this server, by its id or by its path. An address of somewhere else is not taken
+  // from the address bar, because a link somebody was sent would then open a page of its
+  // choosing inside this one; the field above the surface still takes any address, which is a
+  // table somebody typed in rather than one that was handed to them.
+  if (value.startsWith("/")) return value;
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      const url = new URL(value);
+      return url.origin === window.location.origin ? `${url.pathname}${url.search}` : "";
+    } catch {
+      return "";
+    }
   }
   return value === "overview" ? "/" : `/?app=${encodeURIComponent(value)}`;
 }

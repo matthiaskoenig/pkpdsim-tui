@@ -22,8 +22,8 @@ import {WebSocket, WebSocketServer} from "ws";
 
 import {DEFAULT_SOURCE, oscTimetag, packFrame} from "./frame.mjs";
 import {
-  DEFAULT_PAGE_PORT, DEFAULT_SETTINGS, describeTracker, normalizeSettings, sameTracker,
-  TRANSPORTS, TUIO_VERSIONS,
+  DEFAULT_PAGE_PORT, DEFAULT_SETTINGS, describeTracker, loopback, normalizeSettings,
+  originAllowed, sameTracker, TRANSPORTS, TUIO_VERSIONS,
 } from "./protocol.mjs";
 import {createSessionIds} from "./sessions.mjs";
 import {emptySurface, frameOf, normalizeSurface} from "./surface.mjs";
@@ -66,6 +66,7 @@ const USAGE = `The TUIO simulator of pkpdsim-tui.
   --transport <kind>  ${TRANSPORTS.join(" or ")} (default ${DEFAULT_SETTINGS.transport})
   --page-port <port>  the HTTP port of the control page (default ${DEFAULT_PAGE_PORT})
   --rate <hz>         frames per second (default ${DEFAULT_RATE})
+  --allow-origin <o>  one more page which may drive the simulator, repeatable ("*" for any)
   --help              this text
 
 The control page changes the version, the transport and the port while the simulator runs.
@@ -74,6 +75,7 @@ The control page changes the version, the transport and the port while the simul
 function parseOptions(argv) {
   const options = {
     ...DEFAULT_SETTINGS, pagePort: DEFAULT_PAGE_PORT, rate: DEFAULT_RATE, help: false,
+    allowOrigin: [],
   };
   const numbers = {"--port": "port", "--page-port": "pagePort", "--rate": "rate"};
   for (let index = 0; index < argv.length; index += 1) {
@@ -83,6 +85,11 @@ function parseOptions(argv) {
     } else if (flag === "--host") {
       index += 1;
       options.host = argv[index] ?? options.host;
+    } else if (flag === "--allow-origin") {
+      index += 1;
+      const value = argv[index] ?? "";
+      if (value === "") throw new Error(`${flag} needs the origin of a page, like http://table.local:5173.`);
+      options.allowOrigin.push(value);
     } else if (flag === "--tuio" || flag === "--version") {
       index += 1;
       const value = argv[index] ?? "";
@@ -193,7 +200,14 @@ async function main() {
       response.destroy();
     });
   });
-  const controls = new WebSocketServer({server: pageServer, path: "/control"});
+  const controls = new WebSocketServer({
+    server: pageServer, path: "/control",
+    verifyClient: ({origin}) => {
+      if (originAllowed(origin, options.allowOrigin)) return true;
+      log(`A control page from ${origin} was turned away. Allow it with --allow-origin.`);
+      return false;
+    },
+  });
 
   /** What the control page shows about the tracker: what it speaks, who hears it, how far it counted. */
   const announce = () => {
@@ -354,6 +368,9 @@ async function main() {
 
   log(`The simulator is a tracker: ${describeTracker(settings)}, at ${options.rate} Hz.`);
   log(`The control page is on http://${settings.host}:${options.pagePort}`);
+  if (!loopback(settings.host)) {
+    log(`Anyone who reaches ${settings.host} can drive this simulator: it asks for no password.`);
+  }
   log(`Point an application at it with ?tuio=${settings.host}:${settings.port}`);
 
   emit();

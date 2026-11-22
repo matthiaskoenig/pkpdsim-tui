@@ -24,8 +24,13 @@ Open the control page and an application beside it at `http://localhost:5173/?tu
 | `--transport` | `websocket` or `udp` | `websocket` |
 | `--page-port` | The HTTP port of the control page | `3344` |
 | `--rate` | Frames per second of a surface nobody is touching | `60` |
+| `--allow-origin` | One more page which may drive the simulator, repeatable, `"*"` for any | pages of this machine |
 
 The flags come after `--`, because npm takes the ones before it for itself: `npm run simulator -- --host 0.0.0.0 --rate 30`.
+
+### Who may drive it
+
+The control socket takes the objects of the surface and the settings of the tracker, so a page which reaches it decides what the table reads and where the tracker sends it. Only a page of this machine may, which is what a browser says about itself when it opens the socket. A page served from somewhere else is turned away, the simulator writes a line about it, and `--allow-origin http://table.local:5173` lets that one in; `npm run dev -- --host` passes `--allow-origin "*"` by itself, because a table which was opened to the network is reached under the address of the network. The simulator asks for no password: `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
 
 ### Both on one port
 
@@ -113,5 +118,5 @@ Any other TUIO tracker works too, as long as it offers the bundles over a WebSoc
 1. Is the simulator **started**? The settings alone do nothing, and `npm run simulator` says where it is listening.
 2. Is it on **WebSocket**? A simulator on UDP is invisible to a browser. Is the **version** the one the address asks for?
 3. Do the **ports** match, in the simulator and in the address of the page? A port that is taken stops `npm run simulator` with the reason.
-4. Is the browser on the **same machine**? If not, use the address of that machine, start the simulator with `--host 0.0.0.0`, and check that nothing blocks the port.
+4. Is the browser on the **same machine**? If not, use the address of that machine, start the simulator with `--host 0.0.0.0` and `--allow-origin` for the page, and check that nothing blocks the port.
 5. Open the developer console. A failed WebSocket says so there first.
