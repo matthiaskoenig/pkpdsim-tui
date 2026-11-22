@@ -20,11 +20,13 @@ function dial(
   control: PerfusionControl, marker: number, id: "flow" | "oxygen" | "temperature", voice: Voice,
 ): TokenRole {
   const copy = voice.pick(PERFUSION_TEXT);
+  const more = copy.roles[id].more;
   return {
     id: control.id, label: voice.say(copy.roles[id].label), unit: control.unit, markers: [marker],
     description: voice.say(copy.roles[id].info),
     min: control.min, max: control.max, reference: control.value,
     mode: "absolute", scale: "linear", turns: 1,
+    ...(more === undefined ? {} : {background: voice.say(more)}),
   };
 }
 
@@ -38,6 +40,8 @@ export function perfusionRoles(hours: number, voice: Voice): readonly TokenRole[
       id: "hour", label: voice.say(copy.roles.hour.label), unit: "h", markers: [HOUR_MARKER],
       description: voice.say(copy.roles.hour.info),
       min: 0, max: hours, reference: hours, mode: "relative", scale: "linear", turns: 1,
+      ...(copy.roles.hour.more === undefined
+        ? {} : {background: voice.say(copy.roles.hour.more)}),
     },
   ];
 }

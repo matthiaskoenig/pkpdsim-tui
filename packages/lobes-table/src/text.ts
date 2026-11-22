@@ -5,6 +5,8 @@ import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 export interface Named {
   readonly label: Phrase;
   readonly info: Phrase;
+  /** What this object is in the body, behind the light bulb of the page the table opens with. */
+  readonly more?: Phrase;
 }
 
 /** What the sentence of the panel is built from, which every language says its own way. */
@@ -189,6 +191,7 @@ const EN: LobeCopy = {
   },
   roles: {
     resection: {
+      more: "The liver is divided into eight segments, each with its own blood supply and its own bile duct, which is what makes it possible to cut one away and leave the rest working. A surgeon takes the tumour and the segment it sits in, up to a whole half of the organ. What is left carries the entire work of the liver from the first minute after the operation, so the limit of such an operation is not the knife but how small a remnant the body can live on.",
       label: {child: "Knife", adult: "The operation"},
       info: {
         child: "Turn it to choose how much of the liver is taken away.",
@@ -197,6 +200,7 @@ const EN: LobeCopy = {
       },
     },
     growth: {
+      more: "The liver is the one organ of the body which grows back. What is left does not sprout new lobes: the cells which remain grow and divide until the mass the body needs is there again, and then they stop, a fortnight's work in a person and a couple of days in a rat. How fast that happens is what this dial is, because a liver which was already ill grows back slowly, and the race between the work demanded of a small remnant and how fast it grows is what an operation is decided on.",
       label: {child: "How fast it grows", adult: "Regeneration rate"},
       info: {
         child: "Turn it to make the liver grow back faster or slower.",
@@ -386,6 +390,7 @@ const DE: LobeCopy = {
   },
   roles: {
     resection: {
+      more: "Die Leber ist in acht Segmente geteilt, jedes mit eigener Blutversorgung und eigenem Gallengang, und genau das macht es möglich, eines herauszuschneiden und den Rest arbeiten zu lassen. Ein Chirurg nimmt den Tumor und das Segment, in dem er sitzt, bis hin zu einer ganzen Hälfte des Organs. Was bleibt, trägt ab der ersten Minute nach der Operation die gesamte Arbeit der Leber, und deshalb ist die Grenze einer solchen Operation nicht das Messer, sondern wie klein der Rest sein darf, mit dem der Körper lebt.",
       label: {child: "Messer", adult: "Die Operation"},
       info: {
         child: "Dreh daran, um zu wählen, wie viel Leber weggenommen wird.",
@@ -394,6 +399,7 @@ const DE: LobeCopy = {
       },
     },
     growth: {
+      more: "Die Leber ist das eine Organ des Körpers, das nachwächst. Was übrig ist, treibt keine neuen Lappen: Die verbliebenen Zellen wachsen und teilen sich, bis die Masse wieder da ist, die der Körper braucht, und hören dann auf, beim Menschen eine Sache von zwei Wochen, bei der Ratte von wenigen Tagen. Wie schnell das geht, ist dieser Regler, denn eine Leber, die schon krank war, wächst langsam nach, und das Rennen zwischen der Arbeit, die einem kleinen Rest abverlangt wird, und seinem Wachstum entscheidet über die Operation.",
       label: {child: "Wie schnell sie wächst", adult: "Regenerationsrate"},
       info: {
         child: "Dreh daran, damit die Leber schneller oder langsamer nachwächst.",
@@ -582,6 +588,7 @@ const ES: LobeCopy = {
   },
   roles: {
     resection: {
+      more: "El hígado está dividido en ocho segmentos, cada uno con su propia irrigación y su propio conducto biliar, y eso es lo que permite cortar uno y dejar el resto trabajando. Un cirujano se lleva el tumor y el segmento en el que está, hasta la mitad entera del órgano. Lo que queda carga con todo el trabajo del hígado desde el primer minuto tras la operación, así que el límite de esa cirugía no es el bisturí sino cuán pequeño puede ser el resto con el que el cuerpo vive.",
       label: {child: "Cuchillo", adult: "La operación"},
       info: {
         child: "Gíralo para elegir cuánto hígado se quita.",
@@ -590,6 +597,7 @@ const ES: LobeCopy = {
       },
     },
     growth: {
+      more: "El hígado es el único órgano del cuerpo que vuelve a crecer. Lo que queda no echa lóbulos nuevos: las células que quedan crecen y se dividen hasta que la masa que el cuerpo necesita está otra vez ahí, y entonces paran, cosa de dos semanas en una persona y de un par de días en una rata. Lo rápido que ocurre eso es esta barra, porque un hígado que ya estaba enfermo crece despacio, y la carrera entre el trabajo que se le exige a un resto pequeño y lo que tarda en crecer es lo que decide la operación.",
       label: {child: "Lo rápido que crece", adult: "Ritmo de regeneración"},
       info: {
         child: "Gíralo para que el hígado vuelva a crecer más rápido o más despacio.",

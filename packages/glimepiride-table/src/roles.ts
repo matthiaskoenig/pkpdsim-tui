@@ -27,11 +27,13 @@ function dial(
   voice: Voice, steps?: readonly number[],
 ): TokenRole {
   const copy = voice.pick(GLIMEPIRIDE_TEXT);
+  const more = copy.roles[id].more;
   return {
     id: control.id, label: voice.say(copy.roles[id].label), unit: control.unit, markers: [marker],
     description: voice.say(copy.roles[id].info),
     min: control.min, max: control.max, reference: control.value,
     mode: "absolute", scale: "linear", turns: 1,
+    ...(more === undefined ? {} : {background: voice.say(more)}),
     ...(steps === undefined ? {} : {steps}),
   };
 }
@@ -74,6 +76,7 @@ export function doseCountRole(voice: Voice): TokenRole {
     description: voice.say(copy.info),
     min: GLIMEPIRIDE_DOSES.min, max: GLIMEPIRIDE_DOSES.max, reference: GLIMEPIRIDE_DOSES.value,
     mode: "absolute", scale: "linear", turns: 1,
+    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
   };
 }
 

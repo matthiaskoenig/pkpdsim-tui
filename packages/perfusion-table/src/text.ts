@@ -5,6 +5,8 @@ import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 export interface Named {
   readonly label: Phrase;
   readonly info: Phrase;
+  /** What this object is in the body, behind the light bulb of the page the table opens with. */
+  readonly more?: Phrase;
 }
 
 /** What the sentence of the panel is built from. */
@@ -166,6 +168,7 @@ const EN: PerfusionCopy = {
   },
   roles: {
     flow: {
+      more: "Machine perfusion keeps an organ alive outside the body by pushing fluid through the vessels it used in the body. The flow carries the oxygen in and the waste out, and the cells at the end of the path live on what the cells before them have left, so too little flow starves the far end first. Too much is no better: a vessel built for the pressure of a body is damaged by being pushed harder than that.",
       label: {child: "The pump", adult: "Pump"},
       info: {
         child: "Turn it and the pump pushes more or less liquid through the liver every minute.",
@@ -174,6 +177,7 @@ const EN: PerfusionCopy = {
       },
     },
     oxygen: {
+      more: "There are no red blood cells in the circuit, so the only oxygen the organ gets is what is dissolved in the fluid, a small fraction of what the same volume of blood would carry. The oxygenator holds the fluid at a chosen pressure of oxygen, and the liver draws on it along the sinusoid, so the cells at the inflow are always better supplied than those at the outflow. That difference is the gradient the liver lives with in the body as well, and a perfusion makes it sharper.",
       label: {child: "The oxygen", adult: "Oxygen"},
       info: {
         child: "Turn it and more or less oxygen goes into the liquid. It is all the liver gets.",
@@ -182,6 +186,7 @@ const EN: PerfusionCopy = {
       },
     },
     temperature: {
+      more: "Cold is how an organ is carried: at four degrees the chemistry of a cell runs at a fraction of its speed, so it survives hours without much oxygen, which is what a transport box is for. Warm is the other bargain: at body temperature the organ works, makes bile and clears what is given to it, which is the only way to find out whether it works at all, and it has to be fed and oxygenated the whole time. Everything else on this table turns on that choice, because the solubility of the gases, the speed of the enzymes and the demand of the cells all move with the temperature.",
       label: {child: "Warm or cold", adult: "Temperature"},
       info: {
         child: "Turn it and the machine keeps the liver warmer or colder. Warm means it works, cold means it sleeps.",
@@ -190,6 +195,7 @@ const EN: PerfusionCopy = {
       },
     },
     hour: {
+      more: "A perfusion is a course and not a state: the organ warms, the resistance of its vessels settles, the bile starts, and the markers of damage rise or they do not. Walking back through the hours is how it is read, because a number at the end says little without the shape it arrived on. This dial changes nothing in the model: it only moves where in the solved run you are standing.",
       label: {child: "Hours on the machine", adult: "Hours on the machine"},
       info: {
         child: "Turn it to travel through the hours of the perfusion.",
@@ -386,6 +392,7 @@ const DE: PerfusionCopy = {
   },
   roles: {
     flow: {
+      more: "Die Maschinenperfusion hält ein Organ außerhalb des Körpers am Leben, indem sie Flüssigkeit durch die Gefäße drückt, die es im Körper benutzt hat. Der Fluss trägt den Sauerstoff hinein und die Abfallstoffe hinaus, und die Zellen am Ende des Weges leben von dem, was die Zellen davor übrig gelassen haben, also hungert zu wenig Fluss zuerst das hintere Ende aus. Zu viel ist nicht besser: Ein Gefäß, das für den Druck eines Körpers gebaut ist, nimmt Schaden, wenn stärker hindurchgedrückt wird.",
       label: {child: "Die Pumpe", adult: "Pumpe"},
       info: {
         child: "Dreh daran, dann schiebt die Pumpe mehr oder weniger Flüssigkeit durch die Leber.",
@@ -394,6 +401,7 @@ const DE: PerfusionCopy = {
       },
     },
     oxygen: {
+      more: "Im Kreislauf gibt es keine roten Blutkörperchen, also ist der einzige Sauerstoff, den das Organ bekommt, der in der Flüssigkeit gelöste, ein kleiner Bruchteil dessen, was dasselbe Volumen Blut trüge. Der Oxygenator hält die Flüssigkeit auf einem gewählten Sauerstoffdruck, und die Leber zehrt entlang des Sinusoids davon, also sind die Zellen am Zufluss immer besser versorgt als die am Abfluss. Dieser Unterschied ist das Gefälle, mit dem die Leber auch im Körper lebt, und eine Perfusion macht es schärfer.",
       label: {child: "Der Sauerstoff", adult: "Sauerstoff"},
       info: {
         child: "Dreh daran, dann kommt mehr oder weniger Sauerstoff in die Flüssigkeit. Mehr bekommt die Leber nicht.",
@@ -402,6 +410,7 @@ const DE: PerfusionCopy = {
       },
     },
     temperature: {
+      more: "Kalt ist, wie ein Organ transportiert wird: Bei vier Grad läuft die Chemie einer Zelle nur noch mit einem Bruchteil ihrer Geschwindigkeit, also übersteht sie Stunden ohne viel Sauerstoff, und genau dafür ist eine Transportbox da. Warm ist der andere Handel: Bei Körpertemperatur arbeitet das Organ, bildet Galle und klärt, was man ihm gibt, und nur so findet man heraus, ob es überhaupt arbeitet; dafür muss es die ganze Zeit versorgt und mit Sauerstoff beliefert werden. Alles andere auf diesem Tisch hängt an dieser Wahl, denn die Löslichkeit der Gase, das Tempo der Enzyme und der Bedarf der Zellen gehen mit der Temperatur.",
       label: {child: "Warm oder kalt", adult: "Temperatur"},
       info: {
         child: "Dreh daran, dann hält die Maschine die Leber wärmer oder kälter. Warm heißt, sie arbeitet, kalt heißt, sie schläft.",
@@ -410,6 +419,7 @@ const DE: PerfusionCopy = {
       },
     },
     hour: {
+      more: "Eine Perfusion ist ein Verlauf und kein Zustand: Das Organ wärmt sich auf, der Widerstand seiner Gefäße pendelt sich ein, die Galle setzt ein, und die Schadensmarker steigen oder eben nicht. Durch die Stunden zurückzugehen ist, wie man das liest, denn eine Zahl am Ende sagt wenig ohne den Weg, auf dem sie zustande kam. Dieser Regler ändert nichts am Modell: Er verschiebt nur, wo im gerechneten Lauf man steht.",
       label: {child: "Stunden an der Maschine", adult: "Stunden an der Maschine"},
       info: {
         child: "Dreh daran, um durch die Stunden der Perfusion zu reisen.",
@@ -608,6 +618,7 @@ const ES: PerfusionCopy = {
   },
   roles: {
     flow: {
+      more: "La perfusión de máquina mantiene vivo un órgano fuera del cuerpo empujando líquido por los vasos que usaba dentro. El flujo lleva el oxígeno adentro y los desechos afuera, y las células del final del camino viven de lo que han dejado las de antes, así que un flujo escaso deja sin nada primero al extremo lejano. Demasiado tampoco es mejor: un vaso hecho para la presión de un cuerpo se daña si se empuja más fuerte que eso.",
       label: {child: "La bomba", adult: "Bomba"},
       info: {
         child: "Gíralo y la bomba empuja más o menos líquido por el hígado cada minuto.",
@@ -616,6 +627,7 @@ const ES: PerfusionCopy = {
       },
     },
     oxygen: {
+      more: "En el circuito no hay glóbulos rojos, así que el único oxígeno que recibe el órgano es el disuelto en el líquido, una fracción pequeña de lo que llevaría el mismo volumen de sangre. El oxigenador mantiene el líquido a una presión de oxígeno elegida, y el hígado tira de ella a lo largo del sinusoide, de modo que las células de la entrada están siempre mejor servidas que las de la salida. Esa diferencia es el gradiente con el que el hígado vive también dentro del cuerpo, y una perfusión lo hace más marcado.",
       label: {child: "El oxígeno", adult: "Oxígeno"},
       info: {
         child: "Gíralo y entra más o menos oxígeno en el líquido. Es todo lo que recibe el hígado.",
@@ -624,6 +636,7 @@ const ES: PerfusionCopy = {
       },
     },
     temperature: {
+      more: "El frío es como se transporta un órgano: a cuatro grados la química de una célula va a una fracción de su velocidad, así que aguanta horas sin mucho oxígeno, y para eso sirve una nevera de transporte. El calor es el otro trato: a temperatura corporal el órgano trabaja, hace bilis y elimina lo que se le da, que es la única forma de saber si funciona, y hay que alimentarlo y oxigenarlo todo el rato. Todo lo demás en esta mesa depende de esa elección, porque la solubilidad de los gases, la velocidad de las enzimas y lo que piden las células van con la temperatura.",
       label: {child: "Frío o caliente", adult: "Temperatura"},
       info: {
         child: "Gíralo y la máquina mantiene el hígado más caliente o más frío. Caliente trabaja, frío duerme.",
@@ -632,6 +645,7 @@ const ES: PerfusionCopy = {
       },
     },
     hour: {
+      more: "Una perfusión es un curso y no un estado: el órgano se calienta, la resistencia de sus vasos se asienta, empieza la bilis, y los marcadores de daño suben o no suben. Recorrer las horas hacia atrás es como se lee, porque un número al final dice poco sin la forma con la que llegó. Esta barra no cambia nada del modelo: solo mueve en qué punto del recorrido ya resuelto te encuentras.",
       label: {child: "Horas en la máquina", adult: "Horas en la máquina"},
       info: {
         child: "Gíralo para viajar por las horas de la perfusión.",

@@ -26,6 +26,12 @@ export interface TokenRole {
   readonly markers: readonly number[];
   readonly min: number;
   readonly max: number;
+  /**
+   * What this object is about, for the visitor who wants to know more: the physiology or the
+   * pharmacology behind the dial, which the page a table opens with keeps behind a light bulb.
+   * One text rather than one per level, because it is the depth itself that was asked for.
+   */
+  readonly background?: string;
   /** The value of the model without this token, which is also the value at the detent. */
   readonly reference: number;
   readonly mode: RoleMode;
