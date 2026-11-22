@@ -20,7 +20,10 @@ export const SEXES = ["female", "male"] as const;
 export type Sex = (typeof SEXES)[number];
 
 /** The years a visitor can be on the glass, and the age a table opens at. */
-export const AGE_RANGE = {min: 3, max: 120, value: 35} as const;
+export const AGE_RANGE = {min: 3, max: 100, value: 35} as const;
+
+/** How tall a body on these tables can be set, in centimetres. */
+export const HEIGHT_RANGE = {min: 50, max: 230} as const;
 
 /** The age of the reference adult of ICRP 89, where the children meet the grown ups. */
 const ADULT_AGE = 35;
@@ -173,13 +176,13 @@ export interface Individual {
   readonly sex: Sex;
   /** What they weigh, which is the reference of their age unless a dial says otherwise. */
   readonly weight: number;
-  /** How tall they are, which follows the age and the sex alone. */
+  /** How tall they are: the reference of their age unless a dial says otherwise. */
   readonly height: number;
 }
 
 /** The individual of an age, a sex and a weight, with everything checked and filled in. */
 export function individualOf(
-  age: number = AGE_RANGE.value, sex: Sex = "female", weight?: number,
+  age: number = AGE_RANGE.value, sex: Sex = "female", weight?: number, height?: number,
 ): Individual {
   const years = clampAge(age);
   const body = referenceBody(years, sex);
@@ -187,8 +190,30 @@ export function individualOf(
     age: years,
     sex,
     weight: weight === undefined ? body.weight : clampWeight(weight, years, sex),
-    height: body.height,
+    height: height === undefined ? body.height : clampHeight(height),
   };
+}
+
+/** The height, held inside what a human body can be. */
+export function clampHeight(height: number): number {
+  if (!Number.isFinite(height)) return referenceBody(AGE_RANGE.value).height;
+  return Math.min(HEIGHT_RANGE.max, Math.max(HEIGHT_RANGE.min, Math.round(height)));
+}
+
+/**
+ * How the drawing of a grown up is stretched to stand for this body.
+ *
+ * The anatomy of the library carries one drawing per sex, of the reference adult. A child is
+ * not a small adult, but a child drawn at the height of a grown up is not a child at all, so
+ * the figure is stretched: as tall as this body against the one which was drawn, and as wide
+ * as the mass at that height makes it, which is what tells a heavy body from a light one on
+ * the glass. The drawing is a picture, not a model; what the tables solve is the physiology.
+ */
+export function figureScale(individual: Individual, drawn: ReferenceBody): {x: number; y: number} {
+  const y = drawn.height > 0 ? individual.height / drawn.height : 1;
+  const mass = drawn.weight > 0 ? individual.weight / drawn.weight : 1;
+  const x = Math.sqrt(Math.max(0.1, mass / Math.max(y, 0.2)));
+  return {x: Math.min(1.9, Math.max(0.5, x)), y: Math.min(1.6, Math.max(0.3, y))};
 }
 
 /** The body of an individual, as the parameters every human model of the collection carries. */

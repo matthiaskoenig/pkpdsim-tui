@@ -24,6 +24,23 @@ const EVERY = 36;
 /** The floor of the scale, in mmHg, so that a resting heart is not drawn as a mountain. */
 const FLOOR = 160;
 
+/**
+ * The ceiling of a scale, which only ever rises.
+ *
+ * A scale which followed what the last minute happened to hold redrew itself under the reader:
+ * the curve kept the same shape and the numbers at its side changed, which is the opposite of
+ * what a visitor turning an object wants to see. The ceiling is a round number above everything
+ * the table has shown, and it stays there.
+ */
+export function ceilingOf(previous: number, needed: number): number {
+  if (needed <= previous) return previous;
+  const step = 10 ** Math.floor(Math.log10(needed));
+  const nice = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
+    .map(one => one * step)
+    .find(one => one >= needed);
+  return nice ?? needed;
+}
+
 interface Sample {
   readonly at: number;
   readonly arterial: number;
@@ -60,10 +77,18 @@ export function createBeats(parent: SVGSVGElement, voice: Voice): Beats {
   const high = svg("text", {
     class: "beats-tick", x: PAD.left - 8, y: PLOT.top + 4, "text-anchor": "end",
   }, group);
+  const middle = svg("text", {
+    class: "beats-tick", x: PAD.left - 8, y: PLOT.top + PLOT.height / 2 + 4,
+    "text-anchor": "end",
+  }, group);
   const low = svg("text", {
     class: "beats-tick", x: PAD.left - 8, y: PLOT.top + PLOT.height, "text-anchor": "end",
   }, group);
   low.textContent = "0";
+  const unit = svg("text", {
+    class: "beats-tick", x: PAD.left - 8, y: PLOT.top - 10, "text-anchor": "end",
+  }, group);
+  unit.textContent = "mmHg";
   const span = svg("text", {
     class: "beats-tick", x: PANEL.width - PAD.right, y: PLOT.top + PLOT.height + 18,
     "text-anchor": "end",
@@ -75,6 +100,8 @@ export function createBeats(parent: SVGSVGElement, voice: Voice): Beats {
   let beats = 0;
   let kept = 0;
   let last = 0;
+  // The ceiling of the scale, which rises with what the table has shown and never falls.
+  let top = FLOOR;
 
   const across = (at: number, now: number): number => {
     const age = Math.min(WINDOW, Math.max(0, (now - at) / 1000));
@@ -104,8 +131,9 @@ export function createBeats(parent: SVGSVGElement, voice: Voice): Beats {
         const gone = history.shift();
         if (gone !== undefined) beats -= EVERY / 1000 * (beat.heartRate / 60);
       }
-      const top = Math.max(FLOOR, ...history.map(sample => sample.arterial * 1.1));
+      top = ceilingOf(top, Math.max(FLOOR, ...history.map(sample => sample.arterial * 1.05)));
       high.textContent = formatNumber(top, 0);
+      middle.textContent = formatNumber(top / 2, 0);
       count.textContent = copy.count(formatNumber(Math.max(0, beats), 0));
       rate.textContent = `${formatNumber(beat.heartRate, 0)} /min`;
       trace.setAttribute("d", history.map((sample, index) =>

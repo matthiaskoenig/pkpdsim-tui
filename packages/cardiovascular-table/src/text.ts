@@ -96,17 +96,18 @@ const EN: CardioCopy = {
       tryIt: "Try it: turn one of the resistances up and watch its organ go blue.",
     },
     {
-      id: "portal",
-      ask: "Where does the blood in the portal vein come from?",
+      id: "squeeze",
+      ask: "Object 2 makes the heart squeeze harder. What does one beat do then?",
       choices: [
-        {id: "gut", label: "From the gut"},
-        {id: "lungs", label: "From the lungs"},
-        {id: "kidneys", label: "From the kidneys"},
+        {id: "more", label: "It pushes out more blood"},
+        {id: "less", label: "It pushes out less blood"},
+        {id: "faster", label: "It beats faster"},
       ],
-      answer: "gut",
-      because: "The portal vein carries the blood of the gut to the liver, so everything that was"
-        + " eaten passes the liver before it reaches the rest of the body.",
-      tryIt: "Try it: watch the portal vein on the monitor of the liver while the heart changes.",
+      answer: "more",
+      because: "That object is how hard the muscle squeezes. A harder squeeze empties the"
+        + " chamber further, so one beat pushes out more and the whole body gets more blood,"
+        + " at the same rate.",
+      tryIt: "Try it: turn object 2 up and watch what one beat ejects.",
     },
   ],
   about: {
@@ -180,8 +181,8 @@ const EN: CardioCopy = {
     systemic: {
       label: {child: "All the vessels", adult: "Systemic resistance"},
       info: {
-        child: "How narrow all the vessels of the body are at once.",
-        adult: "Resistance of every systemic organ at once, the afterload of the heart.",
+        child: "Turn it up and all the vessels of the body get narrower at once, so the pressure rises and less blood moves.",
+        adult: "Changes how open the vessels of the whole body are, the afterload of the heart: narrow them and the pressure rises while the heart moves less blood.",
         expert: "The total systemic vascular resistance, the afterload against which the ventricle ejects.",
       },
     },
@@ -196,16 +197,16 @@ const EN: CardioCopy = {
     heartRate: {
       label: {child: "How fast the heart beats", adult: "Heart rate"},
       info: {
-        child: "How often your heart beats in a minute. Running makes it fast.",
-        adult: "How often the heart beats. The beat on the table is the one the compiled heart is solved with, so the numbers belong to that rate.",
+        child: "Turn it up and the heart beats faster, so more blood reaches every organ, the liver with it.",
+        adult: "Changes how often the heart beats. More beats move more blood every minute, so every organ on the body gets more of it.",
         expert: "The heart rate the compiled SBML heart is solved at, from 40 to 150 a minute. The filling time follows it.",
       },
     },
     contractility: {
       label: {child: "How hard the heart squeezes", adult: "Contractility"},
       info: {
-        child: "How strongly the heart squeezes. A tired heart squeezes weakly.",
-        adult: "How hard the ventricles squeeze. Turning it down is a heart which is failing: it moves less blood with every beat.",
+        child: "Turn it up and the heart squeezes harder, so one beat pushes out more blood.",
+        adult: "Changes how hard the ventricles squeeze. Turning it down is a heart which is failing: it pushes out less with every beat.",
         expert: "The contractility of the ventricles. Lowering it is systolic heart failure: the stroke volume falls and the end systolic volume rises.",
       },
     },
@@ -285,17 +286,18 @@ const DE: CardioCopy = {
       tryIt: "Probier es: Dreh einen Widerstand hoch und sieh zu, wie sein Organ blau wird.",
     },
     {
-      id: "portal",
-      ask: "Woher kommt das Blut in der Pfortader?",
+      id: "squeeze",
+      ask: "Objekt 2 lässt das Herz kräftiger drücken. Was macht ein Schlag dann?",
       choices: [
-        {id: "gut", label: "Aus dem Darm"},
-        {id: "lungs", label: "Aus der Lunge"},
-        {id: "kidneys", label: "Aus den Nieren"},
+        {id: "more", label: "Er pumpt mehr Blut aus"},
+        {id: "less", label: "Er pumpt weniger Blut aus"},
+        {id: "faster", label: "Er schlägt schneller"},
       ],
-      answer: "gut",
-      because: "Die Pfortader bringt das Blut des Darms zur Leber. Alles, was gegessen wurde,"
-        + " kommt also an der Leber vorbei, bevor es in den Rest des Körpers geht.",
-      tryIt: "Probier es: Sieh die Pfortader auf dem Monitor der Leber, während sich das Herz ändert.",
+      answer: "more",
+      because: "Dieses Objekt ist, wie kräftig der Muskel drückt. Kräftiger drücken leert die"
+        + " Kammer weiter, ein Schlag pumpt mehr aus, und der ganze Körper bekommt mehr Blut -"
+        + " bei gleichem Takt.",
+      tryIt: "Probier es: Dreh Objekt 2 hoch und sieh, was ein Schlag auswirft.",
     },
   ],
   about: {
@@ -369,8 +371,8 @@ const DE: CardioCopy = {
     systemic: {
       label: {child: "Alle Gefäße", adult: "Systemischer Widerstand"},
       info: {
-        child: "Wie eng alle Gefäße des Körpers auf einmal sind.",
-        adult: "Widerstand aller systemischen Organe auf einmal, die Nachlast des Herzens.",
+        child: "Dreh hoch, dann werden alle Gefäße des Körpers enger: Der Druck steigt, und es fließt weniger Blut.",
+        adult: "Ändert, wie weit die Gefäße des ganzen Körpers sind, die Nachlast des Herzens: enger gestellt steigt der Druck, und das Herz bewegt weniger Blut.",
         expert: "Der totale periphere Widerstand, die Nachlast, gegen die die Kammer auswirft.",
       },
     },
@@ -385,16 +387,16 @@ const DE: CardioCopy = {
     heartRate: {
       label: {child: "Wie schnell das Herz schlägt", adult: "Herzfrequenz"},
       info: {
-        child: "Wie oft dein Herz in einer Minute schlägt. Beim Rennen wird es schnell.",
-        adult: "Wie oft das Herz schlägt. Der Schlag auf dem Tisch ist der, mit dem das kompilierte Herz gerechnet wird, also gehören die Zahlen zu dieser Frequenz.",
+        child: "Dreh hoch, dann schlägt das Herz schneller, und jedes Organ bekommt mehr Blut, die Leber auch.",
+        adult: "Ändert, wie oft das Herz schlägt. Mehr Schläge bewegen mehr Blut pro Minute, also bekommt jedes Organ auf dem Körper mehr davon.",
         expert: "Die Herzfrequenz, mit der das kompilierte SBML-Herz gelöst wird, 40 bis 150 pro Minute. Die Füllungszeit folgt ihr.",
       },
     },
     contractility: {
       label: {child: "Wie stark das Herz drückt", adult: "Kontraktilität"},
       info: {
-        child: "Wie kräftig das Herz zusammenpresst. Ein müdes Herz drückt schwach.",
-        adult: "Wie kräftig die Kammern zusammenpressen. Nach unten gedreht ist es ein versagendes Herz: es bewegt mit jedem Schlag weniger Blut.",
+        child: "Dreh hoch, dann drückt das Herz kräftiger, und ein Schlag pumpt mehr Blut aus.",
+        adult: "Ändert, wie kräftig die Kammern zusammenpressen. Nach unten gedreht ist es ein versagendes Herz: Es pumpt mit jedem Schlag weniger aus.",
         expert: "Die Kontraktilität der Kammern. Sie zu senken ist systolische Herzinsuffizienz: das Schlagvolumen fällt, das endsystolische Volumen steigt.",
       },
     },
@@ -474,17 +476,18 @@ const ES: CardioCopy = {
       tryIt: "Pruébalo: sube una de las resistencias y mira cómo su órgano se vuelve azul.",
     },
     {
-      id: "portal",
-      ask: "¿De dónde viene la sangre de la vena porta?",
+      id: "squeeze",
+      ask: "El objeto 2 hace que el corazón apriete más fuerte. ¿Qué hace entonces un latido?",
       choices: [
-        {id: "gut", label: "Del intestino"},
-        {id: "lungs", label: "De los pulmones"},
-        {id: "kidneys", label: "De los riñones"},
+        {id: "more", label: "Expulsa más sangre"},
+        {id: "less", label: "Expulsa menos sangre"},
+        {id: "faster", label: "Late más rápido"},
       ],
-      answer: "gut",
-      because: "La vena porta lleva la sangre del intestino al hígado, así que todo lo que se come"
-        + " pasa por el hígado antes de llegar al resto del cuerpo.",
-      tryIt: "Pruébalo: mira la vena porta en el monitor del hígado mientras cambia el corazón.",
+      answer: "more",
+      because: "Ese objeto es la fuerza con la que aprieta el músculo. Apretar más vacía más la"
+        + " cámara, así que un latido expulsa más y todo el cuerpo recibe más sangre, al mismo"
+        + " ritmo.",
+      tryIt: "Pruébalo: sube el objeto 2 y mira lo que expulsa un latido.",
     },
   ],
   about: {
@@ -558,8 +561,8 @@ const ES: CardioCopy = {
     systemic: {
       label: {child: "Todos los vasos", adult: "Resistencia sistémica"},
       info: {
-        child: "Cómo de estrechos están todos los vasos del cuerpo a la vez.",
-        adult: "Resistencia de todos los órganos sistémicos a la vez, la poscarga del corazón.",
+        child: "Súbelo y todos los vasos del cuerpo se estrechan a la vez: la presión sube y se mueve menos sangre.",
+        adult: "Cambia cuán abiertos están los vasos de todo el cuerpo, la poscarga del corazón: al estrecharlos sube la presión y el corazón mueve menos sangre.",
         expert: "La resistencia vascular sistémica total, la poscarga contra la que eyecta el ventrículo.",
       },
     },
@@ -574,16 +577,16 @@ const ES: CardioCopy = {
     heartRate: {
       label: {child: "Cómo de rápido late", adult: "Frecuencia cardíaca"},
       info: {
-        child: "Cuántas veces late tu corazón en un minuto. Corriendo late rápido.",
-        adult: "Cada cuánto late el corazón. El latido de la mesa es aquel con el que se resuelve el corazón compilado, así que los números pertenecen a esa frecuencia.",
+        child: "Súbelo y el corazón late más rápido, así que cada órgano recibe más sangre, también el hígado.",
+        adult: "Cambia cada cuánto late el corazón. Más latidos mueven más sangre por minuto, así que cada órgano del cuerpo recibe más.",
         expert: "La frecuencia a la que se resuelve el corazón SBML compilado, de 40 a 150 por minuto. El tiempo de llenado la sigue.",
       },
     },
     contractility: {
       label: {child: "Con cuánta fuerza aprieta", adult: "Contractilidad"},
       info: {
-        child: "Con cuánta fuerza aprieta el corazón. Un corazón cansado aprieta poco.",
-        adult: "Con cuánta fuerza aprietan los ventrículos. Girarlo hacia abajo es un corazón que falla: mueve menos sangre en cada latido.",
+        child: "Súbelo y el corazón aprieta más fuerte, así que un latido expulsa más sangre.",
+        adult: "Cambia con cuánta fuerza aprietan los ventrículos. Bajarlo es un corazón que falla: expulsa menos en cada latido.",
         expert: "La contractilidad de los ventrículos. Bajarla es insuficiencia cardíaca sistólica: el volumen sistólico cae y el volumen telesistólico sube.",
       },
     },

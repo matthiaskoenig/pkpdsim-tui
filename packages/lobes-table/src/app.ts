@@ -83,18 +83,8 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const liver = data.species[species];
   if (liver === undefined) throw new Error(`The export holds no ${wanted} liver.`);
   const lobes: readonly Lobe[] = liver.lobes;
+  // The body is the visitor's and is switched in the settings; the animal is of the table.
   const bodies: readonly ChoiceGroup[] = [
-    {
-      // The two bodies, as the figures themselves: a visitor sees which one the liver is in.
-      id: "sex", label: kit.bodySwitch, selected: sex,
-      options: [
-        {
-          id: "female", label: bodyName(voice, "female", person.age), picture: "woman",
-          ...(species === "human" ? {} : {unavailable: copy.femaleOnlyHuman}),
-        },
-        {id: "male", label: bodyName(voice, "male", person.age), picture: "man"},
-      ],
-    },
     {
       // The animal the liver belongs to, drawn rather than named: the operations of this table
       // are the ones done to a rat and to a mouse in the laboratory, and to a person in a

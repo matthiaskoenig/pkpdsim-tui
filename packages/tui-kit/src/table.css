@@ -801,7 +801,7 @@ body {
 
 .plot-tick-label {
   fill: var(--ink-dim);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1504,4 +1504,181 @@ body {
 .settings-person[data-arming="true"] {
   border-color: var(--accent);
   outline: none;
+}
+
+/* The page a table opens with: what it is about, what its objects change, and the button which
+   hands the surface over. It covers the whole table, because it is the only thing to read until
+   it is gone, and it carries the colour of the table it belongs to. */
+.brief {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.94);
+  pointer-events: auto;
+}
+
+.brief[hidden] {
+  display: none;
+}
+
+.brief-sheet {
+  display: grid;
+  gap: 1.1rem;
+  justify-items: center;
+  width: min(62rem, 100%);
+  max-height: 100%;
+  padding: 2rem 2.6rem 2.2rem;
+  border: 1px solid var(--panel-line);
+  border-radius: 1.6rem;
+  background: var(--panel);
+  color: var(--panel-ink);
+  box-shadow: 0 24px 60px rgba(15, 29, 40, 0.2);
+  text-align: center;
+}
+
+.brief-head {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.brief-title {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.brief-about {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  max-width: 48rem;
+  font-size: 1.35rem;
+  line-height: 1.45;
+}
+
+.brief-part {
+  width: 100%;
+  text-align: left;
+}
+
+.brief-part-title {
+  margin: 0 0 0.5rem;
+  color: var(--panel-ink-dim);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.brief-tries {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 1.1rem;
+}
+
+.brief-objects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 0.6rem 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brief-object {
+  display: flex;
+  align-items: start;
+  gap: 0.7rem;
+}
+
+.brief-object-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--table, var(--accent));
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.brief-object-words {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.brief-object-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.brief-object-change {
+  color: var(--panel-ink-dim);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.brief-start {
+  margin-top: 0.4rem;
+  padding: 0.85rem 2.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--table, var(--accent));
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.brief-start:hover,
+.brief-start:focus-visible {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 1500px) {
+  .brief-title {
+    font-size: 2.1rem;
+  }
+
+  .brief-about {
+    font-size: 1.2rem;
+  }
+
+  .brief-sheet {
+    padding: 1.4rem 1.8rem 1.6rem;
+  }
+}
+
+/* The scale at the side of a course, which stands still while the curve moves. */
+.plot-scale-label {
+  fill: var(--ink-dim);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.plot-scale-unit {
+  fill: var(--ink-dim);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* A course which was replaced, on its way out. */
+.trace-ghost {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 0;
 }

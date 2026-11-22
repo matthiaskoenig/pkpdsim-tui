@@ -61,9 +61,36 @@ interface Manifest {
 /** One reader per language, because the panel, the notes and the landing page share it. */
 const readers = new Map<string, Speech>();
 
+/** A moment of silence, which is what the first play of a page is allowed to be. */
+const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=";
+
+/**
+ * One player for the whole page, which is unlocked by the first touch anywhere on it.
+ *
+ * A browser plays nothing until the page has been interacted with, and counts only a real
+ * press of a finger or a key. A table is driven by a tracker over a socket, which is no press
+ * at all, and the speakers of a table are pressed by a finger resting on them, which is a
+ * press the page makes for itself a moment later. So the first touch of the glass, whatever it
+ * lands on, plays a moment of silence through the one element every clip is then played
+ * through, and the page has its permission.
+ */
+function unlockedPlayer(): HTMLAudioElement {
+  const player = new Audio();
+  player.preload = "auto";
+  const unlock = (): void => {
+    player.src = SILENCE;
+    void player.play().catch(() => undefined);
+  };
+  for (const name of ["pointerdown", "touchstart", "keydown", "mousedown"]) {
+    window.addEventListener(name, unlock, {once: true, capture: true, passive: true});
+  }
+  return player;
+}
+
 function createSpeech(voice: Voice, base: URL): Speech {
   const clips = new Map<string, string>();
   const listeners: (() => void)[] = [];
+  const player = unlockedPlayer();
   let audio: HTMLAudioElement | null = null;
   /** What is being read, as one text, so that pressing the button again stops it. */
   let saying = "";
@@ -130,12 +157,14 @@ function createSpeech(voice: Voice, base: URL): Speech {
       readAloud(sentence);
       return;
     }
-    const playing = new Audio(new URL(clip, base).href);
+    // The one player of the page, which the first touch of the glass unlocked.
+    const playing = player;
     audio = playing;
-    playing.addEventListener("ended", () => next());
-    // A clip which cannot be played, because the browser is holding sound back until somebody
-    // has touched the page, is still said: the browser reads it instead.
-    playing.addEventListener("error", () => readAloud(sentence));
+    playing.onended = (): void => next();
+    // A clip which cannot be played at all is still said: the browser reads it instead.
+    playing.onerror = (): void => readAloud(sentence);
+    playing.src = new URL(clip, base).href;
+    playing.currentTime = 0;
     void playing.play().catch(() => {
       if (audio === playing) readAloud(sentence);
     });

@@ -92,6 +92,8 @@ export interface ChromeOptions {
 
 export interface Chrome {
   update(state: ChromeUpdate): void;
+  /** Puts the page a table opens with back up, which is what starting the table again does. */
+  brief(): void;
 }
 
 /**
@@ -239,15 +241,118 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
     options.onChoose?.(group, option);
   });
   container.appendChild(panel);
+  // Every table opens with its context rather than with a surface full of moving curves, so
+  // the page belongs to the furniture of a table and not to any one of them.
+  const briefing = createBriefing(container, options.voice, options.mark);
   let previous = "";
   return {
     update(state: ChromeUpdate): void {
       // What drives the surface belongs to the settings of the table and not to its words.
       reportStatus(state.status);
+      briefing.update(state);
       const html = panelHtml(state, options.voice, options.mark);
       if (html === previous) return;
       previous = html;
       panel.innerHTML = html;
     },
+    brief(): void {
+      briefing.show();
+    },
   };
+}
+
+/**
+ * The page a table opens with: what this table is about, what its objects change, and a button
+ * which starts it.
+ *
+ * A visitor who walks up to a surface full of moving curves has no idea what they are looking
+ * at, and nothing on the table says it: the panel says what is happening, not what any of it
+ * is for. So the table holds its context up first, on one page and in the words of the chosen
+ * level, and the interaction starts when the visitor says it does. It is the same page on
+ * every table, built out of what the table already tells the panel.
+ */
+function briefingHtml(state: ChromeUpdate, voice: Voice, mark: TableMark | undefined): string {
+  const copy = words(voice);
+  const picture = markHtml(mark);
+  const spoken = [state.about, ...state.tries].join("\n");
+  const objects = state.roles.map(role => `
+    <li class="brief-object">
+      <span class="brief-object-mark">${escapeHtml(role.markers.join(", "))}</span>
+      <span class="brief-object-words">
+        <span class="brief-object-name">${escapeHtml(role.label)}</span>
+        <span class="brief-object-change">${escapeHtml(role.description)}</span>
+      </span>
+    </li>`).join("");
+  const tries = state.tries.map(line => `<li>${escapeHtml(line)}</li>`).join("");
+  return `
+    <div class="brief-sheet">
+      <header class="brief-head">
+        ${picture}
+        <h1 class="brief-title">${escapeHtml(state.title)}</h1>
+      </header>
+      <p class="brief-about">${escapeHtml(state.about)}
+        ${sayHtml(spoken, copy.readAloud)}</p>
+      ${tries === "" ? "" : `<section class="brief-part">
+        <h2 class="brief-part-title">${escapeHtml(copy.brief.tries)}</h2>
+        <ul class="brief-tries">${tries}</ul>
+      </section>`}
+      ${objects === "" ? "" : `<section class="brief-part">
+        <h2 class="brief-part-title">${escapeHtml(copy.brief.objects)}</h2>
+        <ul class="brief-objects">${objects}</ul>
+      </section>`}
+      <button class="brief-start" type="button" data-dwell="start"
+        data-info="${escapeHtml(voice.say(copy.brief.startInfo))}">
+        ${escapeHtml(copy.brief.start)}
+      </button>
+    </div>`;
+}
+
+/**
+ * The page a table opens with, over the surface of that table. It is built once the table has
+ * said what it is and which objects it reads, which is the first update of the panel, and it
+ * goes away when the visitor starts the table. `show` brings it back, which is what starting
+ * the table again does.
+ */
+export function createBriefing(
+  container: HTMLElement, voice: Voice, mark: TableMark | undefined,
+): Briefing {
+  const sheet = document.createElement("section");
+  sheet.className = "brief";
+  sheet.hidden = true;
+  let started = false;
+  let drawn = false;
+  sheet.addEventListener("click", event => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".brief-start") === null) return;
+    started = true;
+    sheet.hidden = true;
+  });
+  container.appendChild(sheet);
+  return {
+    update(state: ChromeUpdate): void {
+      // The page is written once: it is what the table is, not what it is doing, and a page
+      // which rewrote itself under the reading finger would be a different page every second.
+      if (drawn || state.roles.length === 0) return;
+      drawn = true;
+      sheet.innerHTML = briefingHtml(state, voice, mark);
+      sheet.hidden = started;
+    },
+    show(): void {
+      started = false;
+      if (drawn) sheet.hidden = false;
+    },
+    get open(): boolean {
+      return !sheet.hidden;
+    },
+  };
+}
+
+export interface Briefing {
+  /** Writes the page out of what the table says, the first time the table says it. */
+  update(state: ChromeUpdate): void;
+  /** Brings the page back, which is what starting the table again does. */
+  show(): void;
+  /** Whether the page is up, so the table knows whether the surface is being read or driven. */
+  readonly open: boolean;
 }

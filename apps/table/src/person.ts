@@ -15,7 +15,8 @@
  */
 
 import {
-  AGE_RANGE, clampAge, clampWeight, individualOf, loadAnatomy, referenceBody, weightRange,
+  AGE_RANGE, clampAge, clampHeight, clampWeight, figureScale, HEIGHT_RANGE, individualOf,
+  loadAnatomy, referenceBody, weightRange,
 } from "@pkpdsim-tui/cardio-sim";
 import type {Individual, Sex} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
@@ -27,10 +28,10 @@ import {HUB_TEXT} from "./text.ts";
 const PRESS = 620;
 
 /** How tall a grown up stands on this screen, in pixels, and the height the two are drawn at. */
-const FIGURE = {height: 230, grown: 176} as const;
+const FIGURE = {height: 180, adult: 35} as const;
 
 /** The address this table carries the person in. */
-export const PERSON_KEYS = ["age", "sex", "bw"] as const;
+export const PERSON_KEYS = ["age", "sex", "bw", "height"] as const;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, character => ({
@@ -43,10 +44,12 @@ export function personOf(parameters: URLSearchParams): Individual {
   const sex: Sex = parameters.get("sex") === "male" ? "male" : "female";
   const age = Number(parameters.get("age") ?? AGE_RANGE.value);
   const weight = parameters.get("bw");
+  const height = parameters.get("height");
   return individualOf(
     Number.isFinite(age) ? age : AGE_RANGE.value,
     sex,
     weight === null || !Number.isFinite(Number(weight)) ? undefined : Number(weight),
+    height === null || !Number.isFinite(Number(height)) ? undefined : Number(height),
   );
 }
 
@@ -55,13 +58,15 @@ export function writePerson(parameters: URLSearchParams, person: Individual): vo
   parameters.set("age", String(person.age));
   parameters.set("sex", person.sex);
   parameters.set("bw", String(person.weight));
+  parameters.set("height", String(person.height));
 }
 
 /** The person in words: a woman of thirty-five years and sixty kilograms. */
 export function personLine(voice: Voice, person: Individual): string {
   const copy = voice.pick(HUB_TEXT).person;
   const body = bodyName(voice, person.sex, person.age);
-  return `${body}, ${Math.round(person.age)} ${copy.years}, ${person.weight.toFixed(1)} kg`;
+  return `${body}, ${Math.round(person.age)} ${copy.years}, ${person.weight.toFixed(1)} kg,`
+    + ` ${Math.round(person.height)} cm`;
 }
 
 interface DialOptions {
@@ -106,6 +111,7 @@ export function askPerson(
   let age = clampAge(start.age);
   let sex: Sex = start.sex;
   let weight = clampWeight(start.weight, age, sex);
+  let height = clampHeight(start.height);
 
   const ageDial: DialOptions = {
     id: "age", label: text.age, unit: text.years, info: text.ageInfo,
@@ -118,6 +124,14 @@ export function askPerson(
       min: range.min, max: range.max, step: 0.5, reference: referenceBody(age, sex).weight,
     };
   };
+  // How tall this body is. It opens at the reference of the age and is then the visitor's to
+  // set, because a body of a given age is not one height, and every model of the collection
+  // scales its organs from the height as well as from the weight.
+  const heightDial = (): DialOptions => ({
+    id: "height", label: text.height, unit: "cm", info: text.heightInfo,
+    min: HEIGHT_RANGE.min, max: HEIGHT_RANGE.max, step: 1,
+    reference: referenceBody(age, sex).height,
+  });
 
   // The two bodies, named for the age which is set: a body of eight years is a girl or a boy.
   // The picture is the body itself, the drawing every table of the collection is solved on,
@@ -144,8 +158,8 @@ export function askPerson(
     + `<p class="welcome-note">${noteHtml}</p>`
     + `<div class="welcome-row welcome-row--bodies">`
     + `${bodyPick("female")}${bodyPick("male")}</div>`
-    + `<div class="dials">${dialHtml(ageDial)}${dialHtml(weightDial())}</div>`
-    + `<p class="person-body"></p>`
+    + `<div class="dials">${dialHtml(ageDial)}${dialHtml(weightDial())}`
+    + `${dialHtml(heightDial())}</div>`
     + `<button class="welcome-pick welcome-pick--go" type="button" data-choice="ready"`
     + ` data-dwell="person:ready" data-info="${escapeHtml(text.readyInfo)}">`
     + `<span class="welcome-pick-label">${escapeHtml(text.ready)}</span></button>`
@@ -195,6 +209,7 @@ export function askPerson(
   const draw = (): void => {
     drawDial(ageDial, age);
     drawDial(weightDial(), weight);
+    drawDial(heightDial(), height);
     for (const pick of root.querySelectorAll(".welcome-pick--body")) {
       const value = (pick as HTMLElement).dataset["choice"];
       pick.setAttribute("aria-pressed", String(value === sex));
@@ -203,16 +218,17 @@ export function askPerson(
         label.textContent = bodyName(voice, value, age);
       }
     }
-    const line = root.querySelector(".person-body");
-    if (line !== null) {
-      line.textContent = `${text.height} ${referenceBody(age, sex).height} cm`;
-    }
-    // Both figures stand at the height of the body of this age, so that the two are compared
-    // with each other and the pair grows and shrinks as the age is set.
+    // The chosen body stands at the height and the width which are set, the other one at the
+    // reference of its age, so the two are compared with each other and the pair grows and
+    // broadens with the dials.
     for (const figure of root.querySelectorAll<SVGSVGElement>(".welcome-body-art")) {
       const value = figure.dataset["sex"] === "male" ? "male" : "female";
-      const height = referenceBody(age, value).height;
-      figure.style.height = `${(FIGURE.height * height / FIGURE.grown).toFixed(1)}px`;
+      const shown = value === sex
+        ? individualOf(age, value, weight, height)
+        : individualOf(age, value);
+      const shape = figureScale(shown, referenceBody(FIGURE.adult, value));
+      figure.style.height = `${(FIGURE.height * shape.y).toFixed(1)}px`;
+      figure.style.transform = `scaleX(${shape.x.toFixed(3)})`;
     }
   };
 
@@ -254,11 +270,15 @@ export function askPerson(
     const id = (track as HTMLElement).dataset["dialTrack"];
     if (id === "age") {
       age = clampAge(valueAt(ageDial, track, x));
-      // The weight belongs to the age: a body of four years does not keep the sixty kilograms
-      // of the adult it was a moment ago, so the dial follows to the reference of the new age.
+      // The body belongs to the age: a body of four years does not keep the sixty kilograms
+      // and the hundred and sixty centimetres of the adult it was a moment ago, so both dials
+      // follow to the reference of the new age.
       weight = referenceBody(age, sex).weight;
+      height = referenceBody(age, sex).height;
     } else if (id === "weight") {
       weight = clampWeight(valueAt(weightDial(), track, x), age, sex);
+    } else if (id === "height") {
+      height = clampHeight(valueAt(heightDial(), track, x));
     } else {
       return;
     }
@@ -275,7 +295,7 @@ export function askPerson(
     const done = (): void => {
       stop();
       root.remove();
-      resolve(individualOf(age, sex, weight));
+      resolve(individualOf(age, sex, weight, height));
     };
 
     const take = (choice: string): void => {
@@ -285,8 +305,9 @@ export function askPerson(
       }
       if (choice !== "female" && choice !== "male") return;
       sex = choice;
-      // The body of a woman and the body of a man weigh different things at the same age.
-      weight = referenceBody(age, sex).weight;
+      // What was set stays set: a visitor who has put their own weight and their own height on
+      // the dials and then looks at the other body wants the same body, not the reference one.
+      weight = clampWeight(weight, age, sex);
       draw();
     };
 

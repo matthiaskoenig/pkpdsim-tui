@@ -16,7 +16,7 @@ import {
   loadAnatomy, loadCardiovascularData, loadHeartConfig, solvePressure,
 } from "@pkpdsim-tui/cardio-sim";
 import type {
-  HeartConfig, HeartControls, HeartSummary, PressureSolution,
+  HeartConfig, HeartControls, HeartSummary, PressureControls, PressureSolution,
 } from "@pkpdsim-tui/cardio-sim";
 import {createSolver, fetchSolverAssets, loadCoreHost} from "@pkpdsim-tui/core-runtime";
 import type {Solver} from "@pkpdsim-tui/core-runtime";
@@ -96,19 +96,31 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   };
   const body = anatomy.bodies[sex] ?? Object.values(anatomy.bodies)[0];
   if (body === undefined) throw new Error("The anatomy holds no body.");
-  const bodies: readonly ChoiceGroup[] = [{
-    id: "sex", label: kit.bodySwitch, selected: sex,
-    options: [
-      {id: "female", label: bodyName(voice, "female", individual.age), picture: "woman"},
-      {id: "male", label: bodyName(voice, "male", individual.age), picture: "man"},
-    ],
-  }];
-
   // The circulation of this person: the exported network is that of the reference adult, and a
   // body which moves less blood is the same network with more resistance. How much less it
   // moves is the cardiac output of a body of that age until the heart of this body has been
   // solved once, and from then on it is what that run said.
   let reference = bodyReference(data.pressure, flowScale(individual));
+
+  /**
+   * The network of the body at the head which makes it move what the heart moved.
+   *
+   * The algebra of the network is driven by a pressure head, and the heart is what makes that
+   * head: a heart which beats faster or harder pushes more blood through the same vessels, and
+   * every organ gets more of it. So the head is set to the one at which this network carries
+   * the cardiac output the beating heart of these settings produced, which is what makes the
+   * liver on the body follow the dial of the heart rate rather than only the picture of the
+   * beat. The resistances are already in that run, so a vessel which was narrowed shows up
+   * twice over: in the share each organ takes here, and in the output the heart managed there.
+   */
+  const steadyAt = (controls: PressureControls, output: number): PressureSolution => {
+    const trial = solvePressure(reference, controls);
+    const head = controls.arterial - controls.venous;
+    if (!(output > 0) || !(trial.co > 0) || head <= 0) return trial;
+    return solvePressure(
+      reference, {...controls, arterial: controls.venous + head * output / trial.co});
+  };
+
   let steadyBaseline = solvePressure(reference, defaultControls(reference));
   // The reference heart of this body, as pkpdsim exported it. It is what the table shows until
   // the first run of the live heart has come back, and what every number is compared with.
@@ -215,7 +227,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
         // network is scaled so that it moves what this heart moves.
         if (grown > 0 && mine > 0) {
           reference = bodyReference(data.pressure, mine / grown);
-          steadyBaseline = solvePressure(reference, defaultControls(reference));
+          steadyBaseline = steadyAt(defaultControls(reference), mine);
         }
       }
       baseline ??= cycle;
@@ -244,7 +256,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     const controls = controlsFromTokens(roles, snapshot.tokens, reference, origins);
     heartControls = heartControlsFromTokens(roles, snapshot.tokens, origins);
     try {
-      steady = solvePressure(reference, controls);
+      steady = steadyAt(controls, summary.mean_cardiac_output);
       notice = "";
     } catch (error) {
       notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
@@ -270,7 +282,6 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: cardioReading(voice, heartControls, individual, summary, referenceSummary),
       back: true,
-      choices: bodies,
       status, roles: roles, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];

@@ -19,13 +19,12 @@ A circulation is not a detail of a pharmacokinetic model: every organ of a PBPK 
 | 1 | Heart rate | How often the heart beats, which the compiled heart is solved with | 40 to 150 /min |
 | 2 | Contractility | How hard the ventricles squeeze, where turning it down is a failing heart | 0.4x to 1.6x |
 | 3 | Systemic resistance | The resistance of every systemic organ at once, the afterload of the heart | 0.5x to 2x |
-| 4 | Renal resistance | The resistance of the kidneys, on top of the systemic resistance | 0.5x to 3x |
 
-They are picked up in the order they are understood in: the heart itself on 1 and 2, the vessels of the whole body on 3, and the kidneys on 4. The two resistances of the liver, the hepatic outflow and the portal vein, were on the table and were taken off it: four objects is what a visitor holds in their head at once, and those two were the ones nobody turned without being told to. The model still has them, at the physiology of a healthy liver.
+They are picked up in the order they are understood in: the heart itself on 1 and 2, and the vessels of the whole body on 3. The resistances of single organs were on the table and were taken off it: three objects is what a visitor holds in their head at once, each of these three changes the whole picture, and the ones of the kidneys and of the liver were the ones nobody turned without being told to. The model still has them, at the physiology of a healthy organ.
 
 Every object is a dial. Pointing away from the person is the reference physiology, 1.00x for a resistance and 75 beats a minute for the heart. Turning it to the right raises the value, turning it to the left lowers it. The two resistances are logarithmic, because a resistance factor is a ratio; the heart rate is linear, because a rate is read off a scale in beats per minute. The last tenth of each half turn is the stop of the dial, where the value sits on its extreme instead of on a knife edge. Lifting the object restores the reference.
 
-The two resistances change both solutions at once. The two of the heart only change the beating one, because the steady network has no beat.
+The resistance changes both solutions at once, and so do the two of the heart: the network of the body is solved at the pressure head at which it carries the cardiac output the beating heart of those settings produced, so a faster or a harder beating heart raises the flow through every organ, the liver with it.
 
 The position of these objects carries nothing: each one is a dial, wherever it is put. The card stands above it and reads upright, as everything on these tables does. Inside the ring of a resistance is a vessel whose opening narrows as the factor goes up, following Poiseuille's law, and inside the two of the heart is a heart that beats at the rate of the dial.
 
@@ -74,10 +73,10 @@ Both scales start at zero and grow with what the table has done, never under a f
 
 - **Vasodilation.** Turn object 3 to the left. Every organ gains flow and the cardiac output rises, because the model drives the circulation with a fixed pressure head, and the monitor of the liver draws the liver filling up.
 - **Vasoconstriction.** Turn object 3 to the right. Every organ loses flow, the liver with it, and the pressures in front of the liver fall.
-- **Renal artery stenosis.** Turn object 4 to the right. The kidneys lose flow and almost nothing else moves, because the kidneys are one organ among fourteen.
 - **A slow heart.** Turn object 1 down to 40 beats a minute. The heart has longer to fill, so one beat moves half as much again, but the cardiac output still falls and the pressure in the aorta has further to fall between two beats: the blood pressure opens to something like 107/41 mmHg.
 - **A failing heart.** Turn object 2 down. The ventricle beside the heart empties less with every beat, the stroke volume falls and the circulation is carried by the rate alone.
-- **The other body.** Touch Woman in the panel. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
+- **A racing heart.** Turn object 1 up to 150 beats a minute. The cardiac output rises, and with it the flow through every organ on the body: the blood through the liver follows the dial of the heart.
+- **The other body.** Open the settings in the far corner and touch Woman. The whole table reloads on the female reference body of 60 kg, which has its own compiled heart, and every number is compared against that body's own reference.
 
 ## Where the numbers come from
 

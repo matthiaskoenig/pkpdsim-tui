@@ -34,7 +34,7 @@ export interface GlimepirideCopy {
   readonly stats: Readonly<Record<
     "now" | "cmax" | "tmax" | "halflife" | "auc" | "urine", Named>>;
   readonly roles: Readonly<Record<
-    "dose" | "cyp2c9" | "cirrhosis" | "renal" | "weight" | "doses", Named>>;
+    "dose" | "absorption" | "cyp2c9" | "cirrhosis" | "renal" | "doses", Named>>;
   /** The clinical classes, by the label of the export. */
   readonly categories: Readonly<Record<string, string>>;
   readonly traces: Readonly<Record<"gli" | "m1" | "m2", string>>;
@@ -99,15 +99,15 @@ const EN: GlimepirideCopy = {
     },
   ],
   about: {
-    child: "This tablet helps people whose blood has too much sugar. It goes into the gut, the liver takes it apart, and the kidneys wash the pieces out.",
-    adult: "Glimepiride lowers blood sugar in type 2 diabetes. The liver takes it apart into M1 and M2, and the kidneys wash those out. Set who the person is, and the same tablet does something else.",
-    expert: "The whole body PBPK model of glimepiride of pkpdsim: CYP2C9 makes M1, which is oxidized to M2, and both are cleared renally. The dose, the genotype, the cirrhosis, the creatinine clearance and the body weight of the individual are the objects.",
+    child: "This tablet helps people whose blood has too much sugar. It melts in the belly, goes into the blood, the liver takes it apart, and the kidneys wash the pieces out.",
+    adult: "Glimepiride lowers blood sugar in type 2 diabetes, and every drug makes the same four steps: it is taken up out of the gut, carried around the body in the blood, taken apart by the liver, and washed out by the kidneys. One object stands at each of those steps, and the person at the table is who all of it happens to.",
+    expert: "The whole body PBPK model of glimepiride of pkpdsim, along absorption, distribution, metabolism and elimination: the tablet dissolves and is absorbed, the body it is distributed in is the individual, CYP2C9 makes M1 which is oxidized to M2, and both are cleared renally.",
   },
   tries: [
     {
-      child: "Turn 2 down: this person takes the tablet apart slowly, so more of it stays inside.",
-      adult: "Turn 2 down: this person breaks the drug down slowly, and it piles up.",
-      expert: "Turn 2 down to a poor metabolizer: the exposure rises and the half life with it.",
+      child: "Turn 4 down: this person takes the tablet apart slowly, so more of it stays inside.",
+      adult: "Turn 4 down: this person breaks the drug down slowly, and it piles up.",
+      expert: "Turn 4 down to a poor metabolizer: the exposure rises and the half life with it.",
     },
     {
       child: "Turn 3 up: a tablet every morning, and watch what is left when the next one comes.",
@@ -169,48 +169,48 @@ const EN: GlimepirideCopy = {
     dose: {
       label: {child: "The tablet", adult: "Dose"},
       info: {
-        child: "How big the tablet is that this person swallows.",
-        adult: "The tablet the individual takes. The table gives the reference dose while the object is off the surface.",
-        expert: "The oral dose of glimepiride, from 1 to 8 mg, the licensed range.",
+        child: "Turn it and the tablet gets bigger or smaller: half a milligram up to eight.",
+        adult: "Changes the dose, through the tablets there are: 0.5, 1, 2, 3, 4, 6 and 8 mg. It starts at what a body of this weight is given, so a child starts far below an adult.",
+        expert: "The oral dose of glimepiride, snapped to the marketed strengths. The reference is the starting dose carried down from 4 mg with the body weight.",
+      },
+    },
+    absorption: {
+      label: {child: "How fast the tablet melts", adult: "Dissolution"},
+      info: {
+        child: "Turn it and the tablet falls apart faster or slower in the belly, so the drug arrives sooner or later.",
+        adult: "Changes how fast the tablet dissolves in the stomach. Nothing crosses the gut wall before it is in solution, so this moves the peak earlier or later without changing how much arrives.",
+        expert: "The dissolution rate constant of the tablet in the stomach, which sets the rate of the absorption step and so the time of the maximum.",
       },
     },
     cyp2c9: {
       label: {child: "How fast the liver works", adult: "CYP2C9 activity"},
       info: {
-        child: "How quickly the liver takes the tablet apart. Some people are slow at it.",
-        adult: "The activity of CYP2C9, which makes M1 out of glimepiride. Turning it down is a poor metabolizer.",
+        child: "Turn it down and the liver takes the tablet apart slowly, so more of it stays in the blood.",
+        adult: "Changes how fast the liver takes the drug apart, the M of ADME. Turning it down is a poor metabolizer: the drug is cleared more slowly and more of it is in the blood.",
         expert: "The activity of CYP2C9, the enzyme which hydroxylates glimepiride to M1. The detents are the *1/*1, *1/*2, *1/*3, *2/*3 and *3/*3 genotypes.",
       },
     },
     cirrhosis: {
       label: {child: "A sick liver", adult: "Cirrhosis"},
       info: {
-        child: "How badly the liver is scarred. A scarred liver works less well.",
-        adult: "How cirrhotic the liver is, from healthy to Child-Pugh C.",
+        child: "Turn it up and the liver is scarred: it is smaller, gets less blood and works less well.",
+        adult: "Changes how cirrhotic the liver is, from healthy to Child-Pugh C. It takes the working liver volume, the blood flow and the enzymes down together.",
         expert: "The degree of cirrhosis, which scales the functional liver volume, the blood flow and the enzyme activity, with the Child-Pugh classes as detents.",
       },
     },
     renal: {
       label: {child: "The kidneys", adult: "Creatinine clearance"},
       info: {
-        child: "How well the kidneys wash things out of the blood.",
-        adult: "What the kidneys still clear. The metabolites leave in the urine, so impairment holds them back.",
+        child: "Turn it down and the kidneys wash less out, so the pieces of the tablet stay in the blood.",
+        adult: "Changes what the kidneys still clear, the E of ADME. M1 and M2 leave in the urine, so impairment holds them back.",
         expert: "The creatinine clearance of the individual, which scales the renal clearance of M1 and M2.",
-      },
-    },
-    weight: {
-      label: {child: "How heavy", adult: "Body weight"},
-      info: {
-        child: "How heavy this person is. A bigger body has more blood to fill.",
-        adult: "The body weight, which scales the organs and the blood flows of the individual.",
-        expert: "The body weight, which scales the organ volumes and the blood flows of the physiology, and with them the volume of distribution.",
       },
     },
     doses: {
       label: {child: "How many tablets", adult: "Tablets, one a day"},
       info: {
-        child: "Turn it for a tablet every morning, up to ten mornings.",
-        adult: "How many days in a row the person takes a tablet, one every morning.",
+        child: "Turn it for a tablet every morning, up to ten mornings, and watch what is left when the next one comes.",
+        adult: "Changes how many days in a row the person takes a tablet, one every morning, which is what builds the drug up from day to day.",
         expert: "A dose of the tablet put back into the stomach every 24 hours, for up to ten days, with one further day after the last of them.",
       },
     },
@@ -302,15 +302,15 @@ const DE: GlimepirideCopy = {
     },
   ],
   about: {
-    child: "Diese Tablette hilft Menschen, die zu viel Zucker im Blut haben. Sie geht in den Darm, die Leber zerlegt sie, und die Nieren spülen die Teile hinaus.",
-    adult: "Glimepirid senkt den Blutzucker bei Typ-2-Diabetes. Die Leber zerlegt es zu M1 und M2, und die Nieren spülen diese hinaus. Stellen Sie ein, wer die Person ist, und dieselbe Tablette tut etwas anderes.",
-    expert: "Das Ganzkörper-PBPK-Modell von Glimepirid aus pkpdsim: CYP2C9 bildet M1, das zu M2 oxidiert wird, und beide werden renal eliminiert. Dosis, Genotyp, Zirrhose, Kreatinin-Clearance und Körpergewicht des Individuums sind die Objekte.",
+    child: "Diese Tablette hilft Menschen, die zu viel Zucker im Blut haben. Sie zergeht im Bauch, geht ins Blut, die Leber zerlegt sie, und die Nieren spülen die Teile hinaus.",
+    adult: "Glimepirid senkt den Blutzucker bei Typ-2-Diabetes, und jedes Medikament macht dieselben vier Schritte: Es wird aus dem Darm aufgenommen, im Blut durch den Körper verteilt, von der Leber zerlegt und von den Nieren hinausgespült. An jedem dieser Schritte steht ein Objekt, und die Person am Tisch ist die, der das alles passiert.",
+    expert: "Das Ganzkörper-PBPK-Modell von Glimepirid aus pkpdsim, entlang Absorption, Verteilung, Metabolismus und Elimination: Die Tablette löst sich auf und wird resorbiert, der Körper, in dem sie verteilt wird, ist das Individuum, CYP2C9 bildet M1, das zu M2 oxidiert wird, und beide werden renal eliminiert.",
   },
   tries: [
     {
-      child: "Dreh 2 herunter: diese Person zerlegt die Tablette langsam, also bleibt mehr davon drin.",
-      adult: "Drehen Sie 2 herunter: diese Person baut das Medikament langsam ab, und es sammelt sich an.",
-      expert: "Drehen Sie 2 auf einen Poor Metabolizer herunter: die Exposition steigt und die Halbwertszeit mit ihr.",
+      child: "Dreh 4 herunter: diese Person zerlegt die Tablette langsam, also bleibt mehr davon drin.",
+      adult: "Drehen Sie 4 herunter: diese Person baut das Medikament langsam ab, und es sammelt sich an.",
+      expert: "Drehen Sie 4 auf einen Poor Metabolizer herunter: die Exposition steigt und die Halbwertszeit mit ihr.",
     },
     {
       child: "Dreh 3 hoch: jeden Morgen eine Tablette, und schau, was noch da ist, wenn die nächste kommt.",
@@ -372,48 +372,48 @@ const DE: GlimepirideCopy = {
     dose: {
       label: {child: "Die Tablette", adult: "Dosis"},
       info: {
-        child: "Wie groß die Tablette ist, die diese Person schluckt.",
-        adult: "Die Tablette, die das Individuum nimmt. Ohne Objekt auf der Fläche gilt die Referenzdosis.",
-        expert: "Die orale Dosis Glimepirid, 1 bis 8 mg, der zugelassene Bereich.",
+        child: "Dreh daran, dann wird die Tablette größer oder kleiner: ein halbes Milligramm bis acht.",
+        adult: "Ändert die Dosis, in den Tabletten, die es gibt: 0,5, 1, 2, 3, 4, 6 und 8 mg. Sie beginnt bei dem, was ein Körper dieses Gewichts bekommt, ein Kind also weit unter einem Erwachsenen.",
+        expert: "Die orale Dosis Glimepirid, auf die vermarkteten Stärken gerastet. Die Referenz ist die Anfangsdosis, von 4 mg mit dem Körpergewicht heruntergetragen.",
+      },
+    },
+    absorption: {
+      label: {child: "Wie schnell die Tablette zergeht", adult: "Auflösung"},
+      info: {
+        child: "Dreh daran, dann zerfällt die Tablette im Bauch schneller oder langsamer, und das Medikament kommt früher oder später an.",
+        adult: "Ändert, wie schnell sich die Tablette im Magen auflöst. Erst gelöst geht etwas durch die Darmwand, also verschiebt das den Gipfel nach vorn oder hinten, ohne die Menge zu ändern.",
+        expert: "Die Auflösungskonstante der Tablette im Magen, die den Absorptionsschritt und damit die Zeit des Maximums bestimmt.",
       },
     },
     cyp2c9: {
       label: {child: "Wie schnell die Leber arbeitet", adult: "CYP2C9-Aktivität"},
       info: {
-        child: "Wie schnell die Leber die Tablette zerlegt. Manche Menschen sind darin langsam.",
-        adult: "Die Aktivität von CYP2C9, das aus Glimepirid M1 macht. Herunterdrehen ist ein Poor Metabolizer.",
+        child: "Dreh herunter, dann zerlegt die Leber die Tablette langsam, und es bleibt mehr davon im Blut.",
+        adult: "Ändert, wie schnell die Leber das Medikament zerlegt, das M von ADME. Herunterdrehen ist ein Poor Metabolizer: Das Medikament wird langsamer abgebaut, und mehr davon ist im Blut.",
         expert: "Die Aktivität von CYP2C9, das Glimepirid zu M1 hydroxyliert. Die Rasten sind die Genotypen *1/*1, *1/*2, *1/*3, *2/*3 und *3/*3.",
       },
     },
     cirrhosis: {
       label: {child: "Eine kranke Leber", adult: "Zirrhose"},
       info: {
-        child: "Wie stark die Leber vernarbt ist. Eine vernarbte Leber arbeitet schlechter.",
-        adult: "Wie zirrhotisch die Leber ist, von gesund bis Child-Pugh C.",
+        child: "Dreh hoch, dann ist die Leber vernarbt: Sie ist kleiner, bekommt weniger Blut und arbeitet schlechter.",
+        adult: "Ändert, wie zirrhotisch die Leber ist, von gesund bis Child-Pugh C. Funktionelles Lebervolumen, Blutfluss und Enzyme gehen zusammen herunter.",
         expert: "Der Grad der Zirrhose, der funktionelles Lebervolumen, Blutfluss und Enzymaktivität skaliert, mit den Child-Pugh-Klassen als Rasten.",
       },
     },
     renal: {
       label: {child: "Die Nieren", adult: "Kreatinin-Clearance"},
       info: {
-        child: "Wie gut die Nieren Dinge aus dem Blut waschen.",
-        adult: "Was die Nieren noch klären. Die Metaboliten gehen mit dem Urin hinaus, eine Einschränkung hält sie also zurück.",
+        child: "Dreh herunter, dann waschen die Nieren weniger hinaus, und die Teile der Tablette bleiben im Blut.",
+        adult: "Ändert, was die Nieren noch klären, das E von ADME. M1 und M2 gehen mit dem Urin hinaus, eine Einschränkung hält sie also zurück.",
         expert: "Die Kreatinin-Clearance des Individuums, die die renale Clearance von M1 und M2 skaliert.",
-      },
-    },
-    weight: {
-      label: {child: "Wie schwer", adult: "Körpergewicht"},
-      info: {
-        child: "Wie schwer diese Person ist. Ein größerer Körper hat mehr Blut zu füllen.",
-        adult: "Das Körpergewicht, das Organe und Blutflüsse des Individuums skaliert.",
-        expert: "Das Körpergewicht, das Organvolumina und Blutflüsse der Physiologie skaliert und damit das Verteilungsvolumen.",
       },
     },
     doses: {
       label: {child: "Wie viele Tabletten", adult: "Tabletten, eine am Tag"},
       info: {
-        child: "Dreh daran: jeden Morgen eine Tablette, bis zu zehn Morgen lang.",
-        adult: "Wie viele Tage hintereinander die Person eine Tablette nimmt, jeden Morgen eine.",
+        child: "Dreh daran: jeden Morgen eine Tablette, bis zu zehn Morgen lang, und schau, was noch da ist, wenn die nächste kommt.",
+        adult: "Ändert, wie viele Tage hintereinander die Person eine Tablette nimmt, jeden Morgen eine. Genau das lässt das Medikament von Tag zu Tag ansteigen.",
         expert: "Eine Dosis der Tablette alle 24 Stunden zurück in den Magen, bis zu zehn Tage lang, mit einem weiteren Tag nach der letzten.",
       },
     },
@@ -508,15 +508,15 @@ const ES: GlimepirideCopy = {
     },
   ],
   about: {
-    child: "Esta pastilla ayuda a las personas que tienen demasiado azúcar en la sangre. Va al intestino, el hígado la desarma y los riñones lavan los trozos.",
-    adult: "La glimepirida baja el azúcar en sangre en la diabetes tipo 2. El hígado la desarma en M1 y M2, y los riñones los eliminan. Ajuste quién es la persona, y la misma pastilla hace otra cosa.",
-    expert: "El modelo PBPK de cuerpo entero de la glimepirida de pkpdsim: CYP2C9 forma M1, que se oxida a M2, y ambos se eliminan por vía renal. La dosis, el genotipo, la cirrosis, el aclaramiento de creatinina y el peso del individuo son los objetos.",
+    child: "Esta pastilla ayuda a las personas que tienen demasiado azúcar en la sangre. Se deshace en la barriga, pasa a la sangre, el hígado la desarma y los riñones lavan los trozos.",
+    adult: "La glimepirida baja el azúcar en sangre en la diabetes tipo 2, y todo medicamento da los mismos cuatro pasos: se absorbe desde el intestino, se reparte por el cuerpo con la sangre, el hígado lo desarma y los riñones lo lavan. En cada paso hay un objeto, y la persona de la mesa es a quien le pasa todo esto.",
+    expert: "El modelo PBPK de cuerpo entero de la glimepirida de pkpdsim, a lo largo de absorción, distribución, metabolismo y eliminación: la pastilla se disuelve y se absorbe, el cuerpo en el que se distribuye es el individuo, CYP2C9 forma M1, que se oxida a M2, y ambos se eliminan por vía renal.",
   },
   tries: [
     {
-      child: "Gira el 2 hacia abajo: esta persona desarma la pastilla despacio, así que queda más dentro.",
-      adult: "Gire el 2 hacia abajo: esta persona metaboliza el fármaco despacio y se le acumula.",
-      expert: "Gire el 2 a metabolizador lento: la exposición sube y con ella la semivida.",
+      child: "Gira el 4 hacia abajo: esta persona desarma la pastilla despacio, así que queda más dentro.",
+      adult: "Gire el 4 hacia abajo: esta persona metaboliza el fármaco despacio y se le acumula.",
+      expert: "Gire el 4 a metabolizador lento: la exposición sube y con ella la semivida.",
     },
     {
       child: "Sube el 3: una pastilla cada mañana, y mira qué queda cuando llega la siguiente.",
@@ -578,48 +578,48 @@ const ES: GlimepirideCopy = {
     dose: {
       label: {child: "La pastilla", adult: "Dosis"},
       info: {
-        child: "Cómo de grande es la pastilla que traga esta persona.",
-        adult: "La pastilla que toma el individuo. Sin el objeto sobre la superficie vale la dosis de referencia.",
-        expert: "La dosis oral de glimepirida, de 1 a 8 mg, el rango autorizado.",
+        child: "Gíralo y la pastilla se hace más grande o más pequeña: de medio miligramo a ocho.",
+        adult: "Cambia la dosis, en las pastillas que existen: 0,5, 1, 2, 3, 4, 6 y 8 mg. Empieza en lo que recibe un cuerpo de este peso, así que un niño empieza muy por debajo de un adulto.",
+        expert: "La dosis oral de glimepirida, ajustada a las presentaciones comercializadas. La referencia es la dosis inicial, bajada desde 4 mg con el peso corporal.",
+      },
+    },
+    absorption: {
+      label: {child: "Cómo de rápido se deshace la pastilla", adult: "Disolución"},
+      info: {
+        child: "Gíralo y la pastilla se deshace más rápido o más lento en la barriga, así que el medicamento llega antes o después.",
+        adult: "Cambia la rapidez con que la pastilla se disuelve en el estómago. Nada cruza la pared del intestino sin estar disuelto, así que esto adelanta o retrasa el pico sin cambiar la cantidad.",
+        expert: "La constante de disolución de la pastilla en el estómago, que fija el paso de absorción y con él el tiempo del máximo.",
       },
     },
     cyp2c9: {
       label: {child: "Cómo de rápido trabaja el hígado", adult: "Actividad de CYP2C9"},
       info: {
-        child: "Con qué rapidez desarma el hígado la pastilla. Algunas personas son lentas.",
-        adult: "La actividad de CYP2C9, que hace M1 a partir de la glimepirida. Bajarla es un metabolizador lento.",
+        child: "Bájalo y el hígado desarma la pastilla despacio, así que queda más en la sangre.",
+        adult: "Cambia la rapidez con que el hígado desarma el medicamento, la M de ADME. Bajarla es un metabolizador lento: se elimina más despacio y queda más en la sangre.",
         expert: "La actividad de CYP2C9, la enzima que hidroxila la glimepirida a M1. Los topes son los genotipos *1/*1, *1/*2, *1/*3, *2/*3 y *3/*3.",
       },
     },
     cirrhosis: {
       label: {child: "Un hígado enfermo", adult: "Cirrosis"},
       info: {
-        child: "Cuántas cicatrices tiene el hígado. Un hígado con cicatrices trabaja peor.",
-        adult: "Cómo de cirrótico está el hígado, de sano a Child-Pugh C.",
+        child: "Súbelo y el hígado tiene cicatrices: es más pequeño, recibe menos sangre y trabaja peor.",
+        adult: "Cambia cómo de cirrótico está el hígado, de sano a Child-Pugh C. Bajan juntos el volumen hepático funcional, el flujo sanguíneo y las enzimas.",
         expert: "El grado de cirrosis, que escala el volumen hepático funcional, el flujo sanguíneo y la actividad enzimática, con las clases de Child-Pugh como topes.",
       },
     },
     renal: {
       label: {child: "Los riñones", adult: "Aclaramiento de creatinina"},
       info: {
-        child: "Cómo de bien lavan los riñones las cosas de la sangre.",
-        adult: "Lo que los riñones todavía aclaran. Los metabolitos salen con la orina, así que la insuficiencia los retiene.",
+        child: "Bájalo y los riñones lavan menos, así que los trozos de la pastilla se quedan en la sangre.",
+        adult: "Cambia lo que los riñones todavía aclaran, la E de ADME. M1 y M2 salen con la orina, así que la insuficiencia los retiene.",
         expert: "El aclaramiento de creatinina del individuo, que escala el aclaramiento renal de M1 y M2.",
-      },
-    },
-    weight: {
-      label: {child: "Cuánto pesa", adult: "Peso corporal"},
-      info: {
-        child: "Cuánto pesa esta persona. Un cuerpo más grande tiene más sangre que llenar.",
-        adult: "El peso corporal, que escala los órganos y los flujos sanguíneos del individuo.",
-        expert: "El peso corporal, que escala los volúmenes de órgano y los flujos de la fisiología, y con ellos el volumen de distribución.",
       },
     },
     doses: {
       label: {child: "Cuántas pastillas", adult: "Pastillas, una al día"},
       info: {
-        child: "Gíralo: una pastilla cada mañana, hasta diez mañanas.",
-        adult: "Cuántos días seguidos toma la persona una pastilla, una cada mañana.",
+        child: "Gíralo: una pastilla cada mañana, hasta diez mañanas, y mira lo que queda cuando llega la siguiente.",
+        adult: "Cambia cuántos días seguidos toma la persona una pastilla, una cada mañana, que es lo que la acumula de día en día.",
         expert: "Una dosis de la pastilla de vuelta al estómago cada 24 horas, hasta diez días, con un día más tras la última.",
       },
     },

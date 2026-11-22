@@ -5,7 +5,8 @@ export {
 } from "./categories.ts";
 export type {Category} from "./categories.ts";
 export {
-  GLIMEPIRIDE_CONTROLS, heightOf, HEIGHT_PARAMETER, NORMAL_CRCL, normalizeIndividual, parametersOf,
+  GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSE_STEPS, heightOf, HEIGHT_PARAMETER, NORMAL_CRCL,
+  normalizeIndividual, parametersOf, startingDose,
   REFERENCE_BODIES, referenceIndividual, SEXES,
 } from "./individual.ts";
 export type {GlimepirideControl, GlimepirideIndividual, Sex} from "./individual.ts";

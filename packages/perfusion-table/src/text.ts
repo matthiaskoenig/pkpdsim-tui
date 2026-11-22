@@ -168,24 +168,24 @@ const EN: PerfusionCopy = {
     flow: {
       label: {child: "The pump", adult: "Pump"},
       info: {
-        child: "How much liquid the pump pushes through the liver every minute.",
-        adult: "The pump, which pushes the perfusate through the organ. Too little, and the cells furthest from the inflow are starved of oxygen.",
+        child: "Turn it and the pump pushes more or less liquid through the liver every minute.",
+        adult: "Changes how much perfusate the pump pushes through the organ. Turn it down and the cells furthest from the inflow are starved of oxygen.",
         expert: "The pump flow through the organ. With a fixed pO2 it sets the oxygen delivery, and with it the gradient along the sinusoid.",
       },
     },
     oxygen: {
       label: {child: "The oxygen", adult: "Oxygen"},
       info: {
-        child: "How much oxygen is put into the liquid. It is all the liver gets.",
-        adult: "How much oxygen the oxygenator puts into the fluid. It is the only oxygen the organ gets: there are no red blood cells in the circuit.",
+        child: "Turn it and more or less oxygen goes into the liquid. It is all the liver gets.",
+        adult: "Changes how much oxygen the oxygenator puts into the fluid. It is the only oxygen the organ gets: there are no red blood cells in the circuit.",
         expert: "The pO2 the oxygenator holds the perfusate at. Without haemoglobin the dissolved oxygen is the whole supply.",
       },
     },
     temperature: {
       label: {child: "Warm or cold", adult: "Temperature"},
       info: {
-        child: "How warm the machine keeps the liver. Warm means it works, cold means it sleeps.",
-        adult: "How warm the circuit is kept. Warm means the organ works and has to be fed; cold slows everything down, which is how an organ is carried to a transplant.",
+        child: "Turn it and the machine keeps the liver warmer or colder. Warm means it works, cold means it sleeps.",
+        adult: "Changes how warm the circuit is kept. Warm means the organ works and has to be fed; cold slows everything down, which is how an organ is carried to a transplant.",
         expert: "The temperature of the circuit, from hypothermic storage to normothermia. It enters before the initial values are resolved, because the solubility and the rates are initial assignments of it.",
       },
     },
@@ -388,24 +388,24 @@ const DE: PerfusionCopy = {
     flow: {
       label: {child: "Die Pumpe", adult: "Pumpe"},
       info: {
-        child: "Wie viel Flüssigkeit die Pumpe jede Minute durch die Leber schiebt.",
-        adult: "Die Pumpe, die das Perfusat durch das Organ schiebt. Zu wenig, und die Zellen am weitesten vom Zufluss hungern nach Sauerstoff.",
+        child: "Dreh daran, dann schiebt die Pumpe mehr oder weniger Flüssigkeit durch die Leber.",
+        adult: "Ändert, wie viel Perfusat die Pumpe durch das Organ schiebt. Herunterdrehen, und die Zellen am weitesten vom Zufluss hungern nach Sauerstoff.",
         expert: "Der Pumpenfluss durch das Organ. Bei festem pO2 bestimmt er das Sauerstoffangebot und damit den Gradienten entlang des Sinusoids.",
       },
     },
     oxygen: {
       label: {child: "Der Sauerstoff", adult: "Sauerstoff"},
       info: {
-        child: "Wie viel Sauerstoff in die Flüssigkeit kommt. Mehr bekommt die Leber nicht.",
-        adult: "Wie viel Sauerstoff der Oxygenator in die Flüssigkeit bringt. Es ist der einzige Sauerstoff, den das Organ bekommt: im Kreislauf sind keine roten Blutkörperchen.",
+        child: "Dreh daran, dann kommt mehr oder weniger Sauerstoff in die Flüssigkeit. Mehr bekommt die Leber nicht.",
+        adult: "Ändert, wie viel Sauerstoff der Oxygenator in die Flüssigkeit bringt. Es ist der einzige Sauerstoff, den das Organ bekommt: im Kreislauf sind keine roten Blutkörperchen.",
         expert: "Der pO2, auf dem der Oxygenator das Perfusat hält. Ohne Hämoglobin ist der gelöste Sauerstoff das ganze Angebot.",
       },
     },
     temperature: {
       label: {child: "Warm oder kalt", adult: "Temperatur"},
       info: {
-        child: "Wie warm die Maschine die Leber hält. Warm heißt, sie arbeitet, kalt heißt, sie schläft.",
-        adult: "Wie warm der Kreislauf gehalten wird. Warm heißt, das Organ arbeitet und muss versorgt werden; kalt verlangsamt alles, und so wird ein Organ zur Transplantation gebracht.",
+        child: "Dreh daran, dann hält die Maschine die Leber wärmer oder kälter. Warm heißt, sie arbeitet, kalt heißt, sie schläft.",
+        adult: "Ändert, wie warm der Kreislauf gehalten wird. Warm heißt, das Organ arbeitet und muss versorgt werden; kalt verlangsamt alles, und so wird ein Organ zur Transplantation gebracht.",
         expert: "Die Temperatur des Kreislaufs, von hypothermer Lagerung bis zur Normothermie. Sie geht vor der Auflösung der Initialwerte ein, weil Löslichkeit und Raten initial assignments von ihr sind.",
       },
     },
@@ -610,24 +610,24 @@ const ES: PerfusionCopy = {
     flow: {
       label: {child: "La bomba", adult: "Bomba"},
       info: {
-        child: "Cuánto líquido empuja la bomba por el hígado cada minuto.",
-        adult: "La bomba, que empuja el perfundido por el órgano. Si es poco, las células más lejanas a la entrada se quedan sin oxígeno.",
+        child: "Gíralo y la bomba empuja más o menos líquido por el hígado cada minuto.",
+        adult: "Cambia cuánto perfundido empuja la bomba por el órgano. Si lo bajas, las células más lejanas a la entrada se quedan sin oxígeno.",
         expert: "El flujo de la bomba por el órgano. Con una pO2 fija fija el aporte de oxígeno y con él el gradiente del sinusoide.",
       },
     },
     oxygen: {
       label: {child: "El oxígeno", adult: "Oxígeno"},
       info: {
-        child: "Cuánto oxígeno se pone en el líquido. Es todo lo que recibe el hígado.",
-        adult: "Cuánto oxígeno pone el oxigenador en el líquido. Es el único oxígeno que recibe el órgano: en el circuito no hay glóbulos rojos.",
+        child: "Gíralo y entra más o menos oxígeno en el líquido. Es todo lo que recibe el hígado.",
+        adult: "Cambia cuánto oxígeno pone el oxigenador en el líquido. Es el único oxígeno que recibe el órgano: en el circuito no hay glóbulos rojos.",
         expert: "La pO2 a la que el oxigenador mantiene el perfundido. Sin hemoglobina, el oxígeno disuelto es todo el aporte.",
       },
     },
     temperature: {
       label: {child: "Frío o caliente", adult: "Temperatura"},
       info: {
-        child: "Cómo de caliente mantiene la máquina el hígado. Caliente trabaja, frío duerme.",
-        adult: "Cómo de caliente se mantiene el circuito. Caliente significa que el órgano trabaja y hay que alimentarlo; frío lo ralentiza todo, y así se lleva un órgano a un trasplante.",
+        child: "Gíralo y la máquina mantiene el hígado más caliente o más frío. Caliente trabaja, frío duerme.",
+        adult: "Cambia cómo de caliente se mantiene el circuito. Caliente significa que el órgano trabaja y hay que alimentarlo; frío lo ralentiza todo, y así se lleva un órgano a un trasplante.",
         expert: "La temperatura del circuito, de la conservación hipotérmica a la normotermia. Entra antes de resolver los valores iniciales, porque la solubilidad y las velocidades son asignaciones iniciales suyas.",
       },
     },

@@ -14,6 +14,17 @@ export interface KitCopy {
   readonly backInfo: Phrase;
   /** The heading over the legend of the objects. */
   readonly objects: string;
+  /** The page a table opens with, before anything is turned. */
+  readonly brief: {
+    /** The heading over what the objects of this table change. */
+    readonly objects: string;
+    /** The heading over the things worth trying. */
+    readonly tries: string;
+    /** What the button that ends the page says, which starts the table. */
+    readonly start: string;
+    /** What that button does, behind a note. */
+    readonly startInfo: Phrase;
+  };
   /** The label of the switch which picks the table, the language and the level. */
   /** What the quiz of a table says around its questions. */
   readonly quiz: {
@@ -82,6 +93,16 @@ const EN: KitCopy = {
     adult: "Leave this table. The body is where every table is opened from.",
   },
   objects: "Objects",
+  brief: {
+    objects: "The objects, and what each one changes",
+    tries: "Worth trying",
+    start: "Start",
+    startInfo: {
+      child: "Press it and you can play with the table.",
+      adult: "Press it and the table is yours: put the objects down and turn them.",
+      expert: "Opens the interactive surface at the reference state of this individual.",
+    },
+  },
   quiz: {
     title: "Quiz",
     info: "Three questions about this table. Nothing is lost by being wrong.",
@@ -161,6 +182,16 @@ const DE: KitCopy = {
     adult: "Diesen Tisch verlassen. Vom Körper aus wird jeder Tisch geöffnet.",
   },
   objects: "Objekte",
+  brief: {
+    objects: "Die Objekte, und was jedes verändert",
+    tries: "Zum Ausprobieren",
+    start: "Los geht's",
+    startInfo: {
+      child: "Drück drauf, dann kannst du mit dem Tisch spielen.",
+      adult: "Drücken Sie darauf, dann gehört der Tisch Ihnen: Objekte auflegen und drehen.",
+      expert: "Öffnet die interaktive Fläche im Referenzzustand dieses Individuums.",
+    },
+  },
   quiz: {
     title: "Quiz",
     info: "Drei Fragen zu diesem Tisch. Falsch raten kostet nichts.",
@@ -241,6 +272,16 @@ const ES: KitCopy = {
     adult: "Salir de esta mesa. Todas las mesas se abren desde el cuerpo.",
   },
   objects: "Objetos",
+  brief: {
+    objects: "Los objetos, y lo que cambia cada uno",
+    tries: "Para probar",
+    start: "Empezar",
+    startInfo: {
+      child: "Aprieta y ya puedes jugar con la mesa.",
+      adult: "Apriete y la mesa es suya: ponga los objetos y gírelos.",
+      expert: "Abre la superficie interactiva en el estado de referencia de este individuo.",
+    },
+  },
   quiz: {
     title: "Quiz",
     info: "Tres preguntas sobre esta mesa. Equivocarse no cuesta nada.",

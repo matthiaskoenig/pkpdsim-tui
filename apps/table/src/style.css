@@ -554,7 +554,7 @@
    than the two before it, because it is read down rather than across: the body, the two lines
    of the age and the weight, and the button which takes them to the tables. */
 .welcome-card--person {
-  gap: 1.1rem;
+  gap: 0.8rem;
   width: min(44rem, 100%);
 }
 
@@ -590,7 +590,7 @@
 
 .dials {
   display: grid;
-  gap: 1.2rem;
+  gap: 0.8rem;
   width: 100%;
 }
 
@@ -732,7 +732,7 @@
 .welcome-body {
   display: grid;
   place-items: end center;
-  height: 15rem;
+  height: 11.5rem;
 }
 
 .welcome-body svg {
@@ -742,7 +742,8 @@
 
 .welcome-body-art {
   display: block;
-  height: 14rem;
+  height: 11rem;
+  transform-origin: bottom center;
 }
 
 .welcome-body-art path {
@@ -779,4 +780,22 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-dim);
+}
+
+/* The line under the name of a card, and under the title of the sidebar: what is done there. */
+.hub-icon-tag {
+  font-size: 19px;
+  font-weight: 500;
+  fill: var(--ink-dim);
+}
+
+.hub-info-tag {
+  font-size: 22px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+}
+
+/* Both bodies stand in the middle; the one the tables are solved for is the one in full. */
+.hub-body[data-chosen="false"] {
+  opacity: 0.4;
 }

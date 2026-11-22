@@ -15,7 +15,7 @@ import {
 import type {Series, Solver} from "@pkpdsim-tui/core-runtime";
 import {
   finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_DOSES, glimepirideRequest, NORMAL_CRCL,
-  pharmacokinetics, referenceIndividual,
+  pharmacokinetics, referenceIndividual, startingDose,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {loadAnatomy, renalFactor} from "@pkpdsim-tui/cardio-sim";
@@ -88,10 +88,12 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   const roles = glimepirideRoles(voice, person);
   const reference: GlimepirideIndividual = {
     ...referenceIndividual(sex),
+    // The table opens at the dose a body of this weight is started on, so a child does not
+    // walk up to the four milligrams of a grown up.
+    dose: startingDose(person.weight),
     weight: person.weight,
     renal: NORMAL_CRCL * renalFactor(person.age, sex),
   };
-  const bodies: readonly ChoiceGroup[] = [{...bodyChoices(voice, person.age), selected: sex}];
   // The figure is the one every table of the application is solved on: the reference body of
   // the pkpdsim physiology, which the circulation exports with its anatomy.
   // The assets of this table are its own folder, and the bodies belong to the circulation.
@@ -195,6 +197,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     const values = valuesFromTokens(roles, snapshot.tokens, origins);
     const individual: GlimepirideIndividual = {
       dose: values.get("dose") ?? reference.dose,
+      absorption: values.get("absorption") ?? reference.absorption,
       cyp2c9: values.get("cyp2c9") ?? reference.cyp2c9,
       cirrhosis: values.get("cirrhosis") ?? reference.cirrhosis,
       renal: values.get("renal") ?? reference.renal,
@@ -247,7 +250,6 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       reading: glimepirideReading(
         voice, individual, person, current, reference_readout, reference, doses),
       back: true,
-      choices: bodies,
       status, roles, notice,
       value: role => {
         if (role.id === "doses") return copy.doseCount(doses);
