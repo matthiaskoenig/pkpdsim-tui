@@ -181,8 +181,8 @@ const EN: CardioCopy = {
     systemic: {
       label: {child: "All the vessels", adult: "Systemic resistance"},
       info: {
-        child: "How narrow all the vessels of the body are at once.",
-        adult: "Resistance of every systemic organ at once, the afterload of the heart.",
+        child: "Turn it up and all the vessels of the body get narrower at once, so the pressure rises and less blood moves.",
+        adult: "Changes how open the vessels of the whole body are, the afterload of the heart: narrow them and the pressure rises while the heart moves less blood.",
         expert: "The total systemic vascular resistance, the afterload against which the ventricle ejects.",
       },
     },
@@ -197,16 +197,16 @@ const EN: CardioCopy = {
     heartRate: {
       label: {child: "How fast the heart beats", adult: "Heart rate"},
       info: {
-        child: "How often your heart beats in a minute. Running makes it fast.",
-        adult: "How often the heart beats. The beat on the table is the one the compiled heart is solved with, so the numbers belong to that rate.",
+        child: "Turn it up and the heart beats faster, so more blood reaches every organ, the liver with it.",
+        adult: "Changes how often the heart beats. More beats move more blood every minute, so every organ on the body gets more of it.",
         expert: "The heart rate the compiled SBML heart is solved at, from 40 to 150 a minute. The filling time follows it.",
       },
     },
     contractility: {
       label: {child: "How hard the heart squeezes", adult: "Contractility"},
       info: {
-        child: "How strongly the heart squeezes. A tired heart squeezes weakly.",
-        adult: "How hard the ventricles squeeze. Turning it down is a heart which is failing: it moves less blood with every beat.",
+        child: "Turn it up and the heart squeezes harder, so one beat pushes out more blood.",
+        adult: "Changes how hard the ventricles squeeze. Turning it down is a heart which is failing: it pushes out less with every beat.",
         expert: "The contractility of the ventricles. Lowering it is systolic heart failure: the stroke volume falls and the end systolic volume rises.",
       },
     },
@@ -371,8 +371,8 @@ const DE: CardioCopy = {
     systemic: {
       label: {child: "Alle Gefäße", adult: "Systemischer Widerstand"},
       info: {
-        child: "Wie eng alle Gefäße des Körpers auf einmal sind.",
-        adult: "Widerstand aller systemischen Organe auf einmal, die Nachlast des Herzens.",
+        child: "Dreh hoch, dann werden alle Gefäße des Körpers enger: Der Druck steigt, und es fließt weniger Blut.",
+        adult: "Ändert, wie weit die Gefäße des ganzen Körpers sind, die Nachlast des Herzens: enger gestellt steigt der Druck, und das Herz bewegt weniger Blut.",
         expert: "Der totale periphere Widerstand, die Nachlast, gegen die die Kammer auswirft.",
       },
     },
@@ -387,16 +387,16 @@ const DE: CardioCopy = {
     heartRate: {
       label: {child: "Wie schnell das Herz schlägt", adult: "Herzfrequenz"},
       info: {
-        child: "Wie oft dein Herz in einer Minute schlägt. Beim Rennen wird es schnell.",
-        adult: "Wie oft das Herz schlägt. Der Schlag auf dem Tisch ist der, mit dem das kompilierte Herz gerechnet wird, also gehören die Zahlen zu dieser Frequenz.",
+        child: "Dreh hoch, dann schlägt das Herz schneller, und jedes Organ bekommt mehr Blut, die Leber auch.",
+        adult: "Ändert, wie oft das Herz schlägt. Mehr Schläge bewegen mehr Blut pro Minute, also bekommt jedes Organ auf dem Körper mehr davon.",
         expert: "Die Herzfrequenz, mit der das kompilierte SBML-Herz gelöst wird, 40 bis 150 pro Minute. Die Füllungszeit folgt ihr.",
       },
     },
     contractility: {
       label: {child: "Wie stark das Herz drückt", adult: "Kontraktilität"},
       info: {
-        child: "Wie kräftig das Herz zusammenpresst. Ein müdes Herz drückt schwach.",
-        adult: "Wie kräftig die Kammern zusammenpressen. Nach unten gedreht ist es ein versagendes Herz: es bewegt mit jedem Schlag weniger Blut.",
+        child: "Dreh hoch, dann drückt das Herz kräftiger, und ein Schlag pumpt mehr Blut aus.",
+        adult: "Ändert, wie kräftig die Kammern zusammenpressen. Nach unten gedreht ist es ein versagendes Herz: Es pumpt mit jedem Schlag weniger aus.",
         expert: "Die Kontraktilität der Kammern. Sie zu senken ist systolische Herzinsuffizienz: das Schlagvolumen fällt, das endsystolische Volumen steigt.",
       },
     },
@@ -561,8 +561,8 @@ const ES: CardioCopy = {
     systemic: {
       label: {child: "Todos los vasos", adult: "Resistencia sistémica"},
       info: {
-        child: "Cómo de estrechos están todos los vasos del cuerpo a la vez.",
-        adult: "Resistencia de todos los órganos sistémicos a la vez, la poscarga del corazón.",
+        child: "Súbelo y todos los vasos del cuerpo se estrechan a la vez: la presión sube y se mueve menos sangre.",
+        adult: "Cambia cuán abiertos están los vasos de todo el cuerpo, la poscarga del corazón: al estrecharlos sube la presión y el corazón mueve menos sangre.",
         expert: "La resistencia vascular sistémica total, la poscarga contra la que eyecta el ventrículo.",
       },
     },
@@ -577,16 +577,16 @@ const ES: CardioCopy = {
     heartRate: {
       label: {child: "Cómo de rápido late", adult: "Frecuencia cardíaca"},
       info: {
-        child: "Cuántas veces late tu corazón en un minuto. Corriendo late rápido.",
-        adult: "Cada cuánto late el corazón. El latido de la mesa es aquel con el que se resuelve el corazón compilado, así que los números pertenecen a esa frecuencia.",
+        child: "Súbelo y el corazón late más rápido, así que cada órgano recibe más sangre, también el hígado.",
+        adult: "Cambia cada cuánto late el corazón. Más latidos mueven más sangre por minuto, así que cada órgano del cuerpo recibe más.",
         expert: "La frecuencia a la que se resuelve el corazón SBML compilado, de 40 a 150 por minuto. El tiempo de llenado la sigue.",
       },
     },
     contractility: {
       label: {child: "Con cuánta fuerza aprieta", adult: "Contractilidad"},
       info: {
-        child: "Con cuánta fuerza aprieta el corazón. Un corazón cansado aprieta poco.",
-        adult: "Con cuánta fuerza aprietan los ventrículos. Girarlo hacia abajo es un corazón que falla: mueve menos sangre en cada latido.",
+        child: "Súbelo y el corazón aprieta más fuerte, así que un latido expulsa más sangre.",
+        adult: "Cambia con cuánta fuerza aprietan los ventrículos. Bajarlo es un corazón que falla: expulsa menos en cada latido.",
         expert: "La contractilidad de los ventrículos. Bajarla es insuficiencia cardíaca sistólica: el volumen sistólico cae y el volumen telesistólico sube.",
       },
     },

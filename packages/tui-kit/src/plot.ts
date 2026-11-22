@@ -232,6 +232,9 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
       }, ticks);
       unit.textContent = view.axis.unit;
 
+      // Where the courses write their value at the cursor, which is sorted out once every
+      // course has been drawn: two courses which happen to meet would write over each other.
+      const labels: {element: SVGTextElement; y: number}[] = [];
       traceDefinitions.forEach((trace, order) => {
         const visual = traces.get(trace.id);
         if (visual === undefined) return;
@@ -254,29 +257,30 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
               `${index === 0 ? "M" : "L"}${xOf(courseTimes[index] ?? 0).toFixed(1)} ${yOf(value * factor).toFixed(1)}`)
             .join(" ");
         };
-        // The scale of this family, written once on the side it belongs to: the first unit on
-        // the left of the box, a second one on the right.
-        if (family[0]?.id === trace.id) {
-          const left = rank % 2 === 0;
-          const at = left ? box.x - 8 : box.x + box.width + 8;
-          for (const value of axisTicks(low, high)) {
+        // The scale of the plot, written down its left side, with the unit on its highest
+        // value. It is the scale of the first family of courses; a second unit gets no second
+        // axis, because the right of the box is where the courses write their own value and
+        // the box reaches the edge of the glass. Every course says its value and its unit at
+        // the cursor, which is what a reader of a second unit needs.
+        if (family[0]?.id === trace.id && rank === 0) {
+          const at = box.x - 8;
+          const digits = Math.abs(high - low) >= 8 ? 0 : 1;
+          const ticks = axisTicks(low, high);
+          const top = ticks.at(-1);
+          for (const value of ticks) {
             const y = yOf(value);
             if (y < box.y - 1 || y > box.y + box.height + 1) continue;
-            svg("line", {
-              class: "plot-tick", x1: box.x, y1: y, x2: left ? box.x - 6 : box.x + box.width + 6,
-              y2: y, ...(left ? {} : {x1: box.x + box.width}),
-            }, scales);
+            svg("line", {class: "plot-tick", x1: box.x, y1: y, x2: box.x - 6, y2: y}, scales);
             const label = svg("text", {
-              class: "plot-scale-label", x: at, y: y + 5,
-              "text-anchor": left ? "end" : "start",
+              class: value === top ? "plot-scale-unit" : "plot-scale-label", x: at, y: y + 5,
+              "text-anchor": "end",
             }, scales);
-            label.textContent = formatNumber(value, Math.abs(high - low) >= 8 ? 0 : 1);
+            // The unit stands on the highest value of the scale rather than on a line of its
+            // own, which would be a second thing written where the cursor says the time.
+            label.textContent = value === top
+              ? `${formatNumber(value, digits)} ${trace.unit}`
+              : formatNumber(value, digits);
           }
-          const unit = svg("text", {
-            class: "plot-scale-unit", x: at, y: box.y - 10,
-            "text-anchor": left ? "end" : "start",
-          }, scales);
-          unit.textContent = trace.unit;
         }
         // What the course was before the objects were last moved stays behind it and fades,
         // so a visitor who turns something sees which way the curve went.
@@ -315,7 +319,20 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
           "text-anchor": left ? "start" : "end",
         });
         visual.value.textContent = `${trace.label} ${formatNumber(value, trace.digits ?? 2)} ${trace.unit}`;
+        labels.push({element: visual.value, y: label});
       });
+
+      // Two courses which run into each other carry their labels into each other as well, and
+      // the order they were declared in is no help when the values have crossed. They are
+      // pushed apart downwards, from the highest one, and kept inside the box.
+      const gap = 19;
+      labels.sort((a, b) => a.y - b.y);
+      let floor = box.y + 14;
+      for (const label of labels) {
+        const y = Math.min(Math.max(label.y, floor), box.y + box.height - 4);
+        attributes(label.element, {y});
+        floor = y + gap;
+      }
 
       const x = xOf(view.cursor);
       attributes(cursor, {x1: x, y1: box.y, x2: x, y2: box.y + box.height});

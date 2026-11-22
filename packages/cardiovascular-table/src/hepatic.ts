@@ -14,6 +14,7 @@
 import type {PressureSolution} from "@pkpdsim-tui/cardio-sim";
 import {attributes, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
 import type {Viewport, Voice} from "@pkpdsim-tui/tui-kit";
+import {ceilingOf} from "./beats.ts";
 import {COLUMN, placePanel} from "./layout.ts";
 import {CARDIO_TEXT} from "./text.ts";
 import type {CardioCopy} from "./text.ts";
@@ -103,12 +104,20 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
   const flowTop = svg("text", {
     class: "hepatic-tick", x: PAD.left - 8, y: FLOW.top + 4, "text-anchor": "end",
   }, plots);
+  const flowMiddle = svg("text", {
+    class: "hepatic-tick", x: PAD.left - 8, y: FLOW.top + FLOW.height / 2 + 4,
+    "text-anchor": "end",
+  }, plots);
   const flowFoot = svg("text", {
     class: "hepatic-tick", x: PAD.left - 8, y: FLOW.top + FLOW.height, "text-anchor": "end",
   }, plots);
   flowFoot.textContent = "0";
   const pressureTop = svg("text", {
     class: "hepatic-tick", x: PAD.left - 8, y: PRESSURE.top + 4, "text-anchor": "end",
+  }, plots);
+  const pressureMiddle = svg("text", {
+    class: "hepatic-tick", x: PAD.left - 8, y: PRESSURE.top + PRESSURE.height / 2 + 4,
+    "text-anchor": "end",
   }, plots);
   const pressureFoot = svg("text", {
     class: "hepatic-tick", x: PAD.left - 8, y: PRESSURE.top + PRESSURE.height,
@@ -148,6 +157,9 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
 
   const history: Sample[] = [];
   let kept = 0;
+  // The ceilings of the two scales, which rise with what the table has shown and never fall.
+  let flowTopValue: number = FLOOR.flow;
+  let pressureTopValue: number = FLOOR.pressure;
 
   /** Where a moment sits across a plot: now at the right, a minute ago at the left. */
   const across = (at: number, now: number): number => {
@@ -188,14 +200,16 @@ export function createHepatic(parent: SVGSVGElement, voice: Voice): Hepatic {
       }
       flowNumber.textContent = `${formatNumber(solution.qh, 2)} l/min`;
       gradientNumber.textContent = `${formatNumber(solution.ppo - solution.pli, 1)} mmHg`;
-      // The scales grow with what the table has done, and never fall under their floor, so a
-      // quiet minute is a flat line rather than a cliff.
-      const flowTopValue = Math.max(
-        FLOOR.flow, ...history.map(sample => Math.max(sample.qh, sample.qpo) * 1.15));
-      const pressureTopValue = Math.max(
-        FLOOR.pressure, ...history.map(sample => sample.ppo * 1.15));
+      // The scales rise with what the table has shown and never fall again, so the curve moves
+      // inside the box when an object is turned instead of the box moving around the curve.
+      flowTopValue = ceilingOf(flowTopValue, Math.max(
+        FLOOR.flow, ...history.map(sample => Math.max(sample.qh, sample.qpo) * 1.1)));
+      pressureTopValue = ceilingOf(pressureTopValue, Math.max(
+        FLOOR.pressure, ...history.map(sample => sample.ppo * 1.1)));
       flowTop.textContent = `${formatNumber(flowTopValue, 1)} l/min`;
+      flowMiddle.textContent = formatNumber(flowTopValue / 2, 1);
       pressureTop.textContent = `${formatNumber(pressureTopValue, 0)} mmHg`;
+      pressureMiddle.textContent = formatNumber(pressureTopValue / 2, 0);
       traces.qh.setAttribute("d", trace(FLOW, now, flowTopValue, sample => sample.qh));
       traces.qpo.setAttribute("d", trace(FLOW, now, flowTopValue, sample => sample.qpo));
       traces.qha.setAttribute("d", trace(FLOW, now, flowTopValue, sample => sample.qha));

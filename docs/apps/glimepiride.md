@@ -8,9 +8,9 @@ The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiri
 
 Glimepiride is taken for type 2 diabetes: it makes the pancreas release insulin, which lowers the blood sugar. Too much of it in the blood lowers the blood sugar too far, and a hypoglycaemia in an elderly patient is a fall, a confusion or a hospital admission. So the question the table asks is the question of the prescription: the same tablet, in two different people, leaves how much drug in the blood?
 
-What the body does with the tablet happens in three places. The gut dissolves it and lets it through. The liver takes it apart with the enzyme CYP2C9, into M1, which is itself active, and then into M2, which is not. The kidneys wash M1 and M2 out in the urine. Each of these can be slower in one person than in another, and the model carries all three.
+What the body does with the tablet is the four steps every drug makes, which are called absorption, distribution, metabolism and elimination. The stomach dissolves the tablet and the gut lets it through, which is the absorption. The blood carries it around the body, into organs of very different sizes, which is the distribution and which is why the body on the table is the body of a particular person. The liver takes it apart with the enzyme CYP2C9, into M1, which is itself active, and then into M2, which is not, which is the metabolism. The kidneys wash M1 and M2 out in the urine, which is the elimination. One object of the table stands at each of these steps, and each of them can be slower in one person than in another.
 
-CYP2C9 is the interesting one. The gene comes in variants: about one person in eight carries a slow allele, and somebody with two of them breaks glimepiride down at roughly a quarter of the usual rate. They get a multiple of the exposure from the same tablet, and the guidance for them is a lower dose. A cirrhotic liver has less working tissue and less enzyme in it, so it acts in the same direction, and failing kidneys hold the metabolites back instead. The three dials of this table are those three, and the fourth, the body weight, is the one that is measured at every visit.
+CYP2C9 is the interesting one. The gene comes in variants: about one person in eight carries a slow allele, and somebody with two of them breaks glimepiride down at roughly a quarter of the usual rate. They get a multiple of the exposure from the same tablet, and the guidance for them is a lower dose. A cirrhotic liver has less working tissue and less enzyme in it, so it acts in the same direction, and failing kidneys hold the metabolites back instead.
 
 This is what a physiologically based model is for. It does not fit a curve to a population; it carries the organs, their blood flows and the enzyme in the liver, so that each of these can be turned on its own and the answer follows from the physiology.
 
@@ -18,18 +18,20 @@ This is what a physiologically based model is for. It does not fit a curve to a 
 
 | Marker | Object | What it changes | Range | Reference |
 | --- | --- | --- | --- | --- |
-| 1 | Dose | The tablet that is swallowed | 0 to 8 mg | 4 mg |
-| 2 | Body weight | The weight of the individual, which scales their organs and flows | 40 to 170 kg | 73 kg, or 60 kg for the female body |
+| 1 | Dose | The tablet that is swallowed, in the strengths there are | 0.5 to 8 mg | The starting dose of this body weight |
+| 2 | Dissolution | How fast the tablet dissolves in the stomach, which is the absorption step | 0.25 to 8 /h | 2 /h |
 | 3 | Tablets, one a day | How many mornings in a row a tablet is taken | 1 to 10 | 1 |
 | 4 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
 | 5 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
 | 6 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
 
+The dose turns through the tablets which exist rather than through the milligrams between them: 0.5, 1, 2, 3, 4, 6 and 8 mg, and the dial clicks from one to the next. Where it rests is the dose a body of that weight is started on, which is the four milligrams of the label carried down with the weight and rounded to a tablet: a child of twenty kilograms opens at one milligram rather than at four. What a child is actually given is a decision of a doctor, and glimepiride is not a drug children are given at all; the dial says what the arithmetic of the body weight says.
+
 Every object of the individual is a dial, and its angle is the value: pointing away from the person is the reference individual, turning it to the right raises the value and to the left lowers it. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half. Lifting an object puts that property back to the reference.
 
 Three of the dials say in words what they are set to, because that is how a clinician reads them: the CYP2C9 dial names the genotype it is nearest to (`*1/*1`, `*1/*2`, `*2/*2`, `*1/*3`, `*2/*3`, `*3/*3`, from the allele activities of the marimo application of the model), the cirrhosis dial names the Child-Pugh class, and the kidney dial names the stage of impairment.
 
-The panel also carries a switch a finger touches rather than an object: the body of the individual. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it. The switch sets both, so the organs, their blood flows and the dose per kilogram all follow, and the detent of the weight dial moves with it.
+The body itself is no object of this table any more: it is the person the whole collection is set to, which is asked for on the first screen and switched in the settings in the far corner. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it, and a body of another age carries the weight and the height of that age. The organs, their blood flows, the volume the drug is distributed in and the dose the dial rests at all follow that body.
 
 The tablets object is the course rather than a property of the person: one tablet every 24 hours for as many mornings as it is turned to, and the course runs to the end of the day of the last of them. One tablet is therefore one day, which is the question this table asks: what a single tablet does between this morning and the next. The table solves that course and the clock of the table then runs along it by itself, over and over, so a visitor sees the drug arrive and leave without having to wind anything.
 
