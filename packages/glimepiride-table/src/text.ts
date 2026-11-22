@@ -36,14 +36,8 @@ export interface GlimepirideCopy {
   /** The clinical classes, by the label of the export. */
   readonly categories: Readonly<Record<string, string>>;
   readonly traces: Readonly<Record<"gli" | "m1" | "m2", string>>;
-  /** The stations a tablet passes, drawn across the table. */
-  readonly stations: Readonly<Record<
-    "tablet" | "liver" | "plasma" | "kidney" | "urine", string>>;
   /** The parts of the body a bubble stands on, in the words of the visitor. */
   readonly regions: Readonly<Record<string, string>>;
-  readonly oral: string;
-  readonly peak: (value: string) => string;
-  readonly endOfCourse: string;
   readonly slowly: (category: string) => string;
   readonly cirrhotic: (category: string) => string;
   readonly kidneys: (value: string, category: string) => string;
@@ -223,16 +217,10 @@ const EN: GlimepirideCopy = {
     healthy: "healthy", normal: "normal", mild: "mild", moderate: "moderate", severe: "severe",
   },
   traces: {gli: "glimepiride", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Tablet", liver: "Liver", plasma: "Plasma", kidney: "Kidneys", urine: "Urine",
-  },
   regions: {
     gut: "Gut", liver: "Liver", blood: "Blood", lung: "Lungs", kidney: "Kidneys",
     rest: "The rest of the body", gone: "Out of the body",
   },
-  oral: "swallowed",
-  peak: value => `peak ${value} uM`,
-  endOfCourse: "M1 and M2 at the end",
   slowly: category => `breaks glimepiride down slowly (${category})`,
   cirrhotic: category => `has a cirrhotic liver (${category})`,
   kidneys: (value, category) => `has kidneys that clear ${value} ml/min (${category})`,
@@ -431,16 +419,10 @@ const DE: GlimepirideCopy = {
     healthy: "gesund", normal: "normal", mild: "leicht", moderate: "mittel", severe: "schwer",
   },
   traces: {gli: "Glimepirid", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Tablette", liver: "Leber", plasma: "Plasma", kidney: "Nieren", urine: "Urin",
-  },
   regions: {
     gut: "Darm", liver: "Leber", blood: "Blut", lung: "Lunge", kidney: "Nieren",
     rest: "Der übrige Körper", gone: "Aus dem Körper",
   },
-  oral: "geschluckt",
-  peak: value => `Spitze ${value} uM`,
-  endOfCourse: "M1 und M2 am Ende",
   slowly: category => `Glimepirid langsam abbaut (${category})`,
   cirrhotic: category => `eine zirrhotische Leber hat (${category})`,
   kidneys: (value, category) => `Nieren hat, die ${value} ml/min klären (${category})`,
@@ -639,16 +621,10 @@ const ES: GlimepirideCopy = {
     healthy: "sano", normal: "normal", mild: "leve", moderate: "moderada", severe: "grave",
   },
   traces: {gli: "glimepirida", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Pastilla", liver: "Hígado", plasma: "Plasma", kidney: "Riñones", urine: "Orina",
-  },
   regions: {
     gut: "Intestino", liver: "Hígado", blood: "Sangre", lung: "Pulmones", kidney: "Riñones",
     rest: "El resto del cuerpo", gone: "Fuera del cuerpo",
   },
-  oral: "tragada",
-  peak: value => `pico ${value} uM`,
-  endOfCourse: "M1 y M2 al final",
   slowly: category => `metaboliza la glimepirida despacio (${category})`,
   cirrhotic: category => `tiene un hígado cirrótico (${category})`,
   kidneys: (value, category) => `tiene riñones que aclaran ${value} ml/min (${category})`,

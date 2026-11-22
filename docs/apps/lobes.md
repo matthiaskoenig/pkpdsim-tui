@@ -51,10 +51,10 @@ The small number under each one is the change against the same liver without the
 
 ## Things to try
 
-- **Portal vein ligation of the right lobe.** Put the portal clamp on V, VI, VII and VIII. The portal pressure rises, the four ligated segments atrophy over the days and the left lobe grows: this is the operation that is done before a large resection, to let the future remnant grow first.
-- **Right hepatectomy.** Put the scalpel on the same four segments. A third of the liver is left on the first day, and over the five days it regenerates towards the volume the whole liver had.
-- **The remnant too small.** Add segment IV to the resection. The remnant starts far below what the body needs, the portal pressure in it is higher, and the regeneration starts from further away.
-- **One segment at a time.** Clamp VIII alone, then wind the day dial back to the operation and forward again, and watch that one block shrink while its neighbours take over.
+- **Right hepatectomy.** Turn the knife to the right half. A third of the liver is left on the first day, the blood of the whole body now passes through that third, and the portal pressure in front of it rises. Over the weeks that follow it grows back towards the volume the whole liver had.
+- **The remnant too small.** Turn one further, to the extended right hepatectomy. The remnant starts far below what the body needs, the pressure in front of it is higher again, and the curve starts from further down.
+- **A liver which is slow.** Turn the second object down. The same operation takes far longer to come back, which is what an ill liver does: the curve of a healthy one is still drawn behind it.
+- **A rat is not a person.** Switch the species to the rat. The whole course is ten days rather than sixty, because a rat is most of the way back within a week.
 
 ## Where the numbers come from
 

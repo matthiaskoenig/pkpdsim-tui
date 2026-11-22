@@ -1,43 +1,5 @@
 /* The surface, the objects and the panels are shared; see @pkpdsim-tui/tui-kit. */
 
-/* The way the drug takes through the individual, drawn on the white of the table. */
-.station-plate {
-  fill: #eef3f7;
-  stroke: var(--line);
-  stroke-width: 1.5;
-}
-
-.station[data-changed="true"] .station-plate {
-  stroke: var(--accent);
-  stroke-width: 2.5;
-}
-
-.station-label {
-  fill: var(--ink-dim);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.station-value {
-  fill: var(--ink);
-  font-size: 1.3rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.station-note {
-  fill: var(--ink-dim);
-  font-size: 0.8rem;
-}
-
-.pathway-arrow {
-  fill: none;
-  stroke: var(--line);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 /* Where the drug is: a bubble on every part of the body, as big as what that part holds. */
 .drug-bubble {
   fill: var(--accent);
