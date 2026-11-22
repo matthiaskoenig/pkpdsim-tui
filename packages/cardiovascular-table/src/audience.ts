@@ -32,7 +32,6 @@ export function cardioReading(
   const done: CardioDone[] = [];
   if (controls.systemic > 1.05) done.push("systemicUp");
   if (controls.systemic < 0.95) done.push("systemicDown");
-  if (controls.renal > 1.05) done.push("renalUp");
   if (Math.abs(controls.heartRate - DEFAULT_HEART_CONTROLS.heartRate) > 1) done.push("rate");
   if (controls.contractility < 0.95) done.push("weak");
   if (controls.contractility > 1.05) done.push("strong");

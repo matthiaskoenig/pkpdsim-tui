@@ -26,20 +26,20 @@ export function cardiovascularRoles(voice: Voice): readonly TokenRole[] {
     id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
     unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
   });
-  // The heart first, because it is what drives everything else, then the vessels of the body
-  // and the kidneys. Four objects is what a visitor can hold in their head at once: the two
-  // resistances of the liver were the two nobody turned without being told to.
+  // The heart first, because it is what drives everything else, then the vessels of the whole
+  // body. Three objects, and each of them changes the whole picture: how fast the heart beats,
+  // how hard it squeezes, and how open the vessels of the body are. The resistances of single
+  // organs were the ones nobody turned without being told to.
   return [
     dial("heartRate", [1], "/min", HEART_RATE_RANGE.min, HEART_RATE_RANGE.max,
       DEFAULT_HEART_CONTROLS.heartRate, "linear"),
     dial("contractility", [2], "x", 0.4, 1.6, DEFAULT_HEART_CONTROLS.contractility, "log"),
     dial("systemic", [3], "x", 0.5, 2, 1, "log"),
-    dial("renal", [4], "x", 0.5, 3, 1, "log"),
   ];
 }
 
 /** The markers this table reads, which the input layer needs before a word is said. */
-export const CARDIOVASCULAR_MARKERS: readonly number[] = [1, 2, 3, 4];
+export const CARDIOVASCULAR_MARKERS: readonly number[] = [1, 2, 3];
 
 /**
  * The controls the beating heart is solved with. A role without an object keeps the reference,

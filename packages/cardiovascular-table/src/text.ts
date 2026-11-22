@@ -96,17 +96,18 @@ const EN: CardioCopy = {
       tryIt: "Try it: turn one of the resistances up and watch its organ go blue.",
     },
     {
-      id: "portal",
-      ask: "Where does the blood in the portal vein come from?",
+      id: "squeeze",
+      ask: "Object 2 makes the heart squeeze harder. What does one beat do then?",
       choices: [
-        {id: "gut", label: "From the gut"},
-        {id: "lungs", label: "From the lungs"},
-        {id: "kidneys", label: "From the kidneys"},
+        {id: "more", label: "It pushes out more blood"},
+        {id: "less", label: "It pushes out less blood"},
+        {id: "faster", label: "It beats faster"},
       ],
-      answer: "gut",
-      because: "The portal vein carries the blood of the gut to the liver, so everything that was"
-        + " eaten passes the liver before it reaches the rest of the body.",
-      tryIt: "Try it: watch the portal vein on the monitor of the liver while the heart changes.",
+      answer: "more",
+      because: "That object is how hard the muscle squeezes. A harder squeeze empties the"
+        + " chamber further, so one beat pushes out more and the whole body gets more blood,"
+        + " at the same rate.",
+      tryIt: "Try it: turn object 2 up and watch what one beat ejects.",
     },
   ],
   about: {
@@ -285,17 +286,18 @@ const DE: CardioCopy = {
       tryIt: "Probier es: Dreh einen Widerstand hoch und sieh zu, wie sein Organ blau wird.",
     },
     {
-      id: "portal",
-      ask: "Woher kommt das Blut in der Pfortader?",
+      id: "squeeze",
+      ask: "Objekt 2 lässt das Herz kräftiger drücken. Was macht ein Schlag dann?",
       choices: [
-        {id: "gut", label: "Aus dem Darm"},
-        {id: "lungs", label: "Aus der Lunge"},
-        {id: "kidneys", label: "Aus den Nieren"},
+        {id: "more", label: "Er pumpt mehr Blut aus"},
+        {id: "less", label: "Er pumpt weniger Blut aus"},
+        {id: "faster", label: "Er schlägt schneller"},
       ],
-      answer: "gut",
-      because: "Die Pfortader bringt das Blut des Darms zur Leber. Alles, was gegessen wurde,"
-        + " kommt also an der Leber vorbei, bevor es in den Rest des Körpers geht.",
-      tryIt: "Probier es: Sieh die Pfortader auf dem Monitor der Leber, während sich das Herz ändert.",
+      answer: "more",
+      because: "Dieses Objekt ist, wie kräftig der Muskel drückt. Kräftiger drücken leert die"
+        + " Kammer weiter, ein Schlag pumpt mehr aus, und der ganze Körper bekommt mehr Blut -"
+        + " bei gleichem Takt.",
+      tryIt: "Probier es: Dreh Objekt 2 hoch und sieh, was ein Schlag auswirft.",
     },
   ],
   about: {
@@ -474,17 +476,18 @@ const ES: CardioCopy = {
       tryIt: "Pruébalo: sube una de las resistencias y mira cómo su órgano se vuelve azul.",
     },
     {
-      id: "portal",
-      ask: "¿De dónde viene la sangre de la vena porta?",
+      id: "squeeze",
+      ask: "El objeto 2 hace que el corazón apriete más fuerte. ¿Qué hace entonces un latido?",
       choices: [
-        {id: "gut", label: "Del intestino"},
-        {id: "lungs", label: "De los pulmones"},
-        {id: "kidneys", label: "De los riñones"},
+        {id: "more", label: "Expulsa más sangre"},
+        {id: "less", label: "Expulsa menos sangre"},
+        {id: "faster", label: "Late más rápido"},
       ],
-      answer: "gut",
-      because: "La vena porta lleva la sangre del intestino al hígado, así que todo lo que se come"
-        + " pasa por el hígado antes de llegar al resto del cuerpo.",
-      tryIt: "Pruébalo: mira la vena porta en el monitor del hígado mientras cambia el corazón.",
+      answer: "more",
+      because: "Ese objeto es la fuerza con la que aprieta el músculo. Apretar más vacía más la"
+        + " cámara, así que un latido expulsa más y todo el cuerpo recibe más sangre, al mismo"
+        + " ritmo.",
+      tryIt: "Pruébalo: sube el objeto 2 y mira lo que expulsa un latido.",
     },
   ],
   about: {
