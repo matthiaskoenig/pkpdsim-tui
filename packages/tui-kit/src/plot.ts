@@ -67,7 +67,21 @@ interface TraceElements {
   readonly reference: SVGPathElement;
   readonly dot: SVGCircleElement;
   readonly value: SVGTextElement;
+  /** The courses this one replaced, which fade out behind it. */
+  ghosts: SVGPathElement[];
+  readonly history: SVGGElement;
 }
+
+/**
+ * How long a course which was replaced takes to lose half of what is left of it, in
+ * milliseconds. A visitor who turns an object sees the curve they had a moment ago still
+ * behind the new one, which is what tells them that what they did moved it and in which
+ * direction. It is gone within a few seconds, so the plot does not silt up.
+ */
+const HALF_LIFE = 1600;
+
+/** How many replaced courses are kept behind a trace. */
+const GHOSTS = 5;
 
 /**
  * The lowest and the highest value of a set of courses, in the unit they are read in. `lane` is
@@ -110,27 +124,88 @@ function span(
   return {low: low - pad, high: high + pad};
 }
 
+/**
+ * The scale a family of courses is drawn on, which only ever grows.
+ *
+ * A plot whose axis follows what the numbers are doing shows the same picture whatever the
+ * objects are set to: the curve fills the box, and the reader sees noise blown up to the full
+ * height. The axis of this plot is fixed at what it first held, and widens where a course
+ * leaves it, so that turning an object moves the curve inside the box instead of moving the
+ * box around the curve.
+ */
+function held(
+  kept: Map<string, {low: number; high: number}>, key: string,
+  next: {low: number; high: number},
+): {low: number; high: number} {
+  const before = kept.get(key);
+  const span = before === undefined
+    ? next
+    : {low: Math.min(before.low, next.low), high: Math.max(before.high, next.high)};
+  kept.set(key, span);
+  return span;
+}
+
+/** The ticks of a scale: the ends and the round numbers between them. */
+function axisTicks(low: number, high: number): readonly number[] {
+  const reach = high - low;
+  if (!(reach > 0)) return [low];
+  const step = 10 ** Math.floor(Math.log10(reach / 2));
+  const steps = [step, step * 2, step * 5, step * 10];
+  const pick = steps.find(one => reach / one <= 5) ?? step * 10;
+  const ticks: number[] = [];
+  for (let value = Math.ceil(low / pick) * pick; value <= high + 1e-9; value += pick) {
+    ticks.push(Math.abs(value) < pick / 1e6 ? 0 : value);
+  }
+  return ticks.length >= 2 ? ticks : [low, high];
+}
+
 export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly PlotTrace[]): Plot {
   const root = svg("g", {class: "layer layer--plot"}, parent);
   const frame = svg("path", {class: "plot-axis", d: ""}, root);
   const ticks = svg("g", {class: "plot-ticks"}, root);
+  const scales = svg("g", {class: "plot-scales"}, root);
   const cursor = svg("line", {class: "plot-cursor"}, root);
   const cursorLabel = svg("text", {class: "plot-cursor-label"}, root);
   const traces = new Map<string, TraceElements>(traceDefinitions.map(trace => {
     const group = svg("g", {class: `trace trace--${trace.id}`}, root);
+    const history = svg("g", {class: "trace-history"}, group);
     const reference = svg("path", {class: "trace-reference", d: "", stroke: trace.colour}, group);
     const line = svg("path", {class: "trace-line", d: "", stroke: trace.colour}, group);
     const dot = svg("circle", {class: "trace-dot", r: 5, fill: trace.colour}, group);
     const value = svg("text", {class: "trace-value", fill: trace.colour}, group);
-    return [trace.id, {line, reference, dot, value}];
+    return [trace.id, {line, reference, dot, value, ghosts: [], history}];
   }));
 
   let box: Box = {x: 0, y: 0, width: 0, height: 0};
+  const kept = new Map<string, {low: number; high: number}>();
+  // The courses which were replaced lose half of what is left of them every half life, in the
+  // time of the clock and not in the number of the updates: a table which is left alone fades
+  // what the last visitor did, and a table which is turned fast keeps every step of the turn.
+  let fading = 0;
+  const fade = (): void => {
+    const now = performance.now();
+    let alive = false;
+    for (const visual of traces.values()) {
+      for (const ghost of visual.ghosts) {
+        const born = Number(ghost.dataset["born"] ?? now);
+        const left = 0.5 ** ((now - born) / HALF_LIFE);
+        if (left < 0.04) ghost.remove();
+        else {
+          attributes(ghost, {opacity: left});
+          alive = true;
+        }
+      }
+      visual.ghosts = visual.ghosts.filter(ghost => ghost.isConnected);
+    }
+    fading = alive ? requestAnimationFrame(fade) : 0;
+  };
 
   return {
     resize(next: Box): void {
       box = next;
-      attributes(frame, {d: `M${box.x} ${box.y + box.height} H${box.x + box.width}`});
+      attributes(frame, {
+        d: `M${box.x} ${box.y} V${box.y + box.height} H${box.x + box.width}`,
+      });
     },
 
     update(view: PlotView): void {
@@ -140,6 +215,7 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
 
       const families = [...new Set(traceDefinitions.map(trace => trace.unit))];
       ticks.replaceChildren();
+      scales.replaceChildren();
       for (let time = 0; time <= end + 1e-9; time += Math.max(view.axis.tick, end / 60)) {
         const x = xOf(time);
         svg("line", {
@@ -163,8 +239,10 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
         // Courses that are read in the same unit share one scale, because the reader compares
         // them with each other; a course in a unit of its own gets a scale of its own.
         const family = traceDefinitions.filter(candidate => candidate.unit === trace.unit);
-        const lane = (families.indexOf(trace.unit) + 1) / (families.length + 1);
-        const {low, high} = span([view.series, view.baseline], family, lane);
+        const rank = families.indexOf(trace.unit);
+        const lane = (rank + 1) / (families.length + 1);
+        const {low, high} = held(
+          kept, trace.unit, span([view.series, view.baseline], family, lane));
         const yOf = (value: number): number =>
           box.y + box.height * (1 - (value - low) / (high - low));
         const pathOf = (course: PlotSeries): string => {
@@ -176,7 +254,44 @@ export function createPlot(parent: SVGSVGElement, traceDefinitions: readonly Plo
               `${index === 0 ? "M" : "L"}${xOf(courseTimes[index] ?? 0).toFixed(1)} ${yOf(value * factor).toFixed(1)}`)
             .join(" ");
         };
-        attributes(visual.line, {d: pathOf(view.series)});
+        // The scale of this family, written once on the side it belongs to: the first unit on
+        // the left of the box, a second one on the right.
+        if (family[0]?.id === trace.id) {
+          const left = rank % 2 === 0;
+          const at = left ? box.x - 8 : box.x + box.width + 8;
+          for (const value of axisTicks(low, high)) {
+            const y = yOf(value);
+            if (y < box.y - 1 || y > box.y + box.height + 1) continue;
+            svg("line", {
+              class: "plot-tick", x1: box.x, y1: y, x2: left ? box.x - 6 : box.x + box.width + 6,
+              y2: y, ...(left ? {} : {x1: box.x + box.width}),
+            }, scales);
+            const label = svg("text", {
+              class: "plot-scale-label", x: at, y: y + 5,
+              "text-anchor": left ? "end" : "start",
+            }, scales);
+            label.textContent = formatNumber(value, Math.abs(high - low) >= 8 ? 0 : 1);
+          }
+          const unit = svg("text", {
+            class: "plot-scale-unit", x: at, y: box.y - 10,
+            "text-anchor": left ? "end" : "start",
+          }, scales);
+          unit.textContent = trace.unit;
+        }
+        // What the course was before the objects were last moved stays behind it and fades,
+        // so a visitor who turns something sees which way the curve went.
+        const drawn = pathOf(view.series);
+        const before = visual.line.getAttribute("d") ?? "";
+        if (before !== "" && before !== drawn) {
+          const ghost = svg("path", {
+            class: "trace-ghost", d: before, stroke: trace.colour, opacity: 1,
+          }, visual.history);
+          ghost.dataset["born"] = String(performance.now());
+          visual.ghosts.push(ghost);
+          while (visual.ghosts.length > GHOSTS) visual.ghosts.shift()?.remove();
+          if (fading === 0) fading = requestAnimationFrame(fade);
+        }
+        attributes(visual.line, {d: drawn});
         attributes(visual.reference, {d: pathOf(view.baseline)});
 
         let row = 0;

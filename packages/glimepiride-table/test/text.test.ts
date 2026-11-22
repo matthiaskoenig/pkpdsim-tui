@@ -43,8 +43,11 @@ describe("what the glimepiride table reads", () => {
       for (const level of LEVELS) {
         const voice = createVoice(locale, level);
         const roles = glimepirideRoles(voice);
+        // The objects walk the drug through the body: the tablet, how fast it dissolves, how
+        // many of them, the liver which takes it apart, and the kidneys which wash it out.
+        // The body itself is no object here, it is the person the collection is set to.
         expect(roles.map(role => role.id)).toEqual(
-          ["dose", "weight", "doses", "cyp2c9", "cirrhosis", "renal"]);
+          ["dose", "absorption", "doses", "cyp2c9", "cirrhosis", "renal"]);
         for (const role of roles) {
           expect(role.label.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(3);
           expect(role.description.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(20);

@@ -50,7 +50,9 @@ function element<T extends Element>(id: string): T {
  * in the far corner, and each of them is a picture, because a visitor who cannot read the
  * language the table is in is the visitor who needs the language switch most.
  */
-function appSettings(voice: Voice, selected: string, overview: boolean): readonly ChoiceGroup[] {
+function appSettings(
+  voice: Voice, selected: string, overview: boolean, sex: "female" | "male",
+): readonly ChoiceGroup[] {
   const copy = words(voice);
   // On the landing page the ring of cards is the table switch, so only the two switches which
   // change every page are shown, open, where a visitor sees them before they walk on.
@@ -75,6 +77,15 @@ function appSettings(voice: Voice, selected: string, overview: boolean): readonl
       options: LEVELS.map(level => ({
         id: level, label: copy.levelNames[level], picture: level,
       })),
+    },
+    // The body belongs to the visitor and not to the table they happen to be standing at, so
+    // it is switched here, beside the language, and every table of the collection follows it.
+    {
+      id: "sex", label: copy.bodySwitch, selected: sex,
+      options: [
+        {id: "female", label: copy.female, picture: "woman" as const},
+        {id: "male", label: copy.male, picture: "man" as const},
+      ],
     },
   ];
 }
@@ -185,6 +196,9 @@ async function start(): Promise<void> {
     // and a table which is opened from this one keeps them.
     if (group === "lang") chooseQuery("lang", option, "");
     if (group === "level") chooseQuery("level", option, "");
+    // The body of the visitor, which every table is solved for: it stays in the address, so a
+    // table opened from this one is the same body.
+    if (group === "sex") chooseQuery("sex", option, "");
   };
 
   // One settings menu for the whole page: the body and every table are the same page, so the
@@ -199,7 +213,9 @@ async function start(): Promise<void> {
     window.location.href = `${window.location.pathname}?${query.toString()}`;
   };
   createSettings(foot, {
-    voice, groups: appSettings(voice, selectedTable(parameters), overview), onChoose: choose,
+    voice,
+    groups: appSettings(voice, selectedTable(parameters), overview, personOf(parameters).sex),
+    onChoose: choose,
     person: {
       label: copy.person.change, line: personLine(voice, personOf(parameters)),
       info: copy.person.changeInfo,

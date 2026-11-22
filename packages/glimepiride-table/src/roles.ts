@@ -8,9 +8,9 @@
  * the table draws only that half.
  */
 
-import {individualOf, renalFactor, weightRange} from "@pkpdsim-tui/cardio-sim";
+import {individualOf, renalFactor} from "@pkpdsim-tui/cardio-sim";
 import {
-  GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSES, NORMAL_CRCL,
+  GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSE_STEPS, GLIMEPIRIDE_DOSES, NORMAL_CRCL, startingDose,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideControl} from "@pkpdsim-tui/glimepiride-sim";
 import type {TableIndividual, Voice} from "@pkpdsim-tui/tui-kit";
@@ -22,8 +22,9 @@ export const DOSE_COUNT_MARKER = 3;
 
 /** One dial of the individual, in the words of the visitor. */
 function dial(
-  control: GlimepirideControl, marker: number, id: "dose" | "cyp2c9" | "cirrhosis" | "renal" | "weight",
-  voice: Voice,
+  control: GlimepirideControl, marker: number,
+  id: "dose" | "absorption" | "cyp2c9" | "cirrhosis" | "renal",
+  voice: Voice, steps?: readonly number[],
 ): TokenRole {
   const copy = voice.pick(GLIMEPIRIDE_TEXT);
   return {
@@ -31,22 +32,27 @@ function dial(
     description: voice.say(copy.roles[id].info),
     min: control.min, max: control.max, reference: control.value,
     mode: "absolute", scale: "linear", turns: 1,
+    ...(steps === undefined ? {} : {steps}),
   };
 }
 
 /**
- * The dials of the individual, for the person at the table. Two of them belong to that person
- * rather than to the model: the weight spans what a body of their age can weigh and rests at
- * the reference of that age, and the clearance of the kidneys rests where the years have left
- * it, because the kidneys of a body of ninety are not the kidneys of a body of thirty.
+ * The dials of the individual, for the person at the table. They walk the drug through the
+ * body in the order it takes: the tablet and how fast it dissolves, then the liver which takes
+ * it apart, then the kidneys which wash the pieces out. The body itself is no object here, it
+ * is the person the whole collection is set to.
+ *
+ * Two of the dials rest where that person puts them: the dose is what a body of their weight
+ * is started on, and the clearance of the kidneys rests where the years have left it, because
+ * the kidneys of a body of ninety are not the kidneys of a body of thirty.
  */
 export function individualRoles(
   voice: Voice, person: TableIndividual = individualOf(),
 ): readonly TokenRole[] {
-  const weight = weightRange(person.age, person.sex);
   const roles: readonly TokenRole[] = [
-    dial(GLIMEPIRIDE_CONTROLS.dose, 1, "dose", voice),
-    dial({...GLIMEPIRIDE_CONTROLS.weight, ...weight, value: person.weight}, 2, "weight", voice),
+    dial({...GLIMEPIRIDE_CONTROLS.dose, value: startingDose(person.weight)}, 1, "dose", voice,
+      GLIMEPIRIDE_DOSE_STEPS),
+    dial(GLIMEPIRIDE_CONTROLS.absorption, 2, "absorption", voice),
     dial(GLIMEPIRIDE_CONTROLS.cyp2c9, 4, "cyp2c9", voice),
     dial(GLIMEPIRIDE_CONTROLS.cirrhosis, 5, "cirrhosis", voice),
     dial({
@@ -75,8 +81,9 @@ export function doseCountRole(voice: Voice): TokenRole {
 export function glimepirideRoles(
   voice: Voice, person: TableIndividual = individualOf(),
 ): readonly TokenRole[] {
-  const [dose, weight, ...rest] = individualRoles(voice, person);
-  return [...(dose === undefined ? [] : [dose]), ...(weight === undefined ? [] : [weight]),
+  const [dose, absorption, ...rest] = individualRoles(voice, person);
+  return [...(dose === undefined ? [] : [dose]),
+    ...(absorption === undefined ? [] : [absorption]),
     doseCountRole(voice), ...rest];
 }
 

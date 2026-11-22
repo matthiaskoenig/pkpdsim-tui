@@ -15,8 +15,8 @@
  */
 
 import {
-  AGE_RANGE, clampAge, clampHeight, clampWeight, HEIGHT_RANGE, individualOf, loadAnatomy,
-  referenceBody, weightRange,
+  AGE_RANGE, clampAge, clampHeight, clampWeight, figureScale, HEIGHT_RANGE, individualOf,
+  loadAnatomy, referenceBody, weightRange,
 } from "@pkpdsim-tui/cardio-sim";
 import type {Individual, Sex} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
@@ -28,7 +28,7 @@ import {HUB_TEXT} from "./text.ts";
 const PRESS = 620;
 
 /** How tall a grown up stands on this screen, in pixels, and the height the two are drawn at. */
-const FIGURE = {height: 230, grown: 176} as const;
+const FIGURE = {height: 180, adult: 35} as const;
 
 /** The address this table carries the person in. */
 export const PERSON_KEYS = ["age", "sex", "bw", "height"] as const;
@@ -218,12 +218,17 @@ export function askPerson(
         label.textContent = bodyName(voice, value, age);
       }
     }
-    // The chosen body stands at the height which is set, the other one at the reference of its
-    // age, so the two are compared with each other and the pair grows with the dials.
+    // The chosen body stands at the height and the width which are set, the other one at the
+    // reference of its age, so the two are compared with each other and the pair grows and
+    // broadens with the dials.
     for (const figure of root.querySelectorAll<SVGSVGElement>(".welcome-body-art")) {
       const value = figure.dataset["sex"] === "male" ? "male" : "female";
-      const tall = value === sex ? height : referenceBody(age, value).height;
-      figure.style.height = `${(FIGURE.height * tall / FIGURE.grown).toFixed(1)}px`;
+      const shown = value === sex
+        ? individualOf(age, value, weight, height)
+        : individualOf(age, value);
+      const shape = figureScale(shown, referenceBody(FIGURE.adult, value));
+      figure.style.height = `${(FIGURE.height * shape.y).toFixed(1)}px`;
+      figure.style.transform = `scaleX(${shape.x.toFixed(3)})`;
     }
   };
 

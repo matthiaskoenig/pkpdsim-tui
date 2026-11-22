@@ -42,10 +42,42 @@ export const HEIGHT_PARAMETER = "HEIGHT";
  * clearance of 110 ml/min and is the reference adult female of 60 kg. The male body is the same
  * individual at the male reference of 73 kg and 176 cm.
  */
+/**
+ * The tablets there are, in milligrams. A dose is a tablet somebody swallows and not any number
+ * of milligrams: glimepiride is made in 1, 2, 3, 4 and 6 mg, a half tablet is what a small body
+ * is started on, and 8 mg is two of the largest, which is the most anybody is given.
+ */
+export const GLIMEPIRIDE_DOSE_STEPS: readonly number[] = [0.5, 1, 2, 3, 4, 6, 8];
+
+/**
+ * What a body of this weight is started on, in milligrams.
+ *
+ * A grown up starts on 4 mg, and a child is not a small adult: the dose is carried down with
+ * the body and rounded to a tablet which exists, so a child of twenty kilograms starts on one
+ * milligram rather than on four. It is the dose a visitor finds on the dial when they walk up,
+ * not a recommendation: what a child is actually given is a decision of a doctor, and
+ * glimepiride is not a drug children are given at all.
+ */
+export function startingDose(weight: number): number {
+  const reference = REFERENCE_BODIES.female.weight;
+  const wanted = 4 * (Number.isFinite(weight) && weight > 0 ? weight : reference) / reference;
+  let best = GLIMEPIRIDE_DOSE_STEPS[0] as number;
+  for (const step of GLIMEPIRIDE_DOSE_STEPS) {
+    if (Math.abs(step - wanted) < Math.abs(best - wanted)) best = step;
+  }
+  return best;
+}
+
 export const GLIMEPIRIDE_CONTROLS = {
   dose: {
     id: "dose", parameter: "PODOSE_gli", label: "Dose", unit: "mg",
-    min: 0, max: 8, value: 4,
+    min: 0.5, max: 8, value: 4,
+  },
+  absorption: {
+    // How fast the tablet dissolves in the stomach, which is the A of ADME on this table: the
+    // drug has to be in solution before the gut wall lets it through.
+    id: "absorption", parameter: "GU__Ka_dis_gli", label: "Dissolution", unit: "/h",
+    min: 0.25, max: 8, value: 2,
   },
   cyp2c9: {
     id: "cyp2c9", parameter: "LI__f_cyp2c9", label: "CYP2C9 activity", unit: "x",
@@ -127,6 +159,7 @@ export function parametersOf(
   return [
     [HEIGHT_PARAMETER, height],
     [GLIMEPIRIDE_CONTROLS.dose.parameter, values.dose],
+    [GLIMEPIRIDE_CONTROLS.absorption.parameter, values.absorption],
     [GLIMEPIRIDE_CONTROLS.cyp2c9.parameter, values.cyp2c9],
     [GLIMEPIRIDE_CONTROLS.cirrhosis.parameter, values.cirrhosis],
     [GLIMEPIRIDE_CONTROLS.renal.parameter, Math.min(values.renal / NORMAL_CRCL, 1)],

@@ -200,6 +200,22 @@ export function clampHeight(height: number): number {
   return Math.min(HEIGHT_RANGE.max, Math.max(HEIGHT_RANGE.min, Math.round(height)));
 }
 
+/**
+ * How the drawing of a grown up is stretched to stand for this body.
+ *
+ * The anatomy of the library carries one drawing per sex, of the reference adult. A child is
+ * not a small adult, but a child drawn at the height of a grown up is not a child at all, so
+ * the figure is stretched: as tall as this body against the one which was drawn, and as wide
+ * as the mass at that height makes it, which is what tells a heavy body from a light one on
+ * the glass. The drawing is a picture, not a model; what the tables solve is the physiology.
+ */
+export function figureScale(individual: Individual, drawn: ReferenceBody): {x: number; y: number} {
+  const y = drawn.height > 0 ? individual.height / drawn.height : 1;
+  const mass = drawn.weight > 0 ? individual.weight / drawn.weight : 1;
+  const x = Math.sqrt(Math.max(0.1, mass / Math.max(y, 0.2)));
+  return {x: Math.min(1.9, Math.max(0.5, x)), y: Math.min(1.6, Math.max(0.3, y))};
+}
+
 /** The body of an individual, as the parameters every human model of the collection carries. */
 export function bodyParameters(individual: Individual): [string, number][] {
   return [["BW", individual.weight], ["HEIGHT", individual.height]];

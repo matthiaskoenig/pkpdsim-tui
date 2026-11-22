@@ -3,23 +3,23 @@ import {
   CIRRHOSIS_CLASSES, GENOTYPES, nearestCategory, RENAL_CLASSES,
 } from "../src/categories.ts";
 import {
-  GLIMEPIRIDE_CONTROLS, heightOf, NORMAL_CRCL, normalizeIndividual, parametersOf,
-  REFERENCE_BODIES,
-  referenceIndividual,
+  GLIMEPIRIDE_CONTROLS, GLIMEPIRIDE_DOSE_STEPS, heightOf, NORMAL_CRCL, normalizeIndividual,
+  parametersOf, REFERENCE_BODIES, referenceIndividual, startingDose,
 } from "../src/individual.ts";
 import {GLIMEPIRIDE_SIMULATION, glimepirideRequest} from "../src/request.ts";
 
 describe("the reference individual", () => {
   it("takes four milligrams and is otherwise the reference adult of their sex", () => {
-    expect(referenceIndividual()).toEqual({dose: 4, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 60});
+    expect(referenceIndividual()).toEqual(
+      {dose: 4, absorption: 2, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 60});
     expect(referenceIndividual("male").weight).toBe(73);
     expect(REFERENCE_BODIES.female).toEqual({weight: 60, height: 163});
   });
 
   it("leaves the parameters of the model at their own defaults, apart from the dose", () => {
     expect(parametersOf()).toEqual([
-      ["HEIGHT", 163], ["PODOSE_gli", 4], ["LI__f_cyp2c9", 1], ["f_cirrhosis", 0],
-      ["KI__f_renal_function", 1], ["BW", 60],
+      ["HEIGHT", 163], ["PODOSE_gli", 4], ["GU__Ka_dis_gli", 2], ["LI__f_cyp2c9", 1],
+      ["f_cirrhosis", 0], ["KI__f_renal_function", 1], ["BW", 60],
     ]);
   });
 
@@ -102,5 +102,28 @@ describe("the clinical categories", () => {
     expect(nearestCategory(CIRRHOSIS_CLASSES, 0.8).label).toBe("CPT C");
     expect(nearestCategory(RENAL_CLASSES, 110).label).toBe("normal");
     expect(nearestCategory(RENAL_CLASSES, 30).label).toBe("moderate");
+  });
+});
+
+describe("startingDose", () => {
+  it("gives a grown up the four milligrams of the label", () => {
+    expect(startingDose(60)).toBe(4);
+    expect(startingDose(73)).toBe(4);
+  });
+
+  it("carries the dose down with the body, onto a tablet which exists", () => {
+    // A child of twenty kilograms is started on a milligram and not on four, and every value
+    // is one of the strengths glimepiride is made in.
+    expect(startingDose(20)).toBe(1);
+    expect(startingDose(14)).toBe(1);
+    expect(startingDose(35)).toBe(2);
+    expect(startingDose(8)).toBe(0.5);
+    for (const weight of [5, 12, 25, 40, 55, 90, 150]) {
+      expect(GLIMEPIRIDE_DOSE_STEPS).toContain(startingDose(weight));
+    }
+  });
+
+  it("never asks for more than the largest dose of the table", () => {
+    expect(startingDose(400)).toBe(8);
   });
 });

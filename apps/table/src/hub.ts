@@ -8,7 +8,7 @@
  * the tables, which number them from 1, and a visitor who has just walked up has their hands.
  */
 
-import {loadAnatomy, referenceBody} from "@pkpdsim-tui/cardio-sim";
+import {figureScale, loadAnatomy, referenceBody} from "@pkpdsim-tui/cardio-sim";
 import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
@@ -54,6 +54,8 @@ const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const
  * looking at the same person.
  */
 const RING: readonly number[] = [-90, 0, 90, 180];
+/** The age of the grown up the anatomy of the library is drawn of. */
+const ADULT_DRAWN = 35;
 /**
  * How close to the organ of a table a finger has to be to open it, in pixels. The organs of the
  * body are a few centimetres apart, so a mark never reaches further than halfway to its
@@ -87,7 +89,7 @@ interface BodyView {
   readonly sex: "male" | "female";
   readonly body: Body;
   readonly art: SVGGElement;
-  layout: {scale: number; left: number; top: number};
+  layout: {scale: number; left: number; top: number; wide: number};
   marks: OrganMark[];
 }
 
@@ -387,7 +389,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     // comes.
     art.innerHTML = body.svg;
     return [{
-      sex, body, art, layout: {scale: 1, left: 0, top: 0}, marks: [] as OrganMark[],
+      sex, body, art, layout: {scale: 1, left: 0, top: 0, wide: 1}, marks: [] as OrganMark[],
     }];
   });
   if (views.length === 0) throw new Error("The anatomy holds no body.");
@@ -525,21 +527,24 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const disc = discOf(stage);
     const room = bodyBox(stage);
     const tallest = Math.max(...views.map(one => one.body.height));
-    // How tall the person is against the grown up the drawing is of: a body of eight years
-    // stands in the ring at the height of a body of eight years, and its organs with it.
-    const grown = referenceBody(35, person.sex).height;
-    const scale = (room.height / tallest) * (grown > 0 ? person.height / grown : 1);
-    const widths = views.map(one => one.art.getBBox().width * scale);
+    // How tall and how wide the person is against the grown up the drawing is of: a body of
+    // eight years stands in the ring at the height of a body of eight years, a heavy body
+    // stands there broader, and the organs of both go with them.
+    const room0 = room.height / tallest;
+    const shape = figureScale(person, referenceBody(ADULT_DRAWN, person.sex));
+    const scale = room0 * shape.y;
+    const widths = views.map(one => one.art.getBBox().width * scale * shape.x);
     // The two bodies stand close together, as one thing in the middle of the ring.
     const gap = Math.round(disc.r * 0.02);
     const total = widths.reduce((sum, width) => sum + width, 0) + gap * (views.length - 1);
     let cursor = stage.x + (stage.width - total) / 2;
     for (const [index, one] of views.entries()) {
       const bounds = one.art.getBBox();
-      const left = cursor - bounds.x * scale;
+      const left = cursor - bounds.x * scale * shape.x;
       const top = room.y + (room.height - one.body.height * scale);
-      one.layout = {scale, left, top};
-      one.art.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
+      one.layout = {scale, left, top, wide: shape.x};
+      one.art.setAttribute(
+        "transform", `translate(${left} ${top}) scale(${scale * shape.x} ${scale})`);
       cursor += (widths[index] ?? 0) + gap;
     }
 
@@ -547,8 +552,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     for (const one of views) {
       for (const mark of one.marks) {
         const anchor = anchorOf(one.body, mark.organ);
-        const {scale: s, left: x, top: y} = one.layout;
-        mark.centre = {x: x + anchor.x * s, y: y + anchor.y * s};
+        const {scale: s, left: x, top: y, wide} = one.layout;
+        mark.centre = {x: x + anchor.x * s * wide, y: y + anchor.y * s};
         attributes(mark.disc, {cx: mark.centre.x, cy: mark.centre.y});
         attributes(mark.hit, {cx: mark.centre.x, cy: mark.centre.y});
       }

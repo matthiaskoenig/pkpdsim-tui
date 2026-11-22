@@ -32,6 +32,13 @@ export interface TokenRole {
   readonly scale: RoleScale;
   /** Revolutions that span the whole range, for a relative role. */
   readonly turns: number;
+  /**
+   * The values this object can carry, where it carries some rather than all of them: a dose is
+   * a tablet that exists and not any number of milligrams. The dial lands on the nearest of
+   * them, so the object clicks through them as it is turned, and the ends of the range are the
+   * first and the last.
+   */
+  readonly steps?: readonly number[];
 }
 
 /**
@@ -62,6 +69,17 @@ function spansWholeTurn(role: TokenRole): boolean {
   return role.mode === "absolute" && (role.reference <= role.min || role.reference >= role.max);
 }
 
+/** The one of the values of a stepped role which is nearest to this one. */
+function snap(role: TokenRole, value: number): number {
+  const steps = role.steps;
+  if (steps === undefined || steps.length === 0) return value;
+  let best = steps[0] as number;
+  for (const step of steps) {
+    if (Math.abs(step - value) < Math.abs(best - value)) best = step;
+  }
+  return best;
+}
+
 /** Where a value sits between the ends of the range, from 0 at the minimum to 1 at the maximum. */
 function fractionOfValue(role: TokenRole, value: number): number {
   const {min, max} = role;
@@ -86,9 +104,9 @@ export function valueAtOffset(role: TokenRole, offset: number): number {
   }
   if (spansWholeTurn(role)) {
     const fraction = (t + 1) / 2;
-    return clamp(
+    return snap(role, clamp(
       role.scale === "log" ? min * (max / min) ** fraction : min + (max - min) * fraction,
-      min, max);
+      min, max));
   }
   const value = role.scale === "log"
     ? (t >= 0 ? reference * (max / reference) ** t : reference * (reference / min) ** t)
@@ -96,7 +114,7 @@ export function valueAtOffset(role: TokenRole, offset: number): number {
   // An object turned to the stop carries the end of its range and not a hair beyond it: the
   // arithmetic above lands on 0.22999999999999998 where the dial says 0.23, and a model which
   // checks its own range would refuse that.
-  return clamp(value, min, max);
+  return snap(role, clamp(value, min, max));
 }
 
 /** The inverse of `valueAtOffset`, for a dial that shows where the value sits. */

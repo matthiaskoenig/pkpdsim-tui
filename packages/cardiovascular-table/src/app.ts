@@ -96,14 +96,6 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   };
   const body = anatomy.bodies[sex] ?? Object.values(anatomy.bodies)[0];
   if (body === undefined) throw new Error("The anatomy holds no body.");
-  const bodies: readonly ChoiceGroup[] = [{
-    id: "sex", label: kit.bodySwitch, selected: sex,
-    options: [
-      {id: "female", label: bodyName(voice, "female", individual.age), picture: "woman"},
-      {id: "male", label: bodyName(voice, "male", individual.age), picture: "man"},
-    ],
-  }];
-
   // The circulation of this person: the exported network is that of the reference adult, and a
   // body which moves less blood is the same network with more resistance. How much less it
   // moves is the cardiac output of a body of that age until the heart of this body has been
@@ -290,7 +282,6 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: cardioReading(voice, heartControls, individual, summary, referenceSummary),
       back: true,
-      choices: bodies,
       status, roles: roles, notice,
       value: role => {
         const live = heartControls[role.id as keyof HeartControls];
