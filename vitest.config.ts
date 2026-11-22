@@ -12,6 +12,8 @@ export default defineConfig({
     // The simulator runs on plain `node` without a build step, so its tests are modules too.
     include: [
       "packages/*/test/**/*.test.ts", "packages/*/test/**/*.test.mjs", "apps/*/test/**/*.test.ts",
+      // the version of the repository and its release notes, which belong to no package
+      "test/**/*.test.ts",
     ],
     environment: "node",
   },

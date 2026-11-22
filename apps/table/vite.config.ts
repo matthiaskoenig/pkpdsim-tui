@@ -1,3 +1,4 @@
+import {readFileSync} from "node:fs";
 import {defineConfig} from "vite";
 import type {Connect, Plugin, ProxyOptions} from "vite";
 
@@ -16,6 +17,15 @@ import type {Connect, Plugin, ProxyOptions} from "vite";
  * would hand them to everybody on it.
  */
 const HOST = process.env["TUIO_TABLE_HOST"] ?? "localhost";
+
+/**
+ * The version of the repository, which the page about all of this shows. It is read from the
+ * one `package.json` that carries it, so a build says which release it is and a table at an
+ * exhibition can be asked what it is running.
+ */
+const VERSION = (JSON.parse(
+  readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+) as {version: string}).version;
 
 const SIMULATOR_PAGE = process.env["TUIO_SIMULATOR_PAGE"] ?? "127.0.0.1:3344";
 const TUIO_TRACKER = process.env["TUIO_TRACKER"] ?? "127.0.0.1:3333";
@@ -66,6 +76,9 @@ export default defineConfig({
       // `tuio-client` declares itself an ES module but points `main` at its CommonJS bundle.
       "tuio-client": "tuio-client/dist/tuio-client.es.js",
     },
+  },
+  define: {
+    __TABLE_VERSION__: JSON.stringify(VERSION),
   },
   build: {
     target: "es2023",

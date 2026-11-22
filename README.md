@@ -1,4 +1,5 @@
 # pkpdsim-tui
+[![release](https://img.shields.io/github/v/release/matthiaskoenig/pkpdsim-tui?color=2f6fd0)](https://github.com/matthiaskoenig/pkpdsim-tui/releases)
 [![ci](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml)
 [![documentation](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml)
 [![Documentation](https://img.shields.io/badge/docs-pkpdsim--tui-3f51b5.svg)](https://matthiaskoenig.github.io/pkpdsim-tui)

@@ -2,8 +2,9 @@ name: ci
 
 on:
   push:
-    # feature branches are built through their pull request
+    # feature branches are built through their pull request, a tag releases
     branches: [develop, main]
+    tags: ['*']
   pull_request:
     branches: [develop, main]
   workflow_dispatch:
@@ -13,6 +14,8 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # a newer run supersedes the running one of the same branch or pull request;
+  # a release is never superseded, every tag is a group of its own
   cancel-in-progress: true
 
 jobs:
@@ -38,3 +41,43 @@ jobs:
         # the exported models are not in the repository, so the bundle is built
         # without them; the application loads them at run time
         run: npm run build
+
+  release:
+    name: release
+    # the release is made from the tree the checks passed on, see docs/development.md
+    needs: node
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write  # create the GitHub release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Create the GitHub release
+        # the notes of the version are written before it is tagged, and a test
+        # of the repository fails without them
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3  # v3.0.4
+        with:
+          body_path: "release-notes/${{ github.ref_name }}.md"
+          draft: false
+          prerelease: false
+
+  sync-main:
+    name: sync-main
+    # main tracks the latest release, see docs/development.md
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write  # fast-forward main to the released commit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # a shallow clone cannot be pushed to another branch
+          fetch-depth: 0
+      - name: Fast-forward main to the release
+        # no --force: the push fails loudly if it would not be a fast-forward
+        run: git push origin HEAD:main
