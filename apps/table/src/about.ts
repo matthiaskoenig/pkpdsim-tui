@@ -74,6 +74,9 @@ ${escapeHtml(kit.back)}
             copy.software.map(item => `<li><b>${escapeHtml(item.name)}</b> ${
               escapeHtml(item.line)}</li>`).join("")
           }</ul>
+          <!-- Which release is on this glass. A name and a number say the same in every
+               language, so it is the one line of this page which is not translated. -->
+          <p class="about-version">pkpdsim-tui ${escapeHtml(__TABLE_VERSION__)}</p>
         </section>
         <section class="about-card">
           <h2>${escapeHtml(copy.licenceTitle)}</h2>

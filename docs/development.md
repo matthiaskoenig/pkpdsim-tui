@@ -160,6 +160,41 @@ Everything that carries logic is a pure function and is tested without a socket:
 - The reference state stays on screen when something fails. An empty table in front of an audience is the worst failure mode there is.
 - Markdown carries no hard line wraps: a paragraph, a list item or a table row is a single line.
 
+## Branches, the version and a release
+
+`develop` is the default branch and takes every change through a pull request: the rulesets in `.github/rulesets/` reject a push straight to it and ask for the `node` and `docs` checks. `main` tracks the latest release and is fast-forwarded by the `sync-main` job of `ci.yml`, never by hand. `.github/rulesets/apply.sh` applies the rulesets and the merge settings of the repository and can be run again after every change of them.
+
+The version is one number for the whole repository: the root `package.json`, every workspace beside it, and the line the page about all of this shows, which `vite.config.ts` reads out of the root and writes into the bundle, so a table at an exhibition can be asked which release it is running. `test/release.test.ts` fails when the versions disagree, when the version is no plain `x.y.z`, or when the release notes of that version are missing.
+
+A release is prepared on a branch, because `develop` takes nothing else, and tagged once that pull request is merged:
+
+1. branch off `develop`: `git switch -c release/x.y.z develop`
+2. write the release notes in `release-notes/x.y.z.md`. The first line is `# Release notes for pkpdsim-tui x.y.z`, which is what the test looks for and what the GitHub release is built from
+3. set the version everywhere: `npm version x.y.z --workspaces --include-workspace-root --no-git-tag-version`, which writes the root, every workspace and `package-lock.json`. It makes no tag: a squash merge would rewrite the commit and leave the tag behind on a commit which is not part of `develop`
+4. make sure everything passes: `npm run typecheck`, `npm test`, `npm run build`, `npm run docs:build`
+5. push the branch, open the pull request against `develop` and merge it once the checks are green
+6. tag the merged commit on `develop` and push the tag:
+
+    ```bash
+    git switch develop
+    git pull
+    git tag x.y.z
+    git push origin x.y.z
+    ```
+
+    This starts `ci.yml` once more on the tagged tree, and when the checks pass it creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing: a tag can be neither moved nor deleted.
+
+Nothing goes to a registry. The packages are private and a table is served as a build of `apps/table`, so the release is the tag, the notes and `main`. A table is deployed from a tag rather than from a branch:
+
+```bash
+git switch --detach x.y.z
+npm ci
+npm run sync          # the models and reference data, which are not in the repository
+npm run build
+```
+
+`apps/table/dist` is then what the machine of the table serves, see [Run on a table](table.md).
+
 ## The documentation
 
 The site is built with [Zensical](https://zensical.org/) from the markdown in `docs/`, configured in `zensical.toml`. The build is gitignored.
