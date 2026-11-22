@@ -9,7 +9,7 @@ Two switches carry it, and both are on every page:
 - **The language.** English, Deutsch, Español.
 - **The level.** Kids, Adults, Experts: *explain it like I am six*, *explain it to an adult who knows nothing about this*, and *tell me what it really is*.
 
-Both are behind the gear in the far corner of every page, as either-or switches with a tick on the one which is on: the level as three pictograms of a child, an adult and an expert, the language as the three flags. A visitor who cannot read the language of the table can still find the language switch, which is the whole reason it is a flag. They are pressed the way everything on a table is pressed, by resting a finger on them, and they travel in the address:
+Both sit behind the gear in the far corner of every page, as either-or switches with a tick on the one that is on: the level as three pictograms, the language as three flags. A visitor who cannot read the language of the table can still find the language switch, which is why it is a flag. They travel in the address:
 
 ```
 http://localhost:5173/?app=glimepiride&lang=de&level=child
@@ -32,14 +32,11 @@ A band of six numbers is not what a six year old came to read, so a number carri
 
 ## Reading it aloud
 
-A speaker stands beside the sentence of the panel, inside the note behind an element, beside what the sidebar of the landing page says and beside the questions of the first screen. It reads in the language of the visitor, marks itself while it is reading, and stops when it is pressed again. One handler on the page serves all of them, because the thing a speaker belongs to is drawn again whenever the table changes.
+A speaker stands beside the sentence of the panel, inside every note, beside the sidebar of the landing page and beside the questions of the first screen. It reads in the language of the visitor, marks itself while it is reading, and stops when it is pressed again.
 
-What would be read comes from two places:
+What it reads comes from two places. A **recorded clip** where there is one: the whole copy is written down before anybody walks up to the table, so almost everything can be recorded in a good voice and sounds the same at every table. All three languages get the same kind of voice, a friendly and confident woman: `en_GB-cori-high`, `de_DE-kerstin-medium` and `es_MX-claude-high` in `PIPER_VOICES` of `scripts/speak.py`. The **speech of the browser** for everything else: a reading like *2.5 times as much of the drug in the blood* is built out of the numbers of the moment and was never a sentence anybody could record.
 
-- **A recorded clip**, where there is one. The whole copy of the application is written down before anybody walks up to the table, so almost everything it says can be recorded in a good voice, in the language it belongs to, and it sounds the same at every table. The voice of all three languages is the same kind of voice, a friendly and confident woman: `en_GB-cori-high`, `de_DE-kerstin-medium` and `es_MX-claude-high` in `PIPER_VOICES` of `scripts/speak.py`.
-- **The speech of the browser** for everything else: a reading like *2.5 times as much of the drug in the blood* is built out of the numbers of the moment and was never a sentence anybody could record.
-
-A table which was never given its clips still reads everything aloud. The clips are what makes it pleasant.
+A table that was never given its clips still reads everything aloud. The clips are what makes it pleasant.
 
 ### Record the clips
 
@@ -48,7 +45,7 @@ node scripts/speech.mjs            # every sentence of every language and level
 uv run python scripts/speak.py     # one clip per sentence
 ```
 
-`scripts/speech.mjs` walks the copy of the four tables, the landing page and the kit, resolves every phrase at every level, and writes `apps/table/public/audio/texts.json`: the sentence and the name its clip will have, which is a hash of the sentence itself. `scripts/speak.py` records them into `apps/table/public/audio/<locale>/` with a manifest the application looks a sentence up in. Both are idempotent: a clip which is there is kept unless `--force` says otherwise, so a changed sentence costs one clip and not an afternoon.
+`scripts/speech.mjs` walks the copy of the four tables, the landing page and the kit, resolves every phrase at every level, and writes `apps/table/public/audio/texts.json`: each sentence and the name of its clip, which is a hash of the sentence. `scripts/speak.py` records them into `apps/table/public/audio/<locale>/` with a manifest. Both are idempotent, so a changed sentence costs one clip and not an afternoon.
 
 | Engine | What it needs | What it sounds like |
 | --- | --- | --- |
@@ -63,7 +60,7 @@ uv run python scripts/speak.py     # one clip per sentence
 
 ## Where the words are
 
-One module per package holds all three languages side by side, so a sentence and its translations are read and changed together:
+One module per package holds all three languages side by side, so a sentence and its translations change together:
 
 | File | What it says |
 | --- | --- |

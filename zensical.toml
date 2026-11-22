@@ -10,6 +10,8 @@ repo_url = "https://github.com/matthiaskoenig/pkpdsim-tui"
 repo_name = "matthiaskoenig/pkpdsim-tui"
 edit_uri = "edit/develop/docs/"
 
+extra_css = ["stylesheets/extra.css"]
+
 nav = [
   { "Home" = "index.md" },
   { "What TUIO is" = "tuio.md" },

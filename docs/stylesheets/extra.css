@@ -1,0 +1,5 @@
+/* The screenshots are white pages on a white site, so they get a frame to read as pictures. */
+.md-typeset img[src$=".png"] {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+}
