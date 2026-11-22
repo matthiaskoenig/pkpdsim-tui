@@ -58,12 +58,17 @@ export function watchSay(voice: Voice): void {
     event.preventDefault();
     const text = button.getAttribute("data-say") ?? "";
     if (text === "") return;
-    speech.toggle(text);
+    // A button may carry several phrases, one per line. Each of them is looked for among the
+    // clips on its own, because that is how they were recorded: a sidebar which says a blurb
+    // and then what the table is would otherwise find a clip for neither.
+    const parts = text.split("\n").map(part => part.trim()).filter(part => part !== "");
+    speech.toggle(parts.length > 1 ? parts : text);
   });
   // While something is being read, the button which started it says so.
   speech.listen(() => {
     for (const button of document.querySelectorAll("[data-say]")) {
-      const text = button.getAttribute("data-say") ?? "";
+      const text = (button.getAttribute("data-say") ?? "").split("\n")
+        .map(part => part.trim()).filter(part => part !== "").join(" ");
       const saying = speech.speaking() && speech.saying() === normalizeSpeech(text);
       if (saying) button.setAttribute("data-speaking", "true");
       else button.removeAttribute("data-speaking");

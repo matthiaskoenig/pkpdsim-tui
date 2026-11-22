@@ -8,6 +8,8 @@ import type {Level, Locale, Phrase} from "@pkpdsim-tui/tui-kit";
 
 /** What one table is called and what it is, on its card and behind it. */
 export interface EntryCopy {
+  /** The line under the name: what a visitor will do at this table, in their own words. */
+  readonly tagline: string;
   /** One or two words, for the switch in the panel of every table. */
   readonly label: string;
   /** The heading of the card and the title of the page. */
@@ -43,6 +45,7 @@ export interface HubCopy {
     readonly solvedFor: string;
     readonly ageInfo: string;
     readonly weightInfo: string;
+    readonly heightInfo: string;
   };
   /** The two lines under the heading: what there is to learn here. */
   readonly motivation: Readonly<Record<Level, readonly string[]>>;
@@ -158,11 +161,11 @@ const EN: HubCopy = {
   startAgain: "Restart the table",
   startAgainInfo: "Back to the very start: the language, the body and the stars of the quizzes are forgotten, and the next visitor is asked again.",
   person: {
-    ask: "Who is standing at the table?",
+    ask: "Whose body should it be?",
     note: {
-      child: "Say how old you are and whether the body is a girl or a boy. Every table then shows a body like yours.",
-      adult: "The tables are solved for this body. The age gives its size, the weight moves it from there, and every model of the collection is run again for it.",
-      expert: "The age and the sex give the reference body of ICRP 89, the weight moves it from there, and BW and HEIGHT go into every model of the collection. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
+      child: "Say how old you are and whether the body is a girl or a boy. Then everything you see is a body like yours.",
+      adult: "Everything you see is solved for this body. The age gives its size, the weight and the height move it from there, and every model of the collection is run again for it.",
+      expert: "The age and the sex give the reference body of ICRP 89, the weight and the height move it from there, and BW and HEIGHT go into every model of the collection. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
     },
     age: "Age",
     years: "years",
@@ -171,11 +174,12 @@ const EN: HubCopy = {
     ready: "That is me",
     readyInfo: "Takes this body to the tables. It can be changed again at any time.",
     change: "The person",
-    changeInfo: "Changes the age, the body and the weight every table is solved for.",
+    changeInfo: "Changes the age, the body, the weight and the height everything is solved for.",
     reference: "reference",
     solvedFor: "Every table of the collection is solved for this body.",
-    ageInfo: "Three to a hundred and twenty years. The body of a child is the reference child of ICRP 89 of that age.",
+    ageInfo: "Three to a hundred years. The body of a child is the reference child of ICRP 89 of that age.",
     weightInfo: "What this body weighs. It starts at the reference of that age and that body, and the organs and their blood flows follow it.",
+    heightInfo: "How tall this body is. It starts at the reference of that age and moves from there, and the organs are scaled with it.",
   },
   motivation: {
     child: [
@@ -214,7 +218,7 @@ const EN: HubCopy = {
   failedHint: "The exported models and reference data are copied in with \"npm run sync\".",
   entries: {
     cardiovascular: {
-      label: "Circulation", title: "Follow the blood",
+      label: "Circulation", title: "Circulation", tagline: "Follow the blood",
       blurb: {child: "Where does your blood go?", adult: "How the blood reaches every organ."},
       about: {
         child: "Your heart pushes blood to every part of you, again and again. Make a vessel narrow, or the heart beat faster, and see what changes.",
@@ -223,7 +227,7 @@ const EN: HubCopy = {
       },
     },
     lobes: {
-      label: "Surgery", title: "The liver grows back",
+      label: "Surgery", title: "Liver surgery", tagline: "The liver grows back",
       blurb: {child: "Take a piece away and watch it grow back.", adult: "Operate, and watch the liver grow back."},
       about: {
         child: "A liver is built of eight pieces. A doctor can take some away, and the rest grows until the liver is big enough again. Every operation grows back at its own speed.",
@@ -232,7 +236,7 @@ const EN: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepiride", title: "One tablet, one day",
+      label: "Glimepiride", title: "Drug breakdown", tagline: "One tablet, one day",
       blurb: {child: "What happens to a tablet?", adult: "What the liver does to a tablet."},
       about: {
         child: "Swallow a tablet and it travels: into the gut, to the liver, into the blood, and out again. In two people the same tablet does different things.",
@@ -241,7 +245,7 @@ const EN: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusion", title: "A liver without a body",
+      label: "Perfusion", title: "Machine perfusion", tagline: "A liver without a body",
       blurb: {child: "A liver that lives outside the body.", adult: "A liver kept alive outside the body."},
       about: {
         child: "A liver can live outside a body for a while. A machine pumps warm liquid with oxygen through it, and you decide how much it gets.",
@@ -314,24 +318,25 @@ const DE: HubCopy = {
   startAgain: "Tisch neu starten",
   startAgainInfo: "Ganz zurück an den Anfang: Sprache, Körper und die Sterne der Quizze werden vergessen, und der nächste Besuch wird wieder gefragt.",
   person: {
-    ask: "Wer steht am Tisch?",
+    ask: "Welcher Körper soll es sein?",
     note: {
-      child: "Sag, wie alt du bist und ob der Körper ein Mädchen oder ein Junge ist. Dann zeigt jeder Tisch einen Körper wie deinen.",
-      adult: "Für diesen Körper werden die Tische gerechnet. Das Alter gibt seine Größe, das Gewicht verschiebt ihn von dort aus, und jedes Modell der Sammlung läuft damit neu.",
-      expert: "Alter und Geschlecht geben den Referenzkörper der ICRP 89, das Gewicht verschiebt ihn von dort aus, und BW und HEIGHT gehen in jedes Modell der Sammlung. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
+      child: "Sag, wie alt du bist und ob der Körper ein Mädchen oder ein Junge ist. Dann ist alles, was du siehst, ein Körper wie deiner.",
+      adult: "Alles, was Sie sehen, wird für diesen Körper gerechnet. Das Alter gibt den Ausgangspunkt, Gewicht und Größe verschieben ihn, und jedes Modell der Sammlung läuft damit neu.",
+      expert: "Alter und Geschlecht geben den Referenzkörper der ICRP 89, Gewicht und Größe verschieben ihn von dort aus, und BW und HEIGHT gehen in jedes Modell der Sammlung. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
     },
     age: "Alter",
     years: "Jahre",
     weight: "Gewicht",
     height: "Größe",
     ready: "Das bin ich",
-    readyInfo: "Nimmt diesen Körper mit auf die Tische. Er lässt sich jederzeit wieder ändern.",
+    readyInfo: "Übernimmt diesen Körper. Er lässt sich jederzeit wieder ändern.",
     change: "Die Person",
-    changeInfo: "Ändert Alter, Körper und Gewicht, für die jeder Tisch gerechnet wird.",
+    changeInfo: "Ändert Alter, Körper, Gewicht und Größe, für die alles gerechnet wird.",
     reference: "Referenz",
-    solvedFor: "Für diesen Körper wird jeder Tisch der Sammlung gerechnet.",
-    ageInfo: "Drei bis hundertzwanzig Jahre. Der Körper eines Kindes ist das Referenzkind der ICRP 89 dieses Alters.",
+    solvedFor: "Für diesen Körper wird alles in der Sammlung gerechnet.",
+    ageInfo: "Drei bis hundert Jahre. Der Körper eines Kindes ist das Referenzkind der ICRP 89 dieses Alters.",
     weightInfo: "Was dieser Körper wiegt. Er beginnt bei der Referenz dieses Alters und dieses Körpers, und die Organe und ihre Durchblutung folgen ihm.",
+    heightInfo: "Wie groß dieser Körper ist. Er beginnt bei der Referenz dieses Alters, lässt sich von dort verschieben, und die Organe werden damit skaliert.",
   },
   motivation: {
     child: [
@@ -370,7 +375,7 @@ const DE: HubCopy = {
   failedHint: "Die exportierten Modelle und Referenzdaten werden mit \"npm run sync\" kopiert.",
   entries: {
     cardiovascular: {
-      label: "Kreislauf", title: "Dem Blut hinterher",
+      label: "Kreislauf", title: "Kreislauf", tagline: "Dem Blut hinterher",
       blurb: {child: "Wohin fließt dein Blut?", adult: "Wie das Blut zu jedem Organ kommt."},
       about: {
         child: "Dein Herz pumpt Blut in jeden Teil von dir, immer wieder. Mach ein Gefäß enger oder das Herz schneller und schau, was sich ändert.",
@@ -379,7 +384,7 @@ const DE: HubCopy = {
       },
     },
     lobes: {
-      label: "Chirurgie", title: "Die Leber wächst nach",
+      label: "Chirurgie", title: "Operation der Leber", tagline: "Die Leber wächst nach",
       blurb: {child: "Nimm ein Stück weg und sieh zu, wie es nachwächst.", adult: "Operieren und die Leber nachwachsen sehen."},
       about: {
         child: "Eine Leber besteht aus acht Stücken. Ärzte können etwas davon wegnehmen, und der Rest wächst, bis die Leber wieder groß genug ist. Jede Operation wächst unterschiedlich schnell nach.",
@@ -388,7 +393,7 @@ const DE: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepirid", title: "Eine Tablette, ein Tag",
+      label: "Glimepirid", title: "Medikamentenabbau", tagline: "Eine Tablette, ein Tag",
       blurb: {child: "Was passiert mit einer Tablette?", adult: "Was die Leber mit einer Tablette macht."},
       about: {
         child: "Eine Tablette macht eine Reise: in den Darm, zur Leber, ins Blut und wieder hinaus. Bei zwei Menschen wirkt dieselbe Tablette verschieden.",
@@ -397,7 +402,7 @@ const DE: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusion", title: "Leber ohne Körper",
+      label: "Perfusion", title: "Maschinenperfusion", tagline: "Leber ohne Körper",
       blurb: {child: "Eine Leber, die außerhalb des Körpers lebt.", adult: "Eine Leber, außerhalb des Körpers am Leben gehalten."},
       about: {
         child: "Eine Leber kann eine Weile außerhalb des Körpers leben. Eine Maschine pumpt warme Flüssigkeit mit Sauerstoff hindurch, und du bestimmst, wie viel sie bekommt.",
@@ -470,11 +475,11 @@ const ES: HubCopy = {
   startAgain: "Reiniciar la mesa",
   startAgainInfo: "De vuelta al principio: el idioma, el cuerpo y las estrellas de los concursos se olvidan, y a la próxima visita se le pregunta de nuevo.",
   person: {
-    ask: "¿Quién está en la mesa?",
+    ask: "¿Qué cuerpo quieres?",
     note: {
-      child: "Di cuántos años tienes y si el cuerpo es de una niña o de un niño. Cada mesa muestra entonces un cuerpo como el tuyo.",
-      adult: "Las mesas se resuelven para este cuerpo. La edad da su tamaño, el peso lo mueve desde ahí, y cada modelo de la colección vuelve a correr con él.",
-      expert: "La edad y el sexo dan el cuerpo de referencia de la ICRP 89, el peso lo mueve desde ahí, y BW y HEIGHT entran en cada modelo de la colección. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
+      child: "Di cuántos años tienes y si el cuerpo es de una niña o de un niño. Entonces todo lo que ves es un cuerpo como el tuyo.",
+      adult: "Todo lo que ves se resuelve para este cuerpo. La edad da el punto de partida, el peso y la altura lo mueven, y cada modelo de la colección vuelve a correr con él.",
+      expert: "La edad y el sexo dan el cuerpo de referencia de la ICRP 89, el peso y la altura lo mueven desde ahí, y BW y HEIGHT entran en cada modelo de la colección. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
     },
     age: "Edad",
     years: "años",
@@ -483,11 +488,12 @@ const ES: HubCopy = {
     ready: "Ese soy yo",
     readyInfo: "Lleva este cuerpo a las mesas. Se puede cambiar otra vez cuando quieras.",
     change: "La persona",
-    changeInfo: "Cambia la edad, el cuerpo y el peso con los que se resuelve cada mesa.",
+    changeInfo: "Cambia la edad, el cuerpo, el peso y la altura con los que se resuelve todo.",
     reference: "referencia",
     solvedFor: "Cada mesa de la colección se resuelve para este cuerpo.",
-    ageInfo: "De tres a ciento veinte años. El cuerpo de un niño es el niño de referencia de la ICRP 89 de esa edad.",
+    ageInfo: "De tres a cien años. El cuerpo de un niño es el niño de referencia de la ICRP 89 de esa edad.",
     weightInfo: "Lo que pesa este cuerpo. Empieza en la referencia de esa edad y ese cuerpo, y los órganos y su flujo de sangre lo siguen.",
+    heightInfo: "Lo que mide este cuerpo. Empieza en la referencia de esa edad, se mueve desde ahí, y los órganos se escalan con ella.",
   },
   motivation: {
     child: [
@@ -526,7 +532,7 @@ const ES: HubCopy = {
   failedHint: "Los modelos exportados y los datos de referencia se copian con \"npm run sync\".",
   entries: {
     cardiovascular: {
-      label: "Circulación", title: "Sigue la sangre",
+      label: "Circulación", title: "Circulación", tagline: "Sigue la sangre",
       blurb: {child: "¿Adónde va tu sangre?", adult: "Cómo llega la sangre a cada órgano."},
       about: {
         child: "Tu corazón empuja la sangre a todas las partes de ti, una y otra vez. Estrecha un vaso, o haz latir el corazón más rápido, y mira qué cambia.",
@@ -535,7 +541,7 @@ const ES: HubCopy = {
       },
     },
     lobes: {
-      label: "Cirugía", title: "El hígado vuelve a crecer",
+      label: "Cirugía", title: "Cirugía del hígado", tagline: "El hígado vuelve a crecer",
       blurb: {child: "Quita un trozo y mira cómo vuelve a crecer.", adult: "Opere y vea crecer el hígado de nuevo."},
       about: {
         child: "Un hígado está hecho de ocho piezas. Los médicos pueden quitar algunas y el resto crece hasta que el hígado vuelve a ser bastante grande.",
@@ -544,7 +550,7 @@ const ES: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepirida", title: "Una pastilla, un día",
+      label: "Glimepirida", title: "Degradación del fármaco", tagline: "Una pastilla, un día",
       blurb: {child: "¿Qué le pasa a una pastilla?", adult: "Qué hace el hígado con una pastilla."},
       about: {
         child: "Una pastilla hace un viaje: al intestino, al hígado, a la sangre y otra vez fuera. En dos personas la misma pastilla hace cosas distintas.",
@@ -553,7 +559,7 @@ const ES: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusión", title: "Un hígado sin cuerpo",
+      label: "Perfusión", title: "Perfusión de máquina", tagline: "Un hígado sin cuerpo",
       blurb: {child: "Un hígado que vive fuera del cuerpo.", adult: "Un hígado mantenido vivo fuera del cuerpo."},
       about: {
         child: "Un hígado puede vivir un rato fuera del cuerpo. Una máquina le bombea líquido caliente con oxígeno, y tú decides cuánto recibe.",

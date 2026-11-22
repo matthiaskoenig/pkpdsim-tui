@@ -65,7 +65,7 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
   root.className = "quiz";
   root.innerHTML = `
     <button class="quiz-button" type="button" data-dwell="quiz"
-      data-info="${escapeHtml(copy.info)}">
+      title="${escapeHtml(copy.info)}">
       <span class="quiz-mark" aria-hidden="true">?</span>
       <span class="quiz-button-label">${escapeHtml(copy.title)}</span>
     </button>

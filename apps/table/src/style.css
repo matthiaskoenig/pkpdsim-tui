@@ -780,3 +780,21 @@
   text-transform: uppercase;
   color: var(--ink-dim);
 }
+
+/* The line under the name of a card, and under the title of the sidebar: what is done there. */
+.hub-icon-tag {
+  font-size: 19px;
+  font-weight: 500;
+  fill: var(--ink-dim);
+}
+
+.hub-info-tag {
+  font-size: 22px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+}
+
+/* Both bodies stand in the middle; the one the tables are solved for is the one in full. */
+.hub-body[data-chosen="false"] {
+  opacity: 0.4;
+}

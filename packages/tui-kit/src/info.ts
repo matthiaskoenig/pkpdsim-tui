@@ -53,6 +53,14 @@ const PRESS = 620;
 const GAP = 12;
 const EDGE = 14;
 const WIDTH = 340;
+/**
+ * How long a note stays after the finger has left what it belongs to, in milliseconds.
+ *
+ * A note carries a speaker, and a speaker has to be reachable: a note which went the moment
+ * the finger moved off the number could never be pressed, because the way to it leads over the
+ * glass between them. It stays long enough to be walked to, and goes on its own after that.
+ */
+const LINGER = 2600;
 
 /**
  * What a finger can press, and under which name. The name and not the element is the identity of
@@ -104,6 +112,7 @@ export function createInfo(
   };
 
   const place = (element: Element, text: string): void => {
+    hold();
     if (open !== element || sentence.textContent !== text) {
       sentence.textContent = text;
       speaker.innerHTML = voice === undefined ? "" : sayHtml(text, sayLabel(voice));
@@ -125,22 +134,45 @@ export function createInfo(
     note.style.width = `${Math.round(width)}px`;
   };
 
+  let fading: number | undefined;
+
   const hide = (): void => {
+    if (fading !== undefined) {
+      window.clearTimeout(fading);
+      fading = undefined;
+    }
     if (open === undefined) return;
     open = undefined;
     note.hidden = true;
   };
 
-  // The note holds itself open while a visitor is on it, and closes as they leave it, so that
-  // it never stands in front of the thing they moved on to.
-  note.addEventListener("pointerleave", () => hide());
+  /** Leaves the note standing for a moment, so that its speaker can be walked to and pressed. */
+  const fade = (): void => {
+    if (open === undefined || fading !== undefined) return;
+    fading = window.setTimeout(() => {
+      fading = undefined;
+      hide();
+    }, LINGER);
+  };
+
+  /** A note which is being read, or walked to, does not go. */
+  const hold = (): void => {
+    if (fading === undefined) return;
+    window.clearTimeout(fading);
+    fading = undefined;
+  };
+
+  // The note holds itself open while a visitor is on it, and starts to go as they leave it, so
+  // that it never stands in front of the thing they moved on to for long.
+  note.addEventListener("pointerenter", hold);
+  note.addEventListener("pointerleave", () => fade());
 
   const over = (event: PointerEvent | MouseEvent): void => {
     const target = event.target;
     // A visitor whose pointer is on the note itself is reading it: it holds itself open.
     if (target instanceof Element && note.contains(target)) return;
     const found = target instanceof Element ? noteOf(target) : undefined;
-    if (found === undefined) hide();
+    if (found === undefined) fade();
     else place(found.element, found.text);
   };
 
@@ -158,7 +190,7 @@ export function createInfo(
 
   surface.addEventListener("pointermove", over);
   surface.addEventListener("pointerdown", over);
-  surface.addEventListener("pointerleave", hide);
+  surface.addEventListener("pointerleave", () => fade());
   // A note which belongs to an element that went away with a redraw is not left behind.
   window.addEventListener("resize", hide);
 
@@ -186,6 +218,12 @@ export function createInfo(
             armed = press.element;
           }
         }
+        // A finger which is on the note itself is reading it, or on its way to the speaker.
+        if (target instanceof Element && note.contains(target)) {
+          live.add(point.id);
+          hold();
+          continue;
+        }
         const under = noteOf(target);
         if (under === undefined) continue;
         live.add(point.id);
@@ -204,7 +242,7 @@ export function createInfo(
       }
       arm(armed);
       if (found !== undefined) place(found.element, found.text);
-      else if (points.length > 0 && live.size === 0) hide();
+      else if (points.length > 0 && live.size === 0) fade();
     },
     hide,
   };
