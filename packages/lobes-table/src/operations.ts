@@ -81,6 +81,7 @@ export function resectionRole(voice: Voice, count: number): TokenRole {
     id: "resection", label: voice.say(copy.label), description: voice.say(copy.info), unit: "",
     markers: [RESECTION_MARKER], min: 0, max: Math.max(1, count - 1), reference: 0,
     mode: "absolute", scale: "linear", turns: 1,
+    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
   };
 }
 
@@ -106,6 +107,7 @@ export function growthRole(voice: Voice): TokenRole {
     description: voice.say(copy.info),
     min: 1 / GROWTH_SPAN, max: GROWTH_SPAN, reference: 1,
     mode: "absolute", scale: "log", turns: 1,
+    ...(copy.more === undefined ? {} : {background: voice.say(copy.more)}),
   };
 }
 

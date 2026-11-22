@@ -46,9 +46,11 @@ Every table wears **its own colour and its own picture** over the title of its p
 
 ## The page a table opens with
 
-A visitor who walks up to a table meets its context before its surface. Every table opens with one page, in the words of the chosen level: what this table is about, two or three things worth trying, and every object of the table with what turning it changes. A speaker beside it reads the whole page aloud. **Start** hands the surface over, and the objects do what the page said they would.
+A visitor who walks up to a table meets its context before its surface. Every table opens with one page, in the words of the chosen level and in the colour of that table, so a visitor who pressed a red circle a moment ago meets a red page: what this table is about in a sentence or two, and then every object of it with what turning it changes. That is the whole page. The things worth trying are the business of the panel, which stands beside the surface while they are being tried; in front of a visitor who has not yet seen the table they were a list of instructions for a thing that was not there yet. A speaker beside the sentence reads it aloud, and **Start** hands the surface over.
 
-It is the same page on every table, built in `packages/tui-kit` out of what a table already tells its panel, so a table carries no second copy of its own description. Starting that table again brings it back, which is what an exhibit between two visitors wants.
+Beside each object is a **light bulb**, for the visitor who wants to know more than how to turn it: it opens the background of that object, what it is in the body and why it matters, as a card over the page. One is open at a time and the card is closed again from its own corner, so the page keeps its size and the way in is never pushed off the glass, which matters on a table that does not scroll. That text is one piece of prose rather than one per level, because the depth is the point of asking for it; the line above it is the one that follows the level.
+
+It is the same page on every table, built in `packages/tui-kit` out of what a table already tells its panel, so a table carries no second copy of its own description. The background of an object travels with the object: it is `background` of its `TokenRole`, written beside the label and the sentence of that object in the `text.ts` of its table. Starting that table again brings the page back, which is what an exhibit between two visitors wants.
 
 ## The curves
 
@@ -82,6 +84,8 @@ Everything which is said can be **read aloud**. A speaker stands beside the sent
 ## Who is at the table
 
 A model of the body is a model of somebody, so the third question of the first screen asks who. It is four answers on one screen: the **body**, a woman or a man, drawn rather than named, as the silhouette of the library itself, standing at the height and the width of the body which is set; the **age**, from three to a hundred years; what that body **weighs**, from three to a hundred and fifty kilograms, the strongly obese body these models are asked about as often as the reference one; and how **tall** it is, from fifty to two hundred and thirty centimetres.
+
+The screen opens where the question before it points. A visitor who answered that a **child** is looking is shown a body of ten years, with the weight and the height a body of ten has; a grown up and somebody of the field open at the reference adult of thirty-five. Asking a ten year old to drag the age down from thirty-five is asking them to answer the same question twice.
 
 The three numbers are set one by one and none of them moves another. A dial which walked off because another one was touched is a dial a visitor has to go back to, and the age, the weight and the height of a person are three measurements rather than one. Each of the three opens where the reference body of the age the screen was opened at has it, and each line carries a mark at what is typical for the age which is currently set, so a visitor sees what a body of that age usually weighs without anything moving by itself. Three lines with a knob carry them, and they are the one thing on these tables which is dragged rather than pressed: a finger anywhere on the line sets it, and the knob follows from the first moment.
 

@@ -261,6 +261,14 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
   };
 }
 
+/** The light bulb of the page a table opens with: the background of an object, on request. */
+const BULB = [
+  "M 12 2.6 a 6.4 6.4 0 0 0 -3.9 11.5 c 0.6 0.5 0.9 1.2 0.9 1.9 v 0.6 h 6 v -0.6"
+  + " c 0 -0.7 0.3 -1.4 0.9 -1.9 A 6.4 6.4 0 0 0 12 2.6 Z",
+  "M 9.6 19.2 h 4.8",
+  "M 10.5 21.6 h 3",
+];
+
 /**
  * The page a table opens with: what this table is about, what its objects change, and a button
  * which starts it.
@@ -270,20 +278,50 @@ export function createChrome(container: HTMLElement, options: ChromeOptions): Ch
  * is for. So the table holds its context up first, on one page and in the words of the chosen
  * level, and the interaction starts when the visitor says it does. It is the same page on
  * every table, built out of what the table already tells the panel.
+ *
+ * It introduces the objects and nothing else. The things worth trying are the business of the
+ * panel, which stands beside the surface while they are being tried; here they were a list of
+ * instructions in front of a visitor who has not yet seen the table. Each object says what it
+ * changes in a line, and carries a light bulb which opens what it is in the body, for the
+ * visitor who wants to know more than how to turn it.
  */
 function briefingHtml(state: ChromeUpdate, voice: Voice, mark: TableMark | undefined): string {
   const copy = words(voice);
   const picture = markHtml(mark);
-  const spoken = [state.about, ...state.tries].join("\n");
+  const bulb = `<svg class="brief-more-art" viewBox="0 0 24 24" aria-hidden="true">`
+    + BULB.map(d => `<path d="${d}"></path>`).join("") + `</svg>`;
   const objects = state.roles.map(role => `
     <li class="brief-object">
       <span class="brief-object-mark">${escapeHtml(role.markers.join(", "))}</span>
       <span class="brief-object-words">
-        <span class="brief-object-name">${escapeHtml(role.label)}</span>
+        <span class="brief-object-head">
+          <span class="brief-object-name">${escapeHtml(role.label)}</span>
+          ${(role.background ?? "") === "" ? "" : `<button class="brief-more" type="button"
+            data-dwell="more:${escapeHtml(role.id)}" aria-expanded="false"
+            data-more="${escapeHtml(role.id)}"
+            aria-label="${escapeHtml(copy.brief.more)}" title="${escapeHtml(copy.brief.more)}"
+            data-info="${escapeHtml(copy.brief.moreInfo)}">${bulb}</button>`}
+        </span>
         <span class="brief-object-change">${escapeHtml(role.description)}</span>
       </span>
     </li>`).join("");
-  const tries = state.tries.map(line => `<li>${escapeHtml(line)}</li>`).join("");
+  // The background of an object stands where the list of objects stands, in its place rather
+  // than over it: a table does not scroll, so the page keeps its head and its way in wherever
+  // the reading goes.
+  const backgrounds = state.roles.map(role => {
+    const more = role.background ?? "";
+    if (more === "") return "";
+    return `
+    <aside class="brief-object-more" data-more="${escapeHtml(role.id)}" hidden>
+      <div class="brief-more-head">
+        <span class="brief-more-title">${escapeHtml(role.label)}</span>
+        ${sayHtml(more, copy.readAloud)}
+        <button class="brief-more-close" type="button" data-dwell="more-close"
+          aria-label="${escapeHtml(copy.brief.close)}">${escapeHtml(copy.brief.close)}</button>
+      </div>
+      <p class="brief-more-text">${escapeHtml(more)}</p>
+    </aside>`;
+  }).join("");
   return `
     <div class="brief-sheet">
       <header class="brief-head">
@@ -291,14 +329,11 @@ function briefingHtml(state: ChromeUpdate, voice: Voice, mark: TableMark | undef
         <h1 class="brief-title">${escapeHtml(state.title)}</h1>
       </header>
       <p class="brief-about">${escapeHtml(state.about)}
-        ${sayHtml(spoken, copy.readAloud)}</p>
-      ${tries === "" ? "" : `<section class="brief-part">
-        <h2 class="brief-part-title">${escapeHtml(copy.brief.tries)}</h2>
-        <ul class="brief-tries">${tries}</ul>
-      </section>`}
+        ${sayHtml(state.about, copy.readAloud)}</p>
       ${objects === "" ? "" : `<section class="brief-part">
         <h2 class="brief-part-title">${escapeHtml(copy.brief.objects)}</h2>
         <ul class="brief-objects">${objects}</ul>
+        ${backgrounds}
       </section>`}
       <button class="brief-start" type="button" data-dwell="start"
         data-info="${escapeHtml(voice.say(copy.brief.startInfo))}">
@@ -319,11 +354,34 @@ export function createBriefing(
   const sheet = document.createElement("section");
   sheet.className = "brief";
   sheet.hidden = true;
+  // The page wears the colour of the table it belongs to, as the panel of that table does: the
+  // circulation opens red and the operations purple, so a visitor meets the colour they pressed.
+  if (mark !== undefined) sheet.style.setProperty("--table", mark.color);
   let started = false;
   let drawn = false;
   sheet.addEventListener("click", event => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    // The background of one object at a time, in the place of the list of objects. A visitor
+    // who closes it, or who asks for the next one, gets the list back.
+    const bulb = target.closest(".brief-more");
+    const close = target.closest(".brief-more-close");
+    if (bulb !== null || close !== null) {
+      const wanted = bulb?.getAttribute("data-more") ?? "";
+      const open = wanted !== "" && bulb?.getAttribute("aria-expanded") !== "true";
+      for (const card of sheet.querySelectorAll(".brief-object-more")) {
+        if (card instanceof HTMLElement) {
+          card.hidden = !(open && card.getAttribute("data-more") === wanted);
+        }
+      }
+      for (const other of sheet.querySelectorAll(".brief-more")) {
+        other.setAttribute(
+          "aria-expanded", String(open && other.getAttribute("data-more") === wanted));
+      }
+      const list = sheet.querySelector(".brief-objects");
+      if (list instanceof HTMLElement) list.hidden = open;
+      return;
+    }
     if (target.closest(".brief-start") === null) return;
     started = true;
     sheet.hidden = true;

@@ -22,10 +22,15 @@ export function cardiovascularRoles(voice: Voice): readonly TokenRole[] {
   const dial = (
     id: keyof typeof copy, markers: readonly number[], unit: string,
     min: number, max: number, reference: number, scale: "log" | "linear",
-  ): TokenRole => ({
-    id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
-    unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
-  });
+  ): TokenRole => {
+    // What the object is in the body, which the page the table opens with keeps behind a bulb.
+    const more = copy[id].more;
+    return {
+      id, label: voice.say(copy[id].label), description: voice.say(copy[id].info),
+      unit, markers: [...markers], min, max, reference, mode: "absolute", scale, turns: 1,
+      ...(more === undefined ? {} : {background: voice.say(more)}),
+    };
+  };
   // The heart first, because it is what drives everything else, then the vessels of the whole
   // body. Three objects, and each of them changes the whole picture: how fast the heart beats,
   // how hard it squeezes, and how open the vessels of the body are. The resistances of single

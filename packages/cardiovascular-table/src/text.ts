@@ -5,6 +5,8 @@ import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 export interface Named {
   readonly label: Phrase;
   readonly info: Phrase;
+  /** What this object is in the body, behind the light bulb of the page the table opens with. */
+  readonly more?: Phrase;
 }
 
 /** What the sentence of the panel is built from. */
@@ -179,6 +181,7 @@ const EN: CardioCopy = {
   },
   roles: {
     systemic: {
+      more: "The vessels of the body are what the heart pushes against. Most of that resistance sits in the small arteries, which narrow and widen all day to send the blood where it is needed, and the pressure is the flow times that resistance, so narrowing them everywhere at once raises it. The same resistance is the afterload of the heart, which is why a heart that pushes against narrow vessels for years is worn out by it.",
       label: {child: "All the vessels", adult: "Systemic resistance"},
       info: {
         child: "Turn it up and all the vessels of the body get narrower at once, so the pressure rises and less blood moves.",
@@ -195,6 +198,7 @@ const EN: CardioCopy = {
       },
     },
     heartRate: {
+      more: "The heart of a grown up at rest beats around 70 times a minute and moves about five litres of blood with it, the whole blood volume of the body once every minute. Every beat is the same two steps: the ventricle fills while the muscle is relaxed, then squeezes what it holds into the aorta. Beating faster shortens the filling, so the output rises more slowly than the rate does, and a very fast heart moves less with every beat.",
       label: {child: "How fast the heart beats", adult: "Heart rate"},
       info: {
         child: "Turn it up and the heart beats faster, so more blood reaches every organ, the liver with it.",
@@ -203,6 +207,7 @@ const EN: CardioCopy = {
       },
     },
     contractility: {
+      more: "Contractility is how hard the muscle of the ventricle squeezes, apart from how full it is. It sets the stroke volume, the 70 to 80 millilitres a beat pushes out, and the body raises it with adrenaline whenever more blood is wanted. A weak ventricle is heart failure: the same filling leaves more blood behind after every beat, so the output falls although the heart beats as often as before.",
       label: {child: "How hard the heart squeezes", adult: "Contractility"},
       info: {
         child: "Turn it up and the heart squeezes harder, so one beat pushes out more blood.",
@@ -369,6 +374,7 @@ const DE: CardioCopy = {
   },
   roles: {
     systemic: {
+      more: "Die Gefäße des Körpers sind das, wogegen das Herz drückt. Der größte Teil dieses Widerstands sitzt in den kleinen Arterien, die sich den ganzen Tag enger und weiter stellen, um das Blut dorthin zu schicken, wo es gebraucht wird; der Druck ist der Fluss mal diesem Widerstand, also hebt ihn ein gleichzeitiges Engerstellen überall. Derselbe Widerstand ist die Nachlast des Herzens, und deshalb verschleißt ein Herz, das jahrelang gegen enge Gefäße drückt.",
       label: {child: "Alle Gefäße", adult: "Systemischer Widerstand"},
       info: {
         child: "Dreh hoch, dann werden alle Gefäße des Körpers enger: Der Druck steigt, und es fließt weniger Blut.",
@@ -385,6 +391,7 @@ const DE: CardioCopy = {
       },
     },
     heartRate: {
+      more: "Das Herz eines Erwachsenen schlägt in Ruhe etwa 70 Mal pro Minute und bewegt dabei rund fünf Liter Blut, einmal das ganze Blutvolumen des Körpers pro Minute. Jeder Schlag sind dieselben zwei Schritte: Die Kammer füllt sich, solange der Muskel entspannt ist, und presst dann in die Aorta, was sie fasst. Schnelleres Schlagen verkürzt die Füllung, also steigt das Herzzeitvolumen langsamer als die Frequenz, und ein sehr schnelles Herz bewegt mit jedem Schlag weniger.",
       label: {child: "Wie schnell das Herz schlägt", adult: "Herzfrequenz"},
       info: {
         child: "Dreh hoch, dann schlägt das Herz schneller, und jedes Organ bekommt mehr Blut, die Leber auch.",
@@ -393,6 +400,7 @@ const DE: CardioCopy = {
       },
     },
     contractility: {
+      more: "Die Kontraktilität ist, wie kräftig der Muskel der Kammer zusammenpresst, unabhängig davon, wie voll sie ist. Sie bestimmt das Schlagvolumen, die 70 bis 80 Milliliter, die ein Schlag auswirft, und der Körper steigert sie mit Adrenalin, wenn mehr Blut gebraucht wird. Eine schwache Kammer ist Herzinsuffizienz: Bei gleicher Füllung bleibt nach jedem Schlag mehr Blut zurück, also fällt das Herzzeitvolumen, obwohl das Herz so oft schlägt wie zuvor.",
       label: {child: "Wie stark das Herz drückt", adult: "Kontraktilität"},
       info: {
         child: "Dreh hoch, dann drückt das Herz kräftiger, und ein Schlag pumpt mehr Blut aus.",
@@ -559,6 +567,7 @@ const ES: CardioCopy = {
   },
   roles: {
     systemic: {
+      more: "Los vasos del cuerpo son aquello contra lo que empuja el corazón. La mayor parte de esa resistencia está en las arterias pequeñas, que se estrechan y se abren todo el día para mandar la sangre donde hace falta, y la presión es el flujo por esa resistencia, así que estrecharlas todas a la vez la sube. Esa misma resistencia es la poscarga del corazón, y por eso un corazón que empuja años contra vasos estrechos acaba gastado.",
       label: {child: "Todos los vasos", adult: "Resistencia sistémica"},
       info: {
         child: "Súbelo y todos los vasos del cuerpo se estrechan a la vez: la presión sube y se mueve menos sangre.",
@@ -575,6 +584,7 @@ const ES: CardioCopy = {
       },
     },
     heartRate: {
+      more: "El corazón de un adulto en reposo late unas 70 veces por minuto y mueve con ello unos cinco litros de sangre, todo el volumen de sangre del cuerpo una vez por minuto. Cada latido son los mismos dos pasos: el ventrículo se llena mientras el músculo está relajado y luego aprieta hacia la aorta lo que tiene dentro. Latir más rápido acorta el llenado, así que el gasto sube más despacio que la frecuencia y un corazón muy rápido mueve menos con cada latido.",
       label: {child: "Cómo de rápido late", adult: "Frecuencia cardíaca"},
       info: {
         child: "Súbelo y el corazón late más rápido, así que cada órgano recibe más sangre, también el hígado.",
@@ -583,6 +593,7 @@ const ES: CardioCopy = {
       },
     },
     contractility: {
+      more: "La contractilidad es con cuánta fuerza aprieta el músculo del ventrículo, al margen de lo lleno que esté. Fija el volumen sistólico, los 70 a 80 mililitros que expulsa un latido, y el cuerpo la sube con adrenalina cuando hace falta más sangre. Un ventrículo débil es insuficiencia cardíaca: con el mismo llenado queda más sangre dentro tras cada latido, así que el gasto baja aunque el corazón lata igual de a menudo.",
       label: {child: "Con cuánta fuerza aprieta", adult: "Contractilidad"},
       info: {
         child: "Súbelo y el corazón aprieta más fuerte, así que un latido expulsa más sangre.",

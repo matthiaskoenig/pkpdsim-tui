@@ -5,6 +5,8 @@ import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 export interface Named {
   readonly label: Phrase;
   readonly info: Phrase;
+  /** What this object is in the body, behind the light bulb of the page the table opens with. */
+  readonly more?: Phrase;
 }
 
 /** What the sentence of the panel is built from. */
@@ -167,6 +169,7 @@ const EN: GlimepirideCopy = {
   },
   roles: {
     dose: {
+      more: "Glimepiride is a sulfonylurea, a tablet for type 2 diabetes: it makes the beta cells of the pancreas release more insulin, which brings the blood sugar down. It is taken once in the morning, and the strengths which are manufactured are what a prescription can choose from, which is why this dial clicks through them instead of sliding. A small body starts low, because too much of this drug takes the blood sugar too far down, which is what it is watched for.",
       label: {child: "The tablet", adult: "Dose"},
       info: {
         child: "Turn it and the tablet gets bigger or smaller: half a milligram up to eight.",
@@ -175,6 +178,7 @@ const EN: GlimepirideCopy = {
       },
     },
     absorption: {
+      more: "A tablet does nothing until it is in solution. What is swallowed first falls apart in the stomach and dissolves, and only dissolved drug crosses the wall of the gut into the blood, which is the A of ADME. That is why the curve climbs over a couple of hours instead of jumping: a tablet made to dissolve slowly moves the peak later and flattens it, while the amount which arrives in the end is the same.",
       label: {child: "How fast the tablet melts", adult: "Dissolution"},
       info: {
         child: "Turn it and the tablet falls apart faster or slower in the belly, so the drug arrives sooner or later.",
@@ -183,6 +187,7 @@ const EN: GlimepirideCopy = {
       },
     },
     cyp2c9: {
+      more: "CYP2C9 is one of the liver enzymes of the cytochrome P450 family, and it is the one which takes glimepiride apart, first into M1 and then M2. The gene comes in variants: *1 is the common one, and somebody carrying *2 or *3 works through the drug more slowly, which is the M of ADME done at another speed. The same tablet then leaves more drug in the blood for longer, which is why a dose is sometimes chosen from a genotype.",
       label: {child: "How fast the liver works", adult: "CYP2C9 activity"},
       info: {
         child: "Turn it down and the liver takes the tablet apart slowly, so more of it stays in the blood.",
@@ -191,6 +196,7 @@ const EN: GlimepirideCopy = {
       },
     },
     cirrhosis: {
+      more: "Cirrhosis is a liver in which years of injury have left scar tissue: working tissue is lost, the blood finds its way around what is left, and the enzymes go with it. How far it has gone is graded in the clinic as Child-Pugh A, B or C. For a drug the liver clears, the three losses point the same way: less of it is taken apart on the way through, so more of it stands in the blood from the first tablet on.",
       label: {child: "A sick liver", adult: "Cirrhosis"},
       info: {
         child: "Turn it up and the liver is scarred: it is smaller, gets less blood and works less well.",
@@ -199,6 +205,7 @@ const EN: GlimepirideCopy = {
       },
     },
     renal: {
+      more: "The kidneys filter the blood and send what is not wanted into the urine, which is the E of ADME. Glimepiride itself leaves through the liver, but its pieces M1 and M2 leave through the kidneys, and M1 still lowers blood sugar. The creatinine clearance is how that filtering is measured, around 100 ml a minute in a healthy adult; when it falls, M1 stays in the body longer and the tablet goes on working after it should have stopped.",
       label: {child: "The kidneys", adult: "Creatinine clearance"},
       info: {
         child: "Turn it down and the kidneys wash less out, so the pieces of the tablet stay in the blood.",
@@ -207,6 +214,7 @@ const EN: GlimepirideCopy = {
       },
     },
     doses: {
+      more: "One tablet is not how a drug is taken. The next morning's tablet arrives while the one before it is still being cleared, so the level climbs from day to day until as much leaves in a day as arrives, which is the steady state, and it is reached after about four or five half lives. A slow liver or a weak kidney does not only lift the first peak: it lifts the plateau that every day after it sits on.",
       label: {child: "How many tablets", adult: "Tablets, one a day"},
       info: {
         child: "Turn it for a tablet every morning, up to ten mornings, and watch what is left when the next one comes.",
@@ -370,6 +378,7 @@ const DE: GlimepirideCopy = {
   },
   roles: {
     dose: {
+      more: "Glimepirid ist ein Sulfonylharnstoff, eine Tablette für den Typ-2-Diabetes: Sie bringt die Betazellen der Bauchspeicheldrüse dazu, mehr Insulin abzugeben, was den Blutzucker senkt. Sie wird einmal morgens genommen, und die Stärken, die es gibt, sind das, woraus ein Rezept wählen kann, weshalb dieser Regler durch sie klickt statt zu gleiten. Ein kleiner Körper beginnt niedrig, denn zu viel davon zieht den Blutzucker zu weit herunter, und genau darauf wird bei diesem Medikament geachtet.",
       label: {child: "Die Tablette", adult: "Dosis"},
       info: {
         child: "Dreh daran, dann wird die Tablette größer oder kleiner: ein halbes Milligramm bis acht.",
@@ -378,6 +387,7 @@ const DE: GlimepirideCopy = {
       },
     },
     absorption: {
+      more: "Eine Tablette wirkt erst, wenn sie gelöst ist. Was geschluckt wird, zerfällt zuerst im Magen und löst sich, und nur gelöster Wirkstoff geht durch die Darmwand ins Blut, das A von ADME. Deshalb steigt die Kurve über ein paar Stunden an, statt zu springen: Eine Tablette, die langsam zerfällt, schiebt das Maximum nach hinten und flacht es ab, während am Ende dieselbe Menge ankommt.",
       label: {child: "Wie schnell die Tablette zergeht", adult: "Auflösung"},
       info: {
         child: "Dreh daran, dann zerfällt die Tablette im Bauch schneller oder langsamer, und das Medikament kommt früher oder später an.",
@@ -386,6 +396,7 @@ const DE: GlimepirideCopy = {
       },
     },
     cyp2c9: {
+      more: "CYP2C9 ist eines der Leberenzyme der Cytochrom-P450-Familie, und es ist dasjenige, das Glimepirid zerlegt, erst zu M1 und dann zu M2. Das Gen kommt in Varianten vor: *1 ist die häufige, und wer *2 oder *3 trägt, arbeitet den Wirkstoff langsamer ab, das M von ADME in anderem Tempo. Dieselbe Tablette lässt dann mehr Wirkstoff länger im Blut, und deshalb wird eine Dosis manchmal nach dem Genotyp gewählt.",
       label: {child: "Wie schnell die Leber arbeitet", adult: "CYP2C9-Aktivität"},
       info: {
         child: "Dreh herunter, dann zerlegt die Leber die Tablette langsam, und es bleibt mehr davon im Blut.",
@@ -394,6 +405,7 @@ const DE: GlimepirideCopy = {
       },
     },
     cirrhosis: {
+      more: "Eine Zirrhose ist eine Leber, in der Jahre der Schädigung Narbengewebe hinterlassen haben: Arbeitendes Gewebe geht verloren, das Blut sucht sich einen Weg an dem Rest vorbei, und die Enzyme gehen mit. Wie weit das gediehen ist, wird in der Klinik als Child-Pugh A, B oder C eingeteilt. Für ein Medikament, das die Leber klärt, zeigen die drei Verluste in dieselbe Richtung: Weniger davon wird auf dem Weg zerlegt, also steht ab der ersten Tablette mehr davon im Blut.",
       label: {child: "Eine kranke Leber", adult: "Zirrhose"},
       info: {
         child: "Dreh hoch, dann ist die Leber vernarbt: Sie ist kleiner, bekommt weniger Blut und arbeitet schlechter.",
@@ -402,6 +414,7 @@ const DE: GlimepirideCopy = {
       },
     },
     renal: {
+      more: "Die Nieren filtern das Blut und schicken, was nicht gebraucht wird, in den Urin, das E von ADME. Glimepirid selbst geht über die Leber, aber seine Bruchstücke M1 und M2 gehen über die Nieren, und M1 senkt den Blutzucker weiterhin. Die Kreatinin-Clearance ist das Maß dieser Filterleistung, bei einem gesunden Erwachsenen rund 100 Milliliter pro Minute; fällt sie, bleibt M1 länger im Körper und die Tablette wirkt weiter, wenn sie längst aufgehört haben sollte.",
       label: {child: "Die Nieren", adult: "Kreatinin-Clearance"},
       info: {
         child: "Dreh herunter, dann waschen die Nieren weniger hinaus, und die Teile der Tablette bleiben im Blut.",
@@ -410,6 +423,7 @@ const DE: GlimepirideCopy = {
       },
     },
     doses: {
+      more: "Eine einzelne Tablette ist nicht, wie ein Medikament genommen wird. Die Tablette des nächsten Morgens kommt an, während die davor noch abgebaut wird, also steigt der Spiegel von Tag zu Tag, bis an einem Tag so viel geht, wie ankommt: der Steady State, erreicht nach etwa vier bis fünf Halbwertszeiten. Eine langsame Leber oder eine schwache Niere hebt nicht nur das erste Maximum, sie hebt das Plateau, auf dem jeder weitere Tag sitzt.",
       label: {child: "Wie viele Tabletten", adult: "Tabletten, eine am Tag"},
       info: {
         child: "Dreh daran: jeden Morgen eine Tablette, bis zu zehn Morgen lang, und schau, was noch da ist, wenn die nächste kommt.",
@@ -576,6 +590,7 @@ const ES: GlimepirideCopy = {
   },
   roles: {
     dose: {
+      more: "La glimepirida es una sulfonilurea, una pastilla para la diabetes tipo 2: hace que las células beta del páncreas suelten más insulina, lo que baja el azúcar en sangre. Se toma una vez por la mañana, y las dosis que se fabrican son entre las que puede elegir una receta, por eso esta barra salta de una a otra en vez de deslizarse. Un cuerpo pequeño empieza bajo, porque demasiada de esta sustancia baja el azúcar más de la cuenta, que es justo lo que se vigila.",
       label: {child: "La pastilla", adult: "Dosis"},
       info: {
         child: "Gíralo y la pastilla se hace más grande o más pequeña: de medio miligramo a ocho.",
@@ -584,6 +599,7 @@ const ES: GlimepirideCopy = {
       },
     },
     absorption: {
+      more: "Una pastilla no hace nada hasta que está disuelta. Lo que se traga primero se deshace en el estómago y se disuelve, y solo el fármaco disuelto cruza la pared del intestino hacia la sangre, que es la A de ADME. Por eso la curva sube a lo largo de un par de horas en vez de saltar: una pastilla que se disuelve despacio retrasa el máximo y lo aplana, mientras que la cantidad que llega al final es la misma.",
       label: {child: "Cómo de rápido se deshace la pastilla", adult: "Disolución"},
       info: {
         child: "Gíralo y la pastilla se deshace más rápido o más lento en la barriga, así que el medicamento llega antes o después.",
@@ -592,6 +608,7 @@ const ES: GlimepirideCopy = {
       },
     },
     cyp2c9: {
+      more: "CYP2C9 es una de las enzimas hepáticas de la familia del citocromo P450, y es la que desmonta la glimepirida, primero a M1 y luego a M2. El gen tiene variantes: *1 es la común, y quien lleva *2 o *3 procesa el fármaco más despacio, la M de ADME a otra velocidad. La misma pastilla deja entonces más fármaco en sangre durante más tiempo, y por eso a veces la dosis se elige a partir del genotipo.",
       label: {child: "Cómo de rápido trabaja el hígado", adult: "Actividad de CYP2C9"},
       info: {
         child: "Bájalo y el hígado desarma la pastilla despacio, así que queda más en la sangre.",
@@ -600,6 +617,7 @@ const ES: GlimepirideCopy = {
       },
     },
     cirrhosis: {
+      more: "La cirrosis es un hígado en el que años de daño han dejado tejido de cicatriz: se pierde tejido que trabaja, la sangre se abre paso rodeando lo que queda, y las enzimas se van con ello. Cuánto ha avanzado se clasifica en la clínica como Child-Pugh A, B o C. Para un fármaco que el hígado elimina, las tres pérdidas apuntan al mismo lado: se desmonta menos de camino, así que desde la primera pastilla queda más en la sangre.",
       label: {child: "Un hígado enfermo", adult: "Cirrosis"},
       info: {
         child: "Súbelo y el hígado tiene cicatrices: es más pequeño, recibe menos sangre y trabaja peor.",
@@ -608,6 +626,7 @@ const ES: GlimepirideCopy = {
       },
     },
     renal: {
+      more: "Los riñones filtran la sangre y mandan a la orina lo que no se quiere, que es la E de ADME. La glimepirida sale por el hígado, pero sus fragmentos M1 y M2 salen por los riñones, y M1 sigue bajando el azúcar. El aclaramiento de creatinina mide ese filtrado, unos 100 mililitros por minuto en un adulto sano; cuando cae, M1 se queda más tiempo en el cuerpo y la pastilla sigue actuando cuando ya debería haber parado.",
       label: {child: "Los riñones", adult: "Aclaramiento de creatinina"},
       info: {
         child: "Bájalo y los riñones lavan menos, así que los trozos de la pastilla se quedan en la sangre.",
@@ -616,6 +635,7 @@ const ES: GlimepirideCopy = {
       },
     },
     doses: {
+      more: "Una sola pastilla no es como se toma un medicamento. La pastilla de la mañana siguiente llega mientras la anterior todavía se está eliminando, así que el nivel sube de día en día hasta que en un día sale tanto como entra, el estado estacionario, alcanzado tras unas cuatro o cinco vidas medias. Un hígado lento o un riñón débil no solo levanta el primer máximo: levanta la meseta sobre la que se apoya cada día siguiente.",
       label: {child: "Cuántas pastillas", adult: "Pastillas, una al día"},
       info: {
         child: "Gíralo: una pastilla cada mañana, hasta diez mañanas, y mira lo que queda cuando llega la siguiente.",

@@ -18,8 +18,12 @@ export interface KitCopy {
   readonly brief: {
     /** The heading over what the objects of this table change. */
     readonly objects: string;
-    /** The heading over the things worth trying. */
-    readonly tries: string;
+    /** What the light bulb beside an object says it opens. */
+    readonly more: string;
+    /** What that bulb does, behind a note. */
+    readonly moreInfo: string;
+    /** What the button which puts that background away says. */
+    readonly close: string;
     /** What the button that ends the page says, which starts the table. */
     readonly start: string;
     /** What that button does, behind a note. */
@@ -95,7 +99,9 @@ const EN: KitCopy = {
   objects: "Objects",
   brief: {
     objects: "The objects, and what each one changes",
-    tries: "Worth trying",
+    more: "Tell me more",
+    moreInfo: "Opens what this object is in the body, for whoever wants to know more than how to turn it.",
+    close: "Close",
     start: "Start",
     startInfo: {
       child: "Press it and you can play with the table.",
@@ -184,7 +190,9 @@ const DE: KitCopy = {
   objects: "Objekte",
   brief: {
     objects: "Die Objekte, und was jedes verändert",
-    tries: "Zum Ausprobieren",
+    more: "Mehr dazu",
+    moreInfo: "Öffnet, was dieses Objekt im Körper ist, für alle, die mehr wissen wollen als wie man es dreht.",
+    close: "Schließen",
     start: "Los geht's",
     startInfo: {
       child: "Drück drauf, dann kannst du mit dem Tisch spielen.",
@@ -274,7 +282,9 @@ const ES: KitCopy = {
   objects: "Objetos",
   brief: {
     objects: "Los objetos, y lo que cambia cada uno",
-    tries: "Para probar",
+    more: "Saber más",
+    moreInfo: "Abre lo que este objeto es en el cuerpo, para quien quiera saber más que cómo girarlo.",
+    close: "Cerrar",
     start: "Empezar",
     startInfo: {
       child: "Aprieta y ya puedes jugar con la mesa.",

@@ -1536,7 +1536,9 @@ body {
   z-index: 40;
   display: grid;
   place-items: center;
-  padding: 2rem;
+  /* The corners of the table keep their furniture while the page is up: the gear, who the
+     tables are solved for and the square of the laboratory, which the page never grows over. */
+  padding: 2rem 2rem 5.6rem;
   background: rgba(255, 255, 255, 0.94);
   pointer-events: auto;
 }
@@ -1547,10 +1549,16 @@ body {
 
 .brief-sheet {
   display: grid;
+  /* What the table is and the button which starts it stand still; the objects are what gives
+     way when the background of one of them is open, so the page never grows past the glass and
+     the way in is never scrolled off it. */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 1.1rem;
+  position: relative;
   justify-items: center;
   width: min(62rem, 100%);
   max-height: 100%;
+  overflow: hidden;
   padding: 2rem 2.6rem 2.2rem;
   border: 1px solid var(--panel-line);
   border-radius: 1.6rem;
@@ -1585,6 +1593,8 @@ body {
 
 .brief-part {
   width: 100%;
+  min-height: 0;
+  overflow-y: auto;
   text-align: left;
 }
 
@@ -1595,14 +1605,6 @@ body {
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-}
-
-.brief-tries {
-  display: grid;
-  gap: 0.35rem;
-  margin: 0;
-  padding-left: 1.2rem;
-  font-size: 1.1rem;
 }
 
 .brief-objects {
@@ -1638,9 +1640,105 @@ body {
   gap: 0.1rem;
 }
 
+.brief-object-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .brief-object-name {
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* The light bulb beside an object: what it is in the body, for whoever asks for it. */
+.brief-more {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1.5px solid color-mix(in srgb, var(--table, var(--accent)) 45%, transparent);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--table, var(--accent));
+  cursor: pointer;
+}
+
+.brief-more:hover,
+.brief-more:focus-visible,
+.brief-more[data-arming="true"],
+.brief-more[aria-expanded="true"] {
+  border-color: var(--table, var(--accent));
+  background: color-mix(in srgb, var(--table, var(--accent)) 12%, transparent);
+  outline: none;
+}
+
+.brief-more-art {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The background of an object, which the bulb opens where the objects stand: the page keeps
+   its head and its button, because a table has no way of scrolling either of them back. */
+.brief-object-more {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.2rem 1.1rem;
+  border-left: 4px solid var(--table, var(--accent));
+  border-radius: 0.4rem 0.9rem 0.9rem 0.4rem;
+  background: color-mix(in srgb, var(--table, var(--accent)) 9%, var(--surface));
+  text-align: left;
+}
+
+.brief-object-more[hidden],
+.brief-objects[hidden] {
+  display: none;
+}
+
+.brief-more-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.brief-more-title {
+  flex: 1;
+  color: var(--table, var(--accent));
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.brief-more-close {
+  padding: 0.3rem 0.9rem;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.brief-more-close:hover,
+.brief-more-close:focus-visible,
+.brief-more-close[data-arming="true"] {
+  border-color: var(--table, var(--accent));
+  color: var(--ink);
+  outline: none;
+}
+
+.brief-more-text {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.45;
 }
 
 .brief-object-change {

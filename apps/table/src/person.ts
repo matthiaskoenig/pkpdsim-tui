@@ -33,6 +33,20 @@ const FIGURE = {height: 180, adult: 35} as const;
 /** The address this table carries the person in. */
 export const PERSON_KEYS = ["age", "sex", "bw", "height"] as const;
 
+/**
+ * The age the screen opens at, by who said they were looking. A visitor who answered that a
+ * child is at the table is shown a child: the question before this one has already been
+ * answered, and asking a ten year old to drag the age down from thirty-five is asking them to
+ * undo it. A grown up and somebody of the field open at the reference adult of the library.
+ * The weight and the height follow from the age, as the reference body of that age has them,
+ * until a dial is moved.
+ */
+export const CHILD_AGE = 10;
+
+export function startingAge(parameters: URLSearchParams): number {
+  return parameters.get("level") === "child" ? CHILD_AGE : AGE_RANGE.value;
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
@@ -42,11 +56,12 @@ function escapeHtml(value: string): string {
 /** Who the address says is at the table, with the reference adult where it says nothing. */
 export function personOf(parameters: URLSearchParams): Individual {
   const sex: Sex = parameters.get("sex") === "male" ? "male" : "female";
-  const age = Number(parameters.get("age") ?? AGE_RANGE.value);
+  const start = startingAge(parameters);
+  const age = Number(parameters.get("age") ?? start);
   const weight = parameters.get("bw");
   const height = parameters.get("height");
   return individualOf(
-    Number.isFinite(age) ? age : AGE_RANGE.value,
+    Number.isFinite(age) ? age : start,
     sex,
     weight === null || !Number.isFinite(Number(weight)) ? undefined : Number(weight),
     height === null || !Number.isFinite(Number(height)) ? undefined : Number(height),
