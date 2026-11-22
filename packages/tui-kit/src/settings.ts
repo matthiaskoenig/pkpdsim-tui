@@ -20,26 +20,34 @@ import {words} from "./words.ts";
 export type Pictogram = GlyphKind | "flag-en" | "flag-de" | "flag-es"
   | "child" | "adult" | "expert";
 
-/** The three audiences, drawn rather than named: a child, a grown up, somebody of the field. */
+/**
+ * The three audiences, drawn rather than named: a child, a grown up, somebody of the field.
+ * All three stand on the same floor, at `y = 17`, because what tells them apart at a glance is
+ * how tall they are: three figures of the same height with different hats are three of the same
+ * figure. The child is short with a big head and has a ball beside it, the grown up is a head
+ * taller, and the one of the field wears the flat cap of somebody who studied this for years.
+ */
 const AUDIENCE: Readonly<Record<"child" | "adult" | "expert", readonly string[]>> = {
-  // A big head on a small body, which is how a child is drawn and how a child is built.
   child: [
-    "M 0 -18 a 11 11 0 1 1 0 22 a 11 11 0 0 1 0 -22 z",
-    "M -8 18 v -3 a 8 8 0 0 1 16 0 v 3 z",
+    // A big head on a short body, which is how a child is drawn and how a child is built.
+    "M -6.5 -7 a 6.5 6.5 0 1 1 13 0 a 6.5 6.5 0 1 1 -13 0 z",
+    "M -8 17 v -5 a 8 8 0 0 1 16 0 v 5 z",
+    // The ball it brought, which no grown up in this row has.
+    "M 14.5 12.5 a 4.5 4.5 0 1 1 9 0 a 4.5 4.5 0 1 1 -9 0 z",
   ],
   adult: [
-    "M 0 -18 a 7.5 7.5 0 1 1 0 15 a 7.5 7.5 0 0 1 0 -15 z",
-    "M -12 18 v -5 a 12 12 0 0 1 24 0 v 5 z",
+    "M -6 -12 a 6 6 0 1 1 12 0 a 6 6 0 1 1 -12 0 z",
+    "M -11 17 v -10 a 11 11 0 0 1 22 0 v 10 z",
   ],
-  // The same grown up under the flat cap of somebody who studied the thing for years.
   expert: [
-    "M 0 -9 a 7 7 0 1 1 0 14 a 7 7 0 0 1 0 -14 z",
-    "M -12 18 v -4 a 12 12 0 0 1 24 0 v 4 z",
-    "M -18 -14 L 0 -20 L 18 -14 L 0 -8 Z",
-    "M 12.5 -13 h 2 v 8 h -2 z",
+    "M -5 -6 a 5 5 0 1 1 10 0 a 5 5 0 1 1 -10 0 z",
+    "M -10 17 v -7 a 10 10 0 0 1 20 0 v 7 z",
+    // The cap, with the tassel hanging off its corner.
+    "M -17 -13 L 0 -17.5 L 17 -13 L 0 -8.5 Z",
+    "M 14 -12 h 1.8 v 6.5 h -1.8 z",
+    "M 13.2 -6 h 3.4 v 2.8 h -3.4 z",
   ],
 };
-
 /** A flag, in the bands and the colours it is actually made of. */
 const FLAGS: Readonly<Record<"en" | "de" | "es", string>> = {
   de: `<rect x="-26" y="-16" width="52" height="10.7" fill="#111"></rect>`
@@ -80,12 +88,6 @@ export interface SettingsOptions {
   /** The groups, in the order they are shown. Every option carries its picture. */
   readonly groups: readonly ChoiceGroup[];
   readonly onChoose: (group: string, option: string) => void;
-  /**
-   * Shown open, as a column of the page rather than behind the button. The landing page does
-   * this, so that a visitor sees what can be changed before they walk to the next table, where
-   * the same switches wait behind the button in the corner.
-   */
-  readonly pinned?: boolean;
 }
 
 function escapeHtml(value: string): string {
@@ -123,9 +125,8 @@ export function reportStatus(status: TableStatus): void {
 
 export function createSettings(container: HTMLElement, options: SettingsOptions): Settings {
   const copy = words(options.voice);
-  const pinned = options.pinned === true;
   const root = document.createElement("div");
-  root.className = pinned ? "settings settings--pinned" : "settings";
+  root.className = "settings";
   root.innerHTML = `
     <button class="settings-button" type="button" data-dwell="settings"
       aria-expanded="false" aria-label="${escapeHtml(copy.settings)}"
@@ -136,11 +137,11 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
       </svg>
       <span class="settings-dot" data-state="idle"></span>
     </button>
-    <div class="settings-card"${pinned ? "" : " hidden"}>
+    <div class="settings-card" hidden>
       <h2 class="settings-title">${escapeHtml(copy.settings)}</h2>
       <div class="settings-groups"></div>
-      ${pinned ? "" : `<p class="settings-tracker"><span class="dot"></span>`
-        + `<span class="settings-source"></span></p>`}
+      <p class="settings-tracker"><span class="dot"></span>
+        <span class="settings-source"></span></p>
     </div>
   `;
   const button = root.querySelector(".settings-button") as HTMLButtonElement;
@@ -152,7 +153,6 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   groups.innerHTML = options.groups.map(groupHtml).join("");
 
   const show = (open: boolean): void => {
-    if (pinned) return;
     card.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     root.dataset["open"] = String(open);
@@ -176,7 +176,7 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
   // A press anywhere else closes the menu, so that the table is never left behind a card.
   document.addEventListener("pointerdown", event => {
     const target = event.target;
-    if (pinned || card.hidden) return;
+    if (card.hidden) return;
     if (target instanceof Node && root.contains(target)) return;
     show(false);
   });

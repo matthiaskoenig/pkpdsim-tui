@@ -6,6 +6,7 @@
  */
 
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
+import {sayHtml, sayLabel} from "./say.ts";
 import type {Viewport} from "./types.ts";
 import type {Voice} from "./voice.ts";
 
@@ -51,7 +52,7 @@ const PRESS = 620;
 /** Between the element and its note, and between the note and the edge of the surface. */
 const GAP = 12;
 const EDGE = 14;
-const WIDTH = 290;
+const WIDTH = 340;
 
 /**
  * What a finger can press, and under which name. The name and not the element is the identity of
@@ -84,7 +85,10 @@ export function createInfo(
   note.hidden = true;
   const sentence = document.createElement("p");
   sentence.className = "info-text";
-  note.append(sentence);
+  // The note is read aloud by the speaker beside it, for a visitor who is not reading it.
+  const speaker = document.createElement("span");
+  speaker.className = "info-say";
+  note.append(sentence, speaker);
   surface.appendChild(note);
   let open: Element | undefined;
   const dwelling = new Map<number, {element: Element; since: number}>();
@@ -102,6 +106,7 @@ export function createInfo(
   const place = (element: Element, text: string): void => {
     if (open !== element || sentence.textContent !== text) {
       sentence.textContent = text;
+      speaker.innerHTML = voice === undefined ? "" : sayHtml(text, sayLabel(voice));
       note.hidden = false;
       open = element;
     }

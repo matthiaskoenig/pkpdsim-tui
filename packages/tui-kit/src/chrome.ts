@@ -9,6 +9,7 @@ import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {TableMark} from "./host.ts";
 import {ICONS} from "./icons.mjs";
 import type {Pictogram} from "./settings.ts";
+import {sayHtml} from "./say.ts";
 import {reportStatus} from "./settings.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
@@ -162,7 +163,9 @@ function panelHtml(state: ChromeUpdate, voice: Voice, mark?: TableMark): string 
       The dot stays with the last word of the title: a title which wraps takes it along rather
       than leaving it alone on a line of its own.
     -->&#160;<i class="info-dot" aria-hidden="true">i</i></h1>
-    <p class="reading">${escapeHtml(state.reading)}</p>
+    <p class="reading">${escapeHtml(state.reading)}`
+    + `${state.reading === "" ? "" : sayHtml(state.reading, words(voice).readAloud)}</p>`
+    + `
     <button class="reset" type="button" data-dwell="reset"
       data-info="${escapeHtml(voice.say(copy.resetInfo))}">
       <svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true">

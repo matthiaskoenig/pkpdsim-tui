@@ -35,6 +35,8 @@ export interface KitCopy {
   readonly levelSwitch: string;
   /** What the three levels are called in the switch. */
   readonly levelNames: Readonly<Record<"child" | "adult" | "expert", string>>;
+  /** The button beside a text which reads it aloud. */
+  readonly readAloud: string;
   /** What a level is, behind its button. */
   readonly levelInfo: Readonly<Record<"child" | "adult" | "expert", string>>;
   /** The switch which picks the body, and what the two bodies are called. */
@@ -96,6 +98,7 @@ const EN: KitCopy = {
   languageSwitch: "Language",
   levelSwitch: "For",
   levelNames: {child: "Kids", adult: "Adults", expert: "Experts"},
+  readAloud: "Read this aloud",
   levelInfo: {
     child: "Short words and a few big numbers, for about six years old.",
     adult: "For an adult who has never heard any of this before.",
@@ -172,6 +175,7 @@ const DE: KitCopy = {
   languageSwitch: "Sprache",
   levelSwitch: "Für",
   levelNames: {child: "Kinder", adult: "Erwachsene", expert: "Fachleute"},
+  readAloud: "Vorlesen",
   levelInfo: {
     child: "Kurze Wörter und wenige große Zahlen, für etwa Sechsjährige.",
     adult: "Für Erwachsene, die davon noch nie etwas gehört haben.",
@@ -249,6 +253,7 @@ const ES: KitCopy = {
   languageSwitch: "Idioma",
   levelSwitch: "Para",
   levelNames: {child: "Niños", adult: "Adultos", expert: "Expertos"},
+  readAloud: "Leer en voz alta",
   levelInfo: {
     child: "Palabras cortas y pocos números grandes, para unos seis años.",
     adult: "Para una persona adulta que nunca ha oído hablar de esto.",

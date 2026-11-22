@@ -14,7 +14,7 @@ import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
   attributes, chooseQuery, createInfo, ICONS, LAB_ROOM, pointerPoints, readStars, reportStatus,
-  svg, watchStars, words,
+  SAY_PATH, SAY_WAVES, svg, watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
@@ -297,6 +297,13 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const boxIcon = svg("path", {class: "hub-info-icon"}, boxPicture);
   const boxLines = Array.from(
     {length: INFO.lines}, () => svg("text", {class: "hub-info-line"}, box));
+  // What the sidebar says is read aloud by the speaker beside it, as everywhere else.
+  const boxSay = svg("g", {
+    class: "hub-say", role: "button", tabindex: 0, "data-dwell": "say",
+  }, box);
+  svg("circle", {class: "hub-say-plate", r: 17}, boxSay);
+  svg("path", {class: "hub-say-cone", d: SAY_PATH}, boxSay);
+  svg("path", {class: "hub-say-waves", d: SAY_WAVES}, boxSay);
   // While nothing is chosen the sidebar is the key of the five colours, which is what makes an
   // icon on the ring and an organ on the body the same table.
   const legend = svg("g", {class: "hub-legend"}, box);
@@ -400,6 +407,10 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     boxPicture.setAttribute(
       "transform", `translate(${inside + 34} ${INFO.top + 62}) scale(0.72)`);
     attributes(boxTitle, {x: inside, y: INFO.top + 142});
+    // The speaker stands at the end of the title line, at the far edge of the sidebar.
+    boxSay.setAttribute(
+      "transform",
+      `translate(${left + INFO.width - PADDING - 18} ${INFO.top + 134}) scale(1)`);
     for (const [index, line] of boxLines.entries()) {
       attributes(line, {x: inside, y: INFO.top + 190 + index * 27});
     }
@@ -420,6 +431,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       : `${voice.say(entryCopy(voice, entry.id).blurb)} `
         + `${voice.say(entryCopy(voice, entry.id).about)}`;
     boxTitle.textContent = title;
+    // What is read is the text of the sidebar itself, which is a text of the application and
+    // so has a clip of its own; the title is in the clip of nothing.
+    boxSay.setAttribute("data-say", text);
     boxIcon.setAttribute(
       "d", entry === undefined ? "" : (ICONS[entry.picture as GlyphKind] ?? []).join(" "));
     boxPicture.setAttribute("opacity", entry === undefined ? "0" : "1");

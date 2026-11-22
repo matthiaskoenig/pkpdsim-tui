@@ -17,7 +17,8 @@
  */
 
 import {
-  chooseQuery, createLab, createSettings, createVoice, languageOptions, LEVELS, voiceOf, words,
+  chooseQuery, createLab, createSettings, createVoice, languageOptions, LEVELS, voiceOf,
+  watchSay, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {
   ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
@@ -107,7 +108,12 @@ async function start(): Promise<void> {
   // corner of every page, from the first question a visitor is asked to the table they open.
   // The page about all of this is the one page without it: it is what the block opens, and it
   // carries the square of the laboratory itself.
-  const lab = about ? undefined : createLab(element<HTMLElement>("chrome"), voice, labOf(voice));
+  // One corner for everything which is not the table itself: the gear and the laboratory
+  // stand in the same row at the bottom, rather than one in every corner of the glass.
+  const foot = document.createElement("div");
+  foot.className = "foot";
+  element<HTMLElement>("chrome").appendChild(foot);
+  const lab = about ? undefined : createLab(foot, voice, labOf(voice));
   // A visitor who walks up to the table says two things before anything is shown: which
   // language they read, and how much a table should say. The address carries both afterwards,
   // so a table which is opened from the landing page is in the language they chose, and a
@@ -115,7 +121,7 @@ async function start(): Promise<void> {
   if (entry === undefined && !about
     && (parameters.get("lang") === null || parameters.get("level") === null)) {
     element<HTMLElement>("boot").hidden = true;
-    const picked = await askWelcome(element<HTMLElement>("chrome"));
+    const picked = await askWelcome(element<HTMLElement>("chrome"), parameters);
     parameters.set("lang", picked.locale);
     parameters.set("level", picked.level);
     window.history.replaceState(
@@ -124,6 +130,9 @@ async function start(): Promise<void> {
     lab?.update(labOf(voice));
     element<HTMLElement>("boot").hidden = false;
   }
+  // Every speaker of the page reads in the language of the visitor, wherever it stands: in the
+  // panel, in the note behind an element, in the sidebar and on the first screen.
+  watchSay(voice);
   const assets = new URL("assets/", document.baseURI);
   const copy = voice.pick(HUB_TEXT);
   const title = about
@@ -151,11 +160,8 @@ async function start(): Promise<void> {
   // One settings menu for the whole page: the body and every table are the same page, so the
   // button in the corner stays where it is while a visitor walks through all five of them.
   const overview = entry === undefined && parameters.get("app") !== ABOUT;
-  createSettings(element<HTMLElement>("chrome"), {
+  createSettings(foot, {
     voice, groups: appSettings(voice, selectedTable(parameters), overview), onChoose: choose,
-    // The landing page shows them open, so a visitor knows what can be changed; every table
-    // keeps the same switches behind the button in the corner.
-    pinned: overview,
   });
 
   // The landing page is where a visit ends as well as begins: the button in the corner asks the

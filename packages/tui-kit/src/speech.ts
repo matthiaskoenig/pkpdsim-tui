@@ -48,6 +48,8 @@ export interface Speech {
   toggle(text: string | readonly string[]): void;
   stop(): void;
   speaking(): boolean;
+  /** What is being read right now, normalized, so a button can tell whether it is its own. */
+  saying(): string;
   /** Called whenever it starts or stops, so a button can show what it is doing. */
   listen(listener: () => void): void;
 }
@@ -158,6 +160,9 @@ function createSpeech(voice: Voice, base: URL): Speech {
     stop,
     speaking(): boolean {
       return saying !== "";
+    },
+    saying(): string {
+      return saying;
     },
     listen(listener: () => void): void {
       listeners.push(listener);

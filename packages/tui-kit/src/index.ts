@@ -27,6 +27,7 @@ export {clearStars, keepStars, readStars, starMarks, starsOf, watchStars} from "
 export type {Stars} from "./stars.ts";
 export type {Pictogram, Settings, SettingsOptions} from "./settings.ts";
 export {normalizeSpeech, speechFor, speechKey} from "./speech.ts";
+export {sayHtml, sayLabel, SAY_PATH, SAY_WAVES, watchSay} from "./say.ts";
 export type {Speech} from "./speech.ts";
 export type {Readout, StatDefinition} from "./readout.ts";
 export {attributes, clear, line, svg, SVG_NS} from "./svg.ts";
