@@ -80,7 +80,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
     root, visibleStats(perfusionStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // Three questions about this table, behind the button in the near corner.
-  createQuiz(host.chrome, {voice, questions: copy.quiz});
+  createQuiz(host.chrome, {voice, questions: copy.quiz, table: "perfusion"});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

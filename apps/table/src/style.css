@@ -324,8 +324,14 @@
 /* The sidebar: what the table under the hand, or under the object, is about, at length. */
 .hub-info-plate {
   fill: var(--panel);
-  stroke: var(--panel);
+  stroke: var(--panel-line);
   stroke-width: 1.5;
+}
+
+/* What a visitor took from a table: one star a question of its quiz, in its own colour. */
+.hub-icon-stars {
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
 }
 
 /* The colour of the table down the edge of the sidebar, and behind its picture. */

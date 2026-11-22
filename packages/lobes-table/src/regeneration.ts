@@ -11,6 +11,7 @@
 import {attributes, formatNumber, svg} from "@pkpdsim-tui/tui-kit";
 import type {Box, Voice} from "@pkpdsim-tui/tui-kit";
 import {LOBE_TEXT} from "./text.ts";
+import {tickOf} from "./course.ts";
 import {operationName} from "./operations.ts";
 import type {Operation} from "./operations.ts";
 
@@ -18,13 +19,16 @@ const PAD = {left: 58, right: 54, top: 30, bottom: 34} as const;
 /** The volume of a whole liver, as the plot writes it. */
 const FULL = 100;
 
+/** One run, as the columns of the solver carry it. */
+export type Run = Readonly<Record<string, readonly number[]>>;
+
 export interface RegenerationView {
-  /** The day the dial is at. */
+  /** The day the course has reached, which runs by itself. */
   readonly day: number;
   readonly days: number;
   readonly selected: Operation;
-  /** The run of the selected operation as this table solved it, which is drawn in front. */
-  readonly series: Readonly<Record<string, readonly number[]>>;
+  /** The run of every operation at the rate on the table, by the id of the operation. */
+  readonly runs: ReadonlyMap<string, Run>;
 }
 
 export interface Regeneration {
@@ -51,7 +55,6 @@ export function createRegeneration(
   const root = svg("g", {class: "layer layer--regeneration"}, parent);
   const group = svg("g", {class: "regen"}, root);
   const title = svg("text", {class: "regen-title"}, group);
-  title.textContent = copy.regeneration.title;
   const axes = svg("path", {class: "regen-axis", d: ""}, group);
   const whole = svg("path", {class: "regen-whole", d: ""}, group);
   const wholeKey = svg("text", {class: "regen-tick regen-tick--whole"}, group);
@@ -69,10 +72,8 @@ export function createRegeneration(
   low.textContent = "0";
   const ticks: SVGTextElement[] = [];
 
-  // The whole liver of this export, which every curve is a share of: the first point of the run
-  // of the intact liver.
+  // The whole liver, which every curve is a share of: the first point of the intact run.
   const intact = operations.find(one => one.lobes.length === 0) ?? operations[0];
-  const start = intact?.series["Vli_lobes"]?.[0] ?? 1;
 
   let box: Box = {x: 0, y: 0, width: 0, height: 0};
 
@@ -83,7 +84,7 @@ export function createRegeneration(
     - (box.height - PAD.top - PAD.bottom) * Math.min(1, Math.max(0, percent / (FULL * 1.12)));
 
   const draw = (
-    series: Readonly<Record<string, readonly number[]>>, days: number,
+    series: Run, days: number, start: number,
   ): string => {
     const time = series["time"] ?? [];
     const percent = volumes(series, start);
@@ -109,8 +110,15 @@ export function createRegeneration(
     },
 
     update(view: RegenerationView): void {
-      // The days under the axis, one tick a day, as many as the course is long.
-      const want = Math.max(2, Math.round(view.days));
+      const run = (operation: Operation): Run =>
+        view.runs.get(operation.id) ?? operation.series;
+      // A whole liver is where the intact one starts, which is what the others are measured
+      // against. Until its run is in, the export says what it is.
+      const start = (intact === undefined ? undefined : run(intact)["Vli_lobes"]?.[0]) ?? 1;
+      // The days under the axis: a tick every few days in an animal, every fortnight in a
+      // person, because a human liver is months about what a rat does in a week.
+      const {step} = tickOf(view.days);
+      const want = Math.max(2, Math.floor(view.days / step));
       while (ticks.length <= want) {
         ticks.push(svg("text", {class: "regen-tick", "text-anchor": "middle"}, group));
       }
@@ -118,11 +126,12 @@ export function createRegeneration(
         const on = index <= want;
         tick.setAttribute("opacity", on ? "1" : "0");
         if (!on) continue;
+        const at = index * step;
         tick.textContent = index === want
-          ? `${formatNumber(index, 0)} ${copy.days}`
-          : formatNumber(index, 0);
+          ? `${formatNumber(at, 0)} ${copy.days}`
+          : formatNumber(at, 0);
         attributes(tick, {
-          x: across(index, view.days), y: box.y + box.height - PAD.bottom + 20,
+          x: across(at, view.days), y: box.y + box.height - PAD.bottom + 20,
         });
       }
       // The name stands at the start of its curve, where the operations are far apart: at the
@@ -132,22 +141,28 @@ export function createRegeneration(
       let last = -Infinity;
       for (const curve of curves) {
         const chosen = curve.operation.id === view.selected.id;
-        curve.path.setAttribute("d", draw(curve.operation.series, view.days));
+        const series = run(curve.operation);
+        curve.path.setAttribute("d", draw(series, view.days, start));
         curve.path.setAttribute("data-chosen", String(chosen));
-        const percent = volumes(curve.operation.series, start);
+        const percent = volumes(series, start);
         const where = Math.max(up(percent[0] ?? FULL) - 8, last + 17);
         last = where;
         curve.name.textContent = operationName(voice, curve.operation);
         curve.name.setAttribute("data-chosen", String(chosen));
         attributes(curve.name, {x: box.x + PAD.left + 12, y: where});
       }
-      // The run this table solved, over the curve of the export it belongs to.
-      live.setAttribute("d", draw(view.series, view.days));
+      // The operation on the table, drawn in front of the others as the course runs.
+      const chosen = run(view.selected);
+      live.setAttribute("d", draw(chosen, view.days, start));
       const at = across(view.day, view.days);
       cursor.setAttribute("d",
         `M${at} ${box.y + PAD.top} L${at} ${box.y + box.height - PAD.bottom}`);
-      const percent = volumes(view.series, start);
-      const time = view.series["time"] ?? [];
+      // The day the course has reached stands in the title, where nothing else is written:
+      // over the cursor it would cross the curve of the operation at the top of the plot.
+      title.textContent = `${copy.regeneration.title} · `
+        + copy.dayValue(formatNumber(view.day, view.days > 30 ? 0 : 1));
+      const percent = volumes(chosen, start);
+      const time = chosen["time"] ?? [];
       const minutes = view.day * 24 * 60;
       let index = 0;
       while (index < time.length - 1 && (time[index + 1] ?? 0) <= minutes) index += 1;

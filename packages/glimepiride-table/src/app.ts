@@ -86,7 +86,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
   // Three questions about this table, behind the button in the near corner.
-  createQuiz(host.chrome, {voice, questions: copy.quiz});
+  createQuiz(host.chrome, {voice, questions: copy.quiz, table: "glimepiride"});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

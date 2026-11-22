@@ -16,8 +16,10 @@ import {LOBE_TEXT} from "./text.ts";
 
 /** The marker of the object which picks the operation: the scalpel. */
 export const RESECTION_MARKER = 1;
-/** The marker of the second object of the table. */
-export const DAY_MARKER = 2;
+/** The marker of the dial which makes the liver grow back faster or slower. */
+export const GROWTH_MARKER = 2;
+/** How far the dial moves the growth constant of the species, up and down. */
+export const GROWTH_SPAN = 3;
 
 export interface Operation {
   /** The id of the case in the export, which is also how it is named in the copy. */
@@ -26,7 +28,7 @@ export interface Operation {
   readonly lobes: readonly string[];
   /** The share of the mass of the liver it takes. */
   readonly removed: number;
-  /** The run the export carries for it, which is the curve of its regeneration. */
+  /** The run the export carries for it, which the table replaces with one of its own. */
   readonly series: Readonly<Record<string, readonly number[]>>;
 }
 
@@ -93,22 +95,23 @@ export function operationAtDial(
 }
 
 /**
- * The dial of the days. It is relative and reads the day of the last time point where it is put
- * down, so the table starts at the end of the course and the dial is wound back to the
- * operation. Half a turn covers the whole course.
+ * The dial of the regeneration: how fast this liver grows back, as a factor on the growth
+ * constant of its species. It is logarithmic, because it is a rate, and its reference is the
+ * liver of a healthy individual, which is the course the species is known for.
  */
-export function dayRole(days: number, voice: Voice): TokenRole {
-  const copy = voice.pick(LOBE_TEXT).roles.day;
+export function growthRole(voice: Voice): TokenRole {
+  const copy = voice.pick(LOBE_TEXT).roles.growth;
   return {
-    id: "day", label: voice.say(copy.label), unit: "d", markers: [DAY_MARKER],
+    id: "growth", label: voice.say(copy.label), unit: "x", markers: [GROWTH_MARKER],
     description: voice.say(copy.info),
-    min: 0, max: days, reference: days, mode: "relative", scale: "linear", turns: 1,
+    min: 1 / GROWTH_SPAN, max: GROWTH_SPAN, reference: 1,
+    mode: "absolute", scale: "log", turns: 1,
   };
 }
 
-export function lobeRoles(days: number, voice: Voice, count: number): readonly TokenRole[] {
-  return [resectionRole(voice, count), dayRole(days, voice)];
+export function lobeRoles(voice: Voice, count: number): readonly TokenRole[] {
+  return [resectionRole(voice, count), growthRole(voice)];
 }
 
 /** The markers this table reads, which the input layer needs before a word is said. */
-export const LOBE_MARKERS: readonly number[] = [RESECTION_MARKER, DAY_MARKER];
+export const LOBE_MARKERS: readonly number[] = [RESECTION_MARKER, GROWTH_MARKER];

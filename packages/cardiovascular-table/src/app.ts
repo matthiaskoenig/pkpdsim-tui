@@ -124,7 +124,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   // What a number, an object or an organ is: the sentence opens where a visitor asks for it,
   // with the mouse or with a finger resting on it.
   // Three questions about this table, behind the button in the near corner.
-  createQuiz(host.chrome, {voice, questions: copy.quiz});
+  createQuiz(host.chrome, {voice, questions: copy.quiz, table: "cardiovascular"});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),

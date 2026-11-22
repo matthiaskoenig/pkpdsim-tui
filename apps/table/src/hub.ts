@@ -13,8 +13,8 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, reportStatus, svg,
-  tokenPoints, words,
+  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, readStars,
+  reportStatus, svg, tokenPoints, watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
@@ -30,6 +30,8 @@ import {wrapText} from "./wrap.ts";
 const MOTIVATION_LINES = 2;
 /** The icon of a table, in pixels: a big disc of the colour of that table, and its name. */
 const ICON = {radius: 58, margin: 28, label: 34, line: 26, ring: 6} as const;
+/** The room the stars of a table take under its name, in pixels. */
+const STAR_LINE = 30;
 /** The room the heading takes at the top. */
 const HEAD = {top: 78, line: 34, bottom: 78} as const;
 const PADDING: number = 26;
@@ -73,6 +75,8 @@ interface IconView {
   readonly arm: SVGCircleElement;
   readonly picture: SVGGElement;
   readonly title: readonly SVGTextElement[];
+  /** The stars this table has been answered with, which came from its quiz. */
+  readonly stars: SVGTextElement;
   centre: {x: number; y: number};
 }
 
@@ -118,7 +122,7 @@ function iconSpots(
   const rx = stage.width / 2 - ICON.radius - 92;
   // The name of an icon may run to two lines, and the one at the foot of the ring reads under
   // it, so the ring keeps that much off the edge of the surface.
-  const ry = stage.height / 2 - ICON.radius - ICON.label - ICON.line;
+  const ry = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
   return Array.from({length: count}, (_unused, index) => {
     const degrees = RING[index % RING.length] ?? 0;
     const angle = degrees * Math.PI / 180;
@@ -200,13 +204,17 @@ function createIcon(
     element.textContent = text;
     return element;
   });
+  // What a visitor took from this table: one star a question, from the quiz on it.
+  const stars = svg("text", {
+    class: "hub-icon-stars", "text-anchor": "middle", fill: entry.color,
+  }, group);
   group.addEventListener("click", () => open(entry));
   group.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     open(entry);
   });
-  return {entry, group, disc, ring, arm, picture, title, centre: {x: 0, y: 0}};
+  return {entry, group, disc, ring, arm, picture, title, stars, centre: {x: 0, y: 0}};
 }
 
 function placeIcon(
@@ -223,9 +231,19 @@ function placeIcon(
   for (const [index, line] of icon.title.entries()) {
     const under = centre.y + ICON.radius + ICON.label + index * ICON.line;
     const over = centre.y - ICON.radius - ICON.label
-      - (icon.title.length - 1 - index) * ICON.line;
+      - (icon.title.length - 1 - index) * ICON.line
+      - (above ? STAR_LINE : 0);
     attributes(line, {x: centre.x, y: above ? over : under});
   }
+  // The stars stand on the far side of the name from the icon, which keeps the row of them
+  // out of the middle where the bodies are.
+  const lines = icon.title.length;
+  attributes(icon.stars, {
+    x: centre.x,
+    y: above
+      ? centre.y - ICON.radius - ICON.label - (lines - 1) * ICON.line + STAR_LINE - 4
+      : centre.y + ICON.radius + ICON.label + (lines - 1) * ICON.line + STAR_LINE,
+  });
 }
 
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
@@ -318,6 +336,17 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     : tracker.discovered ? copy.bothToOpen : copy.touchToOpen;
   const icons: IconView[] = TABLES.map(
     entry => createIcon(row, entry, voice, open, entry2 => point(entry2)));
+
+  /** The stars every table has been answered with, which its quiz keeps for it. */
+  const paintStars = (): void => {
+    const stars = readStars();
+    for (const icon of icons) {
+      const won = stars[icon.entry.id] ?? 0;
+      icon.stars.textContent = won > 0 ? "★".repeat(won) : "";
+    }
+  };
+  paintStars();
+  watchStars(paintStars);
 
 
   // The woman and the man, side by side: the two reference bodies every table is solved on. The

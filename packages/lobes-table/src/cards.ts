@@ -5,7 +5,6 @@
 import {clamp, formatNumber, words} from "@pkpdsim-tui/tui-kit";
 import type {StatDefinition, TokenCard, TokenGlyph, Voice} from "@pkpdsim-tui/tui-kit";
 import {LOBE_TEXT} from "./text.ts";
-import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
 import {operationName} from "./operations.ts";
 import type {Operation} from "./operations.ts";
@@ -45,11 +44,11 @@ export interface CardContext {
   readonly sample: Sample;
   /** The same liver without the operation, which a segment is measured against. */
   readonly baseline: Sample;
-  readonly days: number;
-  readonly origins: ReadonlyMap<number, number>;
+  /** What the rate dial is at, as a factor on the growth of this species. */
+  readonly factor: number;
 }
 
-/** The picture inside the object: the knife of the operation, or the clock of the days. */
+/** The picture inside the object: the knife of the operation, or the clock of the rate. */
 function glyphFor(role: TokenRole, level: number): TokenGlyph {
   if (role.id === "resection") return {kind: "scalpel", level: 1};
   return {kind: "clock", level: clamp(level, 0, 1)};
@@ -78,10 +77,14 @@ export function cardFor(
       glyph: glyphFor(role, 1), info: role.description,
     };
   }
-  const day = valueFromAngle(role, token.turn, context.origins.get(token.sessionId) ?? 0);
+  // A rate of one is the liver of a healthy individual of this species, which is the detent
+  // the dial sits in.
   return {
-    kind: "dial", title: role.label, value: copy.dayValue(formatNumber(day, 1)),
-    note: copy.windBack,
-    glyph: glyphFor(role, context.days > 0 ? day / context.days : 0), info: role.description,
+    kind: "dial", title: role.label, value: copy.growthValue(formatNumber(context.factor, 1)),
+    note: voice.say(context.factor > 1.05
+      ? copy.growsFaster
+      : context.factor < 0.95 ? copy.growsSlower : copy.growsNormally),
+    glyph: glyphFor(role, clamp(Math.log(context.factor) / Math.log(3) / 2 + 0.5, 0, 1)),
+    info: role.description,
   };
 }

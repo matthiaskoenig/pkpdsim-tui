@@ -29,7 +29,7 @@ export interface LobeCopy {
   readonly quiz: readonly QuizQuestion[];
   readonly stats: Readonly<Record<
     "remnant" | "portal-pressure" | "gradient" | "portal-flow" | "arterial-flow", Named>>;
-  readonly roles: Readonly<Record<"resection" | "day", Named>>;
+  readonly roles: Readonly<Record<"resection" | "growth", Named>>;
   /** What each operation of the export is called, by the id of its case. */
   readonly operations: Readonly<Record<string, Phrase>>;
   /** The plot of the curves: what it is, and the line of a whole liver. */
@@ -53,6 +53,11 @@ export interface LobeCopy {
   readonly takenAway: (share: string) => string;
   readonly nowAt: (share: string, volume: string) => string;
   readonly dayValue: (day: string) => string;
+  /** What the rate dial reads, as a factor on the growth of this species. */
+  readonly growthValue: (factor: string) => string;
+  readonly growsFaster: Phrase;
+  readonly growsSlower: Phrase;
+  readonly growsNormally: Phrase;
   readonly windBack: string;
   readonly vessels: Readonly<Record<"portal" | "artery" | "hepatic", string>>;
   readonly whole: string;
@@ -172,12 +177,12 @@ const EN: LobeCopy = {
         expert: "The resections of the export, in the order of the mass they take: the segments they remove are gone at once and the remnant carries the whole load.",
       },
     },
-    day: {
-      label: {child: "Days after", adult: "Day after the operation"},
+    growth: {
+      label: {child: "How fast it grows", adult: "Regeneration rate"},
       info: {
-        child: "Turn it to travel through the days after the operation.",
-        adult: "Turn it back to walk from the end of the course to the operation.",
-        expert: "The day of the solved course, from the end back to the operation. The dial is relative and reads the day it was put down at.",
+        child: "Turn it to make the liver grow back faster or slower.",
+        adult: "How fast what is left grows back, against a healthy liver of this species.",
+        expert: "A factor on the growth constant of the model, whose reference is the course of this species: a fortnight in a person, two days in a rat. An ill liver grows back more slowly, which is what the lower half of the dial is.",
       },
     },
   },
@@ -219,6 +224,10 @@ const EN: LobeCopy = {
   takenAway: share => `${share} of the mass, taken away`,
   nowAt: (share, volume) => `${share} of the mass, now at ${volume}`,
   dayValue: day => `day ${day}`,
+  growthValue: factor => `${factor} x`,
+  growsFaster: {child: "This liver is in a hurry.", adult: "Faster than a healthy liver of this species."},
+  growsSlower: {child: "This liver takes its time.", adult: "Slower than a healthy liver, which is what an ill one does."},
+  growsNormally: {child: "As fast as a healthy liver.", adult: "The rate of a healthy liver of this species."},
   windBack: "turn back to the operation",
   vessels: {portal: "portal", artery: "artery", hepatic: "hepatic veins"},
   whole: "The liver is whole.",
@@ -353,12 +362,12 @@ const DE: LobeCopy = {
         expert: "Die Resektionen des Exports, nach der Masse geordnet, die sie nehmen: die Segmente sind sofort weg, und der Rest trägt die ganze Last.",
       },
     },
-    day: {
-      label: {child: "Tage danach", adult: "Tag nach der Operation"},
+    growth: {
+      label: {child: "Wie schnell sie wächst", adult: "Regenerationsrate"},
       info: {
-        child: "Dreh daran, um durch die Tage nach der Operation zu reisen.",
-        adult: "Drehen Sie zurück, um vom Ende des Verlaufs zur Operation zu gehen.",
-        expert: "Der Tag des gelösten Verlaufs, vom Ende zurück zur Operation. Das Rad ist relativ und liest den Tag, an dem es abgelegt wurde.",
+        child: "Dreh daran, damit die Leber schneller oder langsamer nachwächst.",
+        adult: "Wie schnell der Rest nachwächst, gemessen an einer gesunden Leber dieser Art.",
+        expert: "Ein Faktor auf die Wachstumskonstante des Modells, deren Referenz der Verlauf dieser Art ist: zwei Wochen beim Menschen, zwei Tage bei der Ratte. Eine kranke Leber wächst langsamer nach, und das ist die untere Hälfte des Rades.",
       },
     },
   },
@@ -400,6 +409,10 @@ const DE: LobeCopy = {
   takenAway: share => `${share} der Masse, weggenommen`,
   nowAt: (share, volume) => `${share} der Masse, jetzt bei ${volume}`,
   dayValue: day => `Tag ${day}`,
+  growthValue: factor => `${factor} x`,
+  growsFaster: {child: "Diese Leber hat es eilig.", adult: "Schneller als eine gesunde Leber dieser Art."},
+  growsSlower: {child: "Diese Leber lässt sich Zeit.", adult: "Langsamer als eine gesunde Leber, so wie es eine kranke tut."},
+  growsNormally: {child: "So schnell wie eine gesunde Leber.", adult: "Das Tempo einer gesunden Leber dieser Art."},
   windBack: "zurück zur Operation drehen",
   vessels: {portal: "Pfortader", artery: "Arterie", hepatic: "Lebervenen"},
   whole: "Die Leber ist unversehrt.",
@@ -533,12 +546,12 @@ const ES: LobeCopy = {
         expert: "Las resecciones del export, ordenadas por la masa que se llevan: los segmentos desaparecen de golpe y el remanente carga con todo.",
       },
     },
-    day: {
-      label: {child: "Días después", adult: "Día tras la operación"},
+    growth: {
+      label: {child: "Lo rápido que crece", adult: "Ritmo de regeneración"},
       info: {
-        child: "Gíralo para viajar por los días posteriores a la operación.",
-        adult: "Gírelo hacia atrás para ir del final del curso hasta la operación.",
-        expert: "El día del curso resuelto, del final hacia la operación. El dial es relativo y lee el día en que se colocó.",
+        child: "Gíralo para que el hígado vuelva a crecer más rápido o más despacio.",
+        adult: "Con qué rapidez vuelve a crecer lo que queda, frente a un hígado sano de esta especie.",
+        expert: "Un factor sobre la constante de crecimiento del modelo, cuya referencia es el curso de esta especie: dos semanas en una persona, dos días en una rata. Un hígado enfermo crece más despacio, y esa es la mitad baja del dial.",
       },
     },
   },
@@ -580,6 +593,10 @@ const ES: LobeCopy = {
   takenAway: share => `${share} de la masa, quitado`,
   nowAt: (share, volume) => `${share} de la masa, ahora al ${volume}`,
   dayValue: day => `día ${day}`,
+  growthValue: factor => `${factor} x`,
+  growsFaster: {child: "Este hígado tiene prisa.", adult: "Más rápido que un hígado sano de esta especie."},
+  growsSlower: {child: "Este hígado se toma su tiempo.", adult: "Más despacio que un hígado sano, como hace uno enfermo."},
+  growsNormally: {child: "Tan rápido como un hígado sano.", adult: "El ritmo de un hígado sano de esta especie."},
   windBack: "gírelo hacia la operación",
   vessels: {portal: "porta", artery: "arteria", hepatic: "venas hepáticas"},
   whole: "El hígado está entero.",
