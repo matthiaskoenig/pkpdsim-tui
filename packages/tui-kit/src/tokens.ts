@@ -20,6 +20,11 @@ const CARD_WIDTH = 236;
 const CARD_HEIGHT = 88;
 /** The outer stop of the dial, in degrees from the detent at the top. */
 const STOP = ABSOLUTE_SPAN * 180;
+/**
+ * How thick the band of an object is drawn: a thread where the object stands at its baseline,
+ * and the full band where it has been turned as far as it goes.
+ */
+export const BAND = {thin: 6, thick: 18} as const;
 
 /**
  * How an object reads on the table. A `dial` carries its value in its angle and gets the arc and
@@ -66,6 +71,39 @@ export function trackSpan(role: TokenRole | undefined): {start: number; end: num
   return {start: degrees(role.min), end: degrees(role.max)};
 }
 
+/** The band of an object: where it starts, where it ends, how thick it is, and which way. */
+export interface TokenBand {
+  /** The baseline of the role, in degrees from the detent: where the band starts. */
+  readonly from: number;
+  /** Where the object stands now, in degrees from the detent: where the band ends. */
+  readonly to: number;
+  /** How thick the band is drawn, from `BAND.thin` at the baseline to `BAND.thick` at the stop. */
+  readonly width: number;
+  /** Whether the object was turned up from its baseline, which is what makes the band red. */
+  readonly rising: boolean;
+}
+
+/**
+ * The band an object wears while it is turned: from the value of the model without it to the
+ * value it carries now. It starts at the detent for every object whose reference sits there,
+ * and at the end of the track for one whose reference is an end of its range, like an
+ * impairment which cannot be better than healthy. The further the object has been turned from
+ * that baseline the thicker the band is drawn, so a visitor reads how far every object on the
+ * table has been moved, and in which direction, without reading a single number.
+ */
+export function bandOf(role: TokenRole | undefined, degrees: number): TokenBand {
+  const to = clamp(degrees, -STOP, STOP);
+  const from = role === undefined || role.mode !== "absolute"
+    ? 0
+    : clamp(angleForValue(role, role.reference) * 180 / Math.PI, -STOP, STOP);
+  const reach = Math.max(Math.abs(STOP - from), Math.abs(-STOP - from));
+  const change = reach <= 0 ? 0 : (to - from) / reach;
+  return {
+    from, to, rising: change >= 0,
+    width: BAND.thin + (BAND.thick - BAND.thin) * Math.min(1, Math.abs(change)),
+  };
+}
+
 function trackOf(role: TokenRole | undefined): string {
   const {start, end} = trackSpan(role);
   return Math.abs(end - start) < 0.5 ? "" : describeArc(0, 0, RING_RADIUS, start, end);
@@ -92,7 +130,7 @@ function buildToken(parent: SVGGElement): TokenElements {
   const group = svg("g", {class: "token"}, parent);
   const ring = svg("circle", {class: "token-ring", r: RING_RADIUS}, group);
   const track = svg("path", {class: "token-track", d: ""}, group);
-  const arc = svg("path", {class: "token-arc", d: ""}, group);
+  const arc = svg("path", {class: "token-arc", d: "", "stroke-width": BAND.thin}, group);
   const detent = svg("line", {
     class: "token-detent", x1: 0, y1: -RING_RADIUS - 9, x2: 0, y2: -RING_RADIUS + 9,
   }, group);
@@ -147,10 +185,16 @@ export function createTokenLayer(
     // The pointer shows where the object really is; the arc stops where its range does.
     const degrees = (token.angle > Math.PI ? token.angle - Math.PI * 2 : token.angle) * 180 / Math.PI;
     visual.pointer.setAttribute("transform", `rotate(${degrees.toFixed(1)})`);
-    const arcEnd = clamp(degrees, -STOP, STOP);
     const dial = card.kind === "dial";
-    visual.arc.setAttribute("d",
-      !dial || Math.abs(arcEnd) < 0.5 ? "" : describeArc(0, 0, RING_RADIUS, 0, arcEnd));
+    // The band of the change: red where the object was turned up and blue where it was turned
+    // down, and as thick as the change from the baseline is large. An object nobody has moved
+    // wears none at all, which is how a table says that what is on it is the body at rest.
+    const band = bandOf(role, degrees);
+    visual.arc.setAttribute("d", !dial || Math.abs(band.to - band.from) < 0.5
+      ? "" : describeArc(0, 0, RING_RADIUS, band.from, band.to));
+    visual.arc.setAttribute("stroke-width", band.width.toFixed(1));
+    visual.arc.setAttribute("class",
+      `token-arc ${band.rising ? "token-arc--up" : "token-arc--down"}`);
     // The track covers the values the role really has. A role whose reference is one end of its
     // range, like an impairment that cannot be better than healthy, gets half a dial and the
     // other half of the ring stays empty instead of promising a value that does not exist.

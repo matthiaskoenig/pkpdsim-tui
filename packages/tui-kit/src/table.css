@@ -29,6 +29,9 @@
   --venous: #2f6fd0;
   --portal: #8a4fc8;
   --accent: #1668c7;
+  /* A value above the baseline and one below it, which the band of an object is drawn in. */
+  --rise: #cf4034;
+  --fall: #2f6fd0;
   --accent-bright: #3a8ae8;
   --warn: #b06a0c;
   color-scheme: light;
@@ -664,11 +667,21 @@ body {
   stroke-linecap: round;
 }
 
+/* The band of the change an object carries: it grows out of the detent of the dial, it is as
+   thick as the change from the baseline is large, and its colour is the direction. The width is
+   set on the element, so no rule here may give it one. */
 .token-arc {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 7;
+  stroke: var(--rise);
   stroke-linecap: round;
+}
+
+.token-arc--up {
+  stroke: var(--rise);
+}
+
+.token-arc--down {
+  stroke: var(--fall);
 }
 
 .token-detent {

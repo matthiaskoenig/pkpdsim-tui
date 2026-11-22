@@ -34,8 +34,8 @@ export type {Speech} from "./speech.ts";
 export type {Readout, StatDefinition} from "./readout.ts";
 export {attributes, clear, line, svg, SVG_NS} from "./svg.ts";
 export type {Attributes} from "./svg.ts";
-export {clipLine, createTokenLayer, trackSpan} from "./tokens.ts";
-export type {TokenCard, TokenCardKind, TokenLayer, TokenLayerUpdate} from "./tokens.ts";
+export {BAND, bandOf, clipLine, createTokenLayer, trackSpan} from "./tokens.ts";
+export type {TokenBand, TokenCard, TokenCardKind, TokenLayer, TokenLayerUpdate} from "./tokens.ts";
 export type {Viewport} from "./types.ts";
 export {
   createVoice, isLevel, isLocale, LEVELS, levelRank, LOCALE_NAMES, LOCALES, say, shows, voiceOf,
