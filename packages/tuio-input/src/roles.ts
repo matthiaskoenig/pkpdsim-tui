@@ -49,14 +49,46 @@ function clamp(value: number, low: number, high: number): number {
 }
 
 /**
+ * Whether the whole turn of an object spans its range, rather than half of it on either side of
+ * a reference in the middle. An absolute object whose reference is one end of its range used to
+ * carry that end over the whole half of the turn below it: the first object of the liver table
+ * walked the operations in half a turn and did nothing at all in the other half, which is a
+ * visitor turning an object and watching nothing happen.
+ *
+ * A relative object keeps the reference under its hand, because that is what it is: it carries
+ * the reference wherever it is put down, and the turn from there is the change.
+ */
+function spansWholeTurn(role: TokenRole): boolean {
+  return role.mode === "absolute" && (role.reference <= role.min || role.reference >= role.max);
+}
+
+/** Where a value sits between the ends of the range, from 0 at the minimum to 1 at the maximum. */
+function fractionOfValue(role: TokenRole, value: number): number {
+  const {min, max} = role;
+  if (role.scale === "log") {
+    const span = Math.log(max / min);
+    return span <= 0 ? 0 : Math.log(value / min) / span;
+  }
+  return max <= min ? 0 : (value - min) / (max - min);
+}
+
+/**
  * The value at an offset from the reference, where -1 is the minimum, 0 the reference and 1 the
- * maximum. A log role steps in ratios, which is what a resistance factor wants.
+ * maximum. A log role steps in ratios, which is what a resistance factor wants. An object whose
+ * reference is one end of its range spends the whole turn on the range instead, so -1 is the
+ * minimum and 1 the maximum with nothing dead in between.
  */
 export function valueAtOffset(role: TokenRole, offset: number): number {
   const t = clamp(offset, -1, 1);
   const {min, max, reference} = role;
   if (role.scale === "log" && (min <= 0 || reference <= 0 || max <= 0)) {
     throw new RangeError(`Role ${role.id} is logarithmic, so its range has to be positive.`);
+  }
+  if (spansWholeTurn(role)) {
+    const fraction = (t + 1) / 2;
+    return clamp(
+      role.scale === "log" ? min * (max / min) ** fraction : min + (max - min) * fraction,
+      min, max);
   }
   const value = role.scale === "log"
     ? (t >= 0 ? reference * (max / reference) ** t : reference * (reference / min) ** t)
@@ -71,6 +103,7 @@ export function valueAtOffset(role: TokenRole, offset: number): number {
 export function offsetOfValue(role: TokenRole, value: number): number {
   const {min, max, reference} = role;
   const clamped = clamp(value, min, max);
+  if (spansWholeTurn(role)) return 2 * fractionOfValue(role, clamped) - 1;
   const up = clamped >= reference;
   const span = role.scale === "log"
     ? Math.log(up ? max / reference : reference / min)

@@ -46,5 +46,11 @@ export interface LobeConfig {
   /** The dose of the marker drug, in mg. */
   readonly dose: number;
   readonly settings: Readonly<Record<string, unknown>>;
+  /**
+   * What is set before the model is initialised: the body weight and the height of the person
+   * the table is solved for. The liver of a human export follows the body it is in; the rat and
+   * the mouse are their own animal and carry none.
+   */
+  readonly preinit?: readonly (readonly [string, number])[];
   readonly sbml_sha256: string;
 }

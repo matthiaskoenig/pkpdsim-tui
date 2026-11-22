@@ -10,6 +10,8 @@ export interface Named {
 /** What the sentence of the panel is built from. */
 export interface GlimepirideFacts {
   readonly sex: "male" | "female";
+  /** Whether the body is a child's, which is what it is called and what follows it. */
+  readonly child: boolean;
   readonly weight: string;
   /** What is different about this person, as keys with the words they carry. */
   readonly who: readonly string[];
@@ -231,7 +233,8 @@ const EN: GlimepirideCopy = {
   everyMorning: "one every morning",
   windBack: "turn back to the dose",
   reading: facts => {
-    const body = `A ${facts.sex === "female" ? "woman" : "man"} of ${facts.weight} kg`;
+    const body = `A ${facts.child ? (facts.sex === "female" ? "girl" : "boy")
+      : (facts.sex === "female" ? "woman" : "man")} of ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
     const course = facts.doses > 1
       ? ` One every morning, ${facts.doses} mornings in a row.`
@@ -433,7 +436,8 @@ const DE: GlimepirideCopy = {
   everyMorning: "jeden Morgen eine",
   windBack: "zurück zur Dosis drehen",
   reading: facts => {
-    const body = `${facts.sex === "female" ? "Eine Frau" : "Ein Mann"} von ${facts.weight} kg`;
+    const body = `${facts.child ? (facts.sex === "female" ? "Ein Mädchen" : "Ein Junge")
+      : (facts.sex === "female" ? "Eine Frau" : "Ein Mann")} von ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
     const course = facts.doses > 1
       ? ` Jeden Morgen eine, ${facts.doses} Morgen hintereinander.`
@@ -450,7 +454,10 @@ const DE: GlimepirideCopy = {
       ? ""
       : ` Es bleibt auch länger im Blut: die Hälfte ist nach ${facts.half.now} Stunden weg `
         + `statt nach ${facts.half.reference}.`;
-    return `${body}, ${facts.sex === "female" ? "die" : "der"} ${sentence}: ${exposure} vom `
+    const which = facts.child
+      ? (facts.sex === "female" ? "das" : "der")
+      : (facts.sex === "female" ? "die" : "der");
+    return `${body}, ${which} ${sentence}: ${exposure} vom `
       + `Medikament im Blut wie die Person, an der nichts geändert wurde.${half}${course}`;
   },
   loading: "Glimepirid wird geladen...",
@@ -635,7 +642,8 @@ const ES: GlimepirideCopy = {
   everyMorning: "una cada mañana",
   windBack: "gírelo hacia la dosis",
   reading: facts => {
-    const body = `${facts.sex === "female" ? "Una mujer" : "Un hombre"} de ${facts.weight} kg`;
+    const body = `${facts.child ? (facts.sex === "female" ? "Una niña" : "Un niño")
+      : (facts.sex === "female" ? "Una mujer" : "Un hombre")} de ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
     const course = facts.doses > 1
       ? ` Una cada mañana, ${facts.doses} mañanas seguidas.`

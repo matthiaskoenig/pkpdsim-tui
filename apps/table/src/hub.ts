@@ -8,18 +8,18 @@
  * the tables, which number them from 1, and a visitor who has just walked up has their hands.
  */
 
-import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
+import {loadAnatomy, referenceBody} from "@pkpdsim-tui/cardio-sim";
 import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, ICONS, pointerPoints, readStars, reportStatus, svg,
-  watchStars, words,
+  attributes, chooseQuery, createInfo, ICONS, LAB_ROOM, pointerPoints, readStars, reportStatus,
+  SAY_PATH, SAY_WAVES, svg, watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
-import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
 import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
 import type {TableEntry} from "./tables.ts";
+import {personLine} from "./person.ts";
 import {HUB_TEXT} from "./text.ts";
 import {wrapText} from "./wrap.ts";
 
@@ -28,7 +28,7 @@ import {wrapText} from "./wrap.ts";
  * copy of a level is written as lines, but a long one of them is wrapped to the room there is:
  * the sentence of an expert is twice the sentence of a child.
  */
-const MOTIVATION_LINES = 3;
+const MOTIVATION_LINES = 4;
 /** How wide a character of that line is, which is what wraps it: 21px of the sans of the page. */
 const MOTIVATION_WIDTH = 10.2;
 /** The icon of a table, in pixels: a big disc of the colour of that table, and its name. */
@@ -45,8 +45,7 @@ const TITLE_LINES = 2;
 const STRUT = 30;
 /** The sidebar at the right: what the table a visitor is pointing at is, at length. */
 const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const;
-/** The room the laboratory block takes in the bottom corner, which the sidebar stops above. */
-const LAB_HEIGHT = 96;
+
 /**
  * Where the icons sit on the ring around the disc, in degrees, clockwise from the top. The
  * bodies in the middle and the tables around them say what the collection is: four ways of
@@ -263,6 +262,8 @@ function placeIcon(
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
   const voice = host.voice;
   const copy = voice.pick(HUB_TEXT);
+  // Who the tables are being solved for, which the figure in the middle of the ring is.
+  const person = host.individual;
   host.progress(copy.loadingBodies);
   // The figures are the ones the circulation is drawn on: the bodies of the pkpdsim physiology,
   // and they come with that export.
@@ -277,11 +278,24 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     "data-info": voice.say(copy.headingInfo),
   }, head);
   heading.textContent = copy.heading;
+  /**
+   * The heading is one line of SVG text, which does not wrap, so a long name of a collection is
+   * set in whatever size the room allows rather than running off the page.
+   */
+  const fitHeading = (room: number): void => {
+    heading.removeAttribute("font-size");
+    const width = heading.getComputedTextLength();
+    if (width <= room || width <= 0) return;
+    const base = Number.parseFloat(window.getComputedStyle(heading).fontSize);
+    const size = (Number.isFinite(base) ? base : 52) * room / width;
+    heading.setAttribute("font-size", `${size.toFixed(1)}px`);
+  };
   // The lines are drawn empty and filled at every layout: how many of them a sentence takes
   // depends on how wide the room over the ring is.
   const motivation = Array.from({length: MOTIVATION_LINES}, () =>
     svg("text", {class: "hub-motivation", "text-anchor": "middle"}, head));
-  const said = copy.motivation[voice.level].join(" ");
+  const sentences = copy.motivation[voice.level];
+  const said = sentences.join(" ");
   const figures = svg("g", {class: "hub-bodies"}, scene);
   const links = svg("g", {class: "hub-links"}, scene);
   const organs = svg("g", {class: "hub-organs"}, scene);
@@ -299,6 +313,13 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const boxIcon = svg("path", {class: "hub-info-icon"}, boxPicture);
   const boxLines = Array.from(
     {length: INFO.lines}, () => svg("text", {class: "hub-info-line"}, box));
+  // What the sidebar says is read aloud by the speaker beside it, as everywhere else.
+  const boxSay = svg("g", {
+    class: "hub-say", role: "button", tabindex: 0, "data-dwell": "say",
+  }, box);
+  svg("circle", {class: "hub-say-plate", r: 17}, boxSay);
+  svg("path", {class: "hub-say-cone", d: SAY_PATH}, boxSay);
+  svg("path", {class: "hub-say-waves", d: SAY_WAVES}, boxSay);
   // While nothing is chosen the sidebar is the key of the five colours, which is what makes an
   // icon on the ring and an organ on the body the same table.
   const legend = svg("g", {class: "hub-legend"}, box);
@@ -310,30 +331,6 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     return {dot, name};
   });
   const boxCall = svg("text", {class: "hub-info-call"}, box);
-  // The foot of the page: whose laboratory this is, and the square a visitor points a phone at.
-  const foot = svg("g", {class: "hub-foot"}, scene);
-  const lab = svg("g", {
-    class: "hub-lab", role: "button", tabindex: 0, "data-dwell": "about",
-    "data-info": `${copy.labInfo} ${LAB_URL}`,
-  }, foot);
-  lab.addEventListener("click", () => chooseQuery("app", ABOUT, OVERVIEW));
-  lab.addEventListener("keydown", event => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    chooseQuery("app", ABOUT, OVERVIEW);
-  });
-  const qr = svg("g", {class: "hub-qr"}, lab);
-  svg("rect", {class: "hub-qr-plate", x: -2, y: -2, width: LAB_QR_SIZE + 4, height: LAB_QR_SIZE + 4, rx: 1.5}, qr);
-  svg("path", {class: "hub-qr-code", d: LAB_QR_PATH}, qr);
-  const labName = svg("text", {class: "hub-lab-name"}, lab);
-  labName.textContent = copy.labName;
-  const labPlace = svg("text", {class: "hub-lab-line"}, lab);
-  labPlace.textContent = copy.labPlace;
-  const labLink = svg("text", {class: "hub-lab-link"}, lab);
-  labLink.textContent = LAB_URL.replace("https://", "");
-  // What the laboratory block opens, under the three lines: the page about all of this.
-  const labMore = svg("text", {class: "hub-lab-more"}, lab);
-  labMore.textContent = copy.about.open;
 
   const open = (entry: TableEntry): void => {
     chooseQuery("app", entry.id, OVERVIEW);
@@ -362,14 +359,15 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   watchStars(paintStars);
 
 
-  // The woman and the man, side by side: the two reference bodies every table is solved on. The
-  // page shows both of them, and the switch between them belongs to a table, where a body is
-  // being solved for.
-  const views: BodyView[] = (["female", "male"] as const).flatMap(sex => {
+  // The body of the person at the table, in the middle of the ring: the landing page is about
+  // them, and the four tables around it are four ways of looking at this one body. The drawing
+  // is the grown up one of the library, because that is the one the anatomy carries; what the
+  // tables are solved with is the body of their age, which the figure says underneath.
+  const views: BodyView[] = ([person.sex] as const).flatMap(sex => {
     const body = anatomy.bodies[sex];
     if (body === undefined) return [];
     const figure = svg("g", {
-      class: "hub-body", "data-info": voice.say(copy.bodyInfo[sex]),
+      class: "hub-body", "data-info": `${personLine(voice, person)} ${copy.person.solvedFor}`,
     }, figures);
     const art = svg("g", {class: "body-art"}, figure);
     // The exported body carries its own fills and is generated by pkpdsim, so it goes in as it
@@ -418,7 +416,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const placeBox = (): void => {
     const left = viewport.width - INFO.margin - INFO.width;
     const height = Math.max(
-      320, viewport.height - INFO.top - ICON.margin - LAB_HEIGHT - 24);
+      320, viewport.height - INFO.top - ICON.margin - LAB_ROOM);
     attributes(boxPlate, {x: left, y: INFO.top, width: INFO.width, height});
     const inside = left + PADDING + 4;
     attributes(boxBar, {x: left, y: INFO.top, width: 6, height});
@@ -426,6 +424,10 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     boxPicture.setAttribute(
       "transform", `translate(${inside + 34} ${INFO.top + 62}) scale(0.72)`);
     attributes(boxTitle, {x: inside, y: INFO.top + 142});
+    // The speaker stands at the end of the title line, at the far edge of the sidebar.
+    boxSay.setAttribute(
+      "transform",
+      `translate(${left + INFO.width - PADDING - 18} ${INFO.top + 134}) scale(1)`);
     for (const [index, line] of boxLines.entries()) {
       attributes(line, {x: inside, y: INFO.top + 190 + index * 27});
     }
@@ -446,6 +448,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       : `${voice.say(entryCopy(voice, entry.id).blurb)} `
         + `${voice.say(entryCopy(voice, entry.id).about)}`;
     boxTitle.textContent = title;
+    // What is read is the text of the sidebar itself, which is a text of the application and
+    // so has a clip of its own; the title is in the clip of nothing.
+    boxSay.setAttribute("data-say", text);
     boxIcon.setAttribute(
       "d", entry === undefined ? "" : (ICONS[entry.picture as GlyphKind] ?? []).join(" "));
     boxPicture.setAttribute("opacity", entry === undefined ? "0" : "1");
@@ -476,8 +481,14 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const draw = (): void => {
     // What stands under the heading, wrapped to the room there is, and how much room the ring
     // is left with after it.
-    const motivationLines = wrapText(
-      said, Math.max(28, Math.floor(stageWidth(viewport) / MOTIVATION_WIDTH)), MOTIVATION_LINES);
+    // Every sentence starts a line of its own, and a sentence too long for the room it has is
+    // wrapped within its own lines: two sentences never share a line, which is what makes the
+    // two lines under the heading read as two things rather than as a paragraph.
+    fitHeading(Math.max(320, viewport.width - 2 * ICON.margin));
+    const columns = Math.max(28, Math.floor(stageWidth(viewport) / MOTIVATION_WIDTH));
+    const motivationLines = sentences
+      .flatMap(sentence => wrapText(sentence, columns, MOTIVATION_LINES))
+      .slice(0, MOTIVATION_LINES);
     const stage = stageOf(viewport, motivationLines.length);
     const spots = iconSpots(stage, TABLES.length);
     for (const [index, icon] of icons.entries()) {
@@ -489,7 +500,10 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     const disc = discOf(stage);
     const room = bodyBox(stage);
     const tallest = Math.max(...views.map(one => one.body.height));
-    const scale = room.height / tallest;
+    // How tall the person is against the grown up the drawing is of: a body of eight years
+    // stands in the ring at the height of a body of eight years, and its organs with it.
+    const grown = referenceBody(35, person.sex).height;
+    const scale = (room.height / tallest) * (grown > 0 ? person.height / grown : 1);
     const widths = views.map(one => one.art.getBBox().width * scale);
     // The two bodies stand close together, as one thing in the middle of the ring.
     const gap = Math.round(disc.r * 0.02);
@@ -532,20 +546,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       line.textContent = motivationLines[index] ?? "";
       attributes(line, {x: middle, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The sidebar at the right, under the settings along the top.
+    // The sidebar at the right, under the settings along the top. The laboratory under it is
+    // furniture of the page: the application draws it in the same corner of every page.
     placeBox();
-    // The laboratory in the bottom right corner: the square a phone is pointed at, and the
-    // three lines beside it, which open the page about all of this.
-    const square = 84;
-    const base = viewport.height - ICON.margin - square;
-    const right = viewport.width - ICON.margin;
-    qr.setAttribute(
-      "transform", `translate(${right - square} ${base}) scale(${square / LAB_QR_SIZE})`);
-    const text = right - square - 14;
-    attributes(labName, {x: text, y: base + 24});
-    attributes(labPlace, {x: text, y: base + 46});
-    attributes(labLink, {x: text, y: base + 68});
-    attributes(labMore, {x: text, y: base + 90});
   };
 
   const update = (): void => {

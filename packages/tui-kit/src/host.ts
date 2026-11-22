@@ -13,6 +13,17 @@ export interface TableMark {
   readonly color: string;
 }
 
+/** Who a table is solved for, as the first screen put them together. */
+export interface TableIndividual {
+  /** Their age in years, between 3 and 120. */
+  readonly age: number;
+  readonly sex: "female" | "male";
+  /** What they weigh, in kilograms: the `BW` of every model. */
+  readonly weight: number;
+  /** How tall they are, in centimetres: the `HEIGHT` of every model. */
+  readonly height: number;
+}
+
 export interface TableHost {
   /** The element a mouse or a finger is read from while no tracker is connected. */
   readonly surface: HTMLElement;
@@ -37,6 +48,13 @@ export interface TableHost {
    * being read. The landing page itself has none.
    */
   readonly mark?: TableMark;
+  /**
+   * Who this table is solved for: the person of the first screen, with the body weight and the
+   * height every human model of the collection is run with. The age is not a parameter of a
+   * model, it is the reference body of that age; `@pkpdsim-tui/cardio-sim` works the four
+   * numbers out, and this is what a table reads them from.
+   */
+  readonly individual: TableIndividual;
   /** Where the exported models and reference data of this table are. */
   readonly assets: URL;
   /** What the starting table says it is doing, which the boot screen shows. */

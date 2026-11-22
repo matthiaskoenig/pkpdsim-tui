@@ -11,23 +11,28 @@
  *   ?tuio=/tuio           a tracker behind the server this page came from, on its port
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?sex=female           the female reference body, on the body and in every table
+ *   ?age=35               the age of the person every table is solved for, 3 to 120 years
+ *   ?bw=60                what that person weighs, the reference of their age otherwise
  *   ?species=rat          the liver of a rat or a mouse, in the lobed liver table
  *   ?lang=de              the language of every word: en, de or es, and the browser otherwise
  *   ?level=child          how much is said: child, adult or expert
  */
 
 import {
-  chooseQuery, createSettings, createVoice, languageOptions, LEVELS, voiceOf, words,
+  chooseQuery, clearStars, createLab, createSettings, createVoice, languageOptions, LEVELS,
+  pictogram, voiceOf, watchSay, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {
-  ChoiceGroup, GlyphKind, TableApp, TableHost, Voice,
+  ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
 } from "@pkpdsim-tui/tui-kit";
 import {startAbout} from "./about.ts";
 import {askWelcome} from "./welcome.ts";
+import {askPerson, personLine, personOf, writePerson} from "./person.ts";
 import {startOverview} from "./hub.ts";
 import {
-  ABOUT, entryCopy, OVERVIEW, OVERVIEW_PICTURE, selectedTable, TABLES, tableOf,
+  ABOUT, entryCopy, OVERVIEW, OVERVIEW_PICTURE, PERSON, selectedTable, TABLES, tableOf,
 } from "./tables.ts";
+import {LAB_QR_PATH, LAB_QR_SIZE, LAB_URL} from "./qr.ts";
 import {HUB_TEXT} from "./text.ts";
 
 function element<T extends Element>(id: string): T {
@@ -87,27 +92,79 @@ function fail(voice: Voice, message: string): void {
 let voice = voiceOf(
   new URLSearchParams(window.location.search), window.navigator.languages ?? []);
 
+/** The laboratory of the far corner, said in one language. */
+function labOf(voice: Voice): LabOptions {
+  const copy = voice.pick(HUB_TEXT);
+  return {
+    name: copy.labName, place: copy.labPlace, url: LAB_URL,
+    qr: {path: LAB_QR_PATH, size: LAB_QR_SIZE},
+    more: copy.about.open, info: copy.labInfo,
+    onOpen: () => chooseQuery("app", ABOUT, OVERVIEW),
+  };
+}
+
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
   const entry = tableOf(parameters);
+  const about = entry === undefined && parameters.get("app") === ABOUT;
+  // The question of who is at the table, opened again from the landing page.
+  const asking = entry === undefined && parameters.get("app") === PERSON;
+  // Whose laboratory this is and the square a phone is pointed at: the same block in the same
+  // corner of every page, from the first question a visitor is asked to the table they open.
+  // The page about all of this is the one page without it: it is what the block opens, and it
+  // carries the square of the laboratory itself.
+  // One corner for everything which is not the table itself: the gear and the laboratory
+  // stand in the same row at the bottom, rather than one in every corner of the glass.
+  const foot = document.createElement("div");
+  foot.className = "foot";
+  element<HTMLElement>("chrome").appendChild(foot);
+  const lab = about ? undefined : createLab(foot, voice, labOf(voice));
   // A visitor who walks up to the table says two things before anything is shown: which
   // language they read, and how much a table should say. The address carries both afterwards,
   // so a table which is opened from the landing page is in the language they chose, and a
   // link which already says them walks straight in.
-  if (entry === undefined && parameters.get("app") !== ABOUT
-    && (parameters.get("lang") === null || parameters.get("level") === null)) {
-    element<HTMLElement>("boot").hidden = true;
-    const picked = await askWelcome(element<HTMLElement>("chrome"));
-    parameters.set("lang", picked.locale);
-    parameters.set("level", picked.level);
+  const remember = (): void => {
     window.history.replaceState(
       null, "", `${window.location.pathname}?${parameters.toString()}`);
+  };
+  if (entry === undefined && !about && !asking
+    && (parameters.get("lang") === null || parameters.get("level") === null)) {
+    element<HTMLElement>("boot").hidden = true;
+    const picked = await askWelcome(element<HTMLElement>("chrome"), parameters);
+    parameters.set("lang", picked.locale);
+    parameters.set("level", picked.level);
+    remember();
     voice = createVoice(picked.locale, picked.level);
+    lab?.update(labOf(voice));
+    // Who is at the table is the third question, asked once the words of the screen are in the
+    // language of the visitor: a model of the body is a model of somebody, and the age, the
+    // body and the weight they set here are what every table of the collection is solved for.
+    writePerson(parameters, await askPerson(
+      element<HTMLElement>("chrome"), parameters, voice, personOf(parameters)));
+    remember();
     element<HTMLElement>("boot").hidden = false;
   }
+  // The same question, opened again from the landing page: the answer goes into the address and
+  // the page is loaded again with it, so every table is solved for the new body.
+  if (asking) {
+    element<HTMLElement>("boot").hidden = true;
+    const picked = await askPerson(
+      element<HTMLElement>("chrome"), parameters, voice, personOf(parameters));
+    writePerson(parameters, picked);
+    // Back to where the question was asked: the table a visitor was standing at, or the
+    // landing page when it was asked from there.
+    const from = parameters.get("from");
+    parameters.delete("from");
+    if (from === null) parameters.delete("app");
+    else parameters.set("app", from);
+    window.location.href = `${window.location.pathname}?${parameters.toString()}`;
+    return;
+  }
+  // Every speaker of the page reads in the language of the visitor, wherever it stands: in the
+  // panel, in the note behind an element, in the sidebar and on the first screen.
+  watchSay(voice);
   const assets = new URL("assets/", document.baseURI);
   const copy = voice.pick(HUB_TEXT);
-  const about = entry === undefined && parameters.get("app") === ABOUT;
   const title = about
     ? copy.about.title
     : entry === undefined ? copy.heading : entryCopy(voice, entry.id).title;
@@ -133,16 +190,28 @@ async function start(): Promise<void> {
   // One settings menu for the whole page: the body and every table are the same page, so the
   // button in the corner stays where it is while a visitor walks through all five of them.
   const overview = entry === undefined && parameters.get("app") !== ABOUT;
-  createSettings(element<HTMLElement>("chrome"), {
+  const openPerson = (): void => {
+    const query = new URLSearchParams(parameters);
+    // Where to come back to once the question is answered, which is the table it was asked at.
+    const open = query.get("app");
+    if (open !== null && open !== PERSON) query.set("from", open);
+    query.set("app", PERSON);
+    window.location.href = `${window.location.pathname}?${query.toString()}`;
+  };
+  createSettings(foot, {
     voice, groups: appSettings(voice, selectedTable(parameters), overview), onChoose: choose,
-    // The landing page shows them open, so a visitor knows what can be changed; every table
-    // keeps the same switches behind the button in the corner.
-    pinned: overview,
+    person: {
+      label: copy.person.change, line: personLine(voice, personOf(parameters)),
+      info: copy.person.changeInfo,
+      picture: personOf(parameters).sex === "female" ? "woman" : "man",
+      onOpen: openPerson,
+    },
   });
 
-  // The landing page is where a visit ends as well as begins: the button in the corner asks the
-  // two questions of the welcome again and forgets everything the last visitor did, so the next
-  // one meets the table in their own language.
+  // The landing page is where a visit ends as well as begins: the button in the corner takes
+  // the whole table back to the first question and forgets everything the last visitor did,
+  // their language, their body and the stars they won, so that the next one starts at the
+  // start. A table's own "start again" resets that table; this one resets the visit.
   if (overview) {
     const again = document.createElement("button");
     again.className = "again";
@@ -156,8 +225,11 @@ async function start(): Promise<void> {
     const label = again.querySelector(".again-label");
     if (label !== null) label.textContent = copy.startAgain;
     again.addEventListener("click", () => {
+      // The stars of the quizzes outlive a page, so they are the one thing a reload does not
+      // take with it. A new visit starts without them.
+      clearStars();
       const kept = new URLSearchParams();
-      for (const key of ["tuio", "tuio-version", "sex", "species"]) {
+      for (const key of ["tuio", "tuio-version", "species"]) {
         const value = parameters.get(key);
         if (value !== null) kept.set(key, value);
       }
@@ -166,8 +238,23 @@ async function start(): Promise<void> {
         : `${window.location.pathname}?${query}`;
     });
     element<HTMLElement>("chrome").appendChild(again);
+
+    // Who the tables are being solved for, and the way back into the question. A visitor who
+    // walks up to a table somebody else just used sees whose body is on it before they start.
+    const who = document.createElement("button");
+    who.className = "person-button";
+    who.type = "button";
+    who.dataset["dwell"] = "person";
+    who.dataset["info"] = copy.person.changeInfo;
+    who.innerHTML = pictogram(personOf(parameters).sex === "female" ? "woman" : "man")
+      + `<span class="person-line"></span>`;
+    const line = who.querySelector(".person-line");
+    if (line !== null) line.textContent = personLine(voice, personOf(parameters));
+    who.addEventListener("click", openPerson);
+    element<HTMLElement>("chrome").appendChild(who);
   }
 
+  const person = personOf(parameters);
   const host: TableHost = {
     surface: element<HTMLElement>("surface"),
     scene: element<SVGSVGElement>("scene"),
@@ -175,6 +262,8 @@ async function start(): Promise<void> {
     parameters,
     voice,
     title,
+    // Who this table is solved for, from the third question of the first screen.
+    individual: person,
     // Every table keeps its exported models and reference data in a folder of its own, so that
     // one page can serve all of them.
     assets: entry === undefined ? assets : new URL(entry.assets, assets),
@@ -186,12 +275,13 @@ async function start(): Promise<void> {
     choose,
     back: () => chooseQuery("app", OVERVIEW, OVERVIEW),
     // A table starts again by loading itself again: the models come from the cache of the
-    // browser, and nothing of the last visitor survives a reload, which is what makes it a
-    // reset and not an undo. The language, the level and the tracker are of the booth and not
-    // of the visitor, so they stay.
+    // browser, and nothing the last visitor did to this table survives a reload, which is what
+    // makes it a reset and not an undo. It resets the table and only the table: the language,
+    // the level and the tracker are of the booth, and the body is of the visitor standing at
+    // it, so both stay. Everything goes at the landing page, which is where a visit ends.
     reset: () => {
       const kept = new URLSearchParams();
-      for (const key of ["app", "lang", "level", "tuio", "tuio-version"]) {
+      for (const key of ["app", "lang", "level", "tuio", "tuio-version", "sex", "age", "bw"]) {
         const value = parameters.get(key);
         if (value !== null) kept.set(key, value);
       }

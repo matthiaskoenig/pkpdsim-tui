@@ -12,8 +12,8 @@
  */
 
 import {
-  defaultControls, heartCase, heartRequest, loadAnatomy, loadCardiovascularData, loadHeartConfig,
-  solvePressure,
+  bodyParameters, bodyReference, defaultControls, flowScale, heartCase, heartRequest,
+  loadAnatomy, loadCardiovascularData, loadHeartConfig, solvePressure,
 } from "@pkpdsim-tui/cardio-sim";
 import type {
   HeartConfig, HeartControls, HeartSummary, PressureSolution,
@@ -24,8 +24,8 @@ import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  chooseQuery, createChrome, createQuiz, createInfo, createReadout, createTokenLayer, driveHint,
-  formatFactor, formatNumber, pointerPoints, visibleStats, words,
+  bodyName, chooseQuery, createChrome, createQuiz, createInfo, createReadout, createTokenLayer,
+  driveHint, formatFactor, formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
@@ -66,7 +66,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const stats = visibleStats(cardiovascularStats(voice), voice);
   const parameters = host.parameters;
   const assets = host.assets;
-  const sex = parameters.get("sex") === "female" ? "female" : "male";
+  // Who the table is solved for, from the first screen: the body, its weight and its height.
+  const individual = host.individual;
+  const sex = individual.sex;
   // The anatomy holds both bodies; the reference circulation and the compiled heart are the
   // export of one of them. The engine and the host of the runtime are shared.
   const dataBase = sex === "female" ? new URL("female/", assets) : assets;
@@ -85,6 +87,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   // of its unit, and the whole run only coarsely, because the table draws the beats and not it.
   const table: HeartConfig = {
     ...config,
+    // The heart of this person: the model scales its chambers, its vessels and the blood it
+    // moves from the body weight and the height, so a child's heart beats a child's volume.
+    preinit: bodyParameters(individual),
     columns: config.columns.filter(column => TABLE_COLUMNS.has(column)),
     summary_step_seconds: Math.max(config.summary_step_seconds, 0.002),
     course_points: 1200,
@@ -93,16 +98,26 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   if (body === undefined) throw new Error("The anatomy holds no body.");
   const bodies: readonly ChoiceGroup[] = [{
     id: "sex", label: kit.bodySwitch, selected: sex,
-    options: [{id: "female", label: kit.female}, {id: "male", label: kit.male}],
+    options: [
+      {id: "female", label: bodyName(voice, "female", individual.age), picture: "woman"},
+      {id: "male", label: bodyName(voice, "male", individual.age), picture: "man"},
+    ],
   }];
 
-  const reference = data.pressure;
-  const steadyBaseline = solvePressure(reference, defaultControls(reference));
+  // The circulation of this person: the exported network is that of the reference adult, and a
+  // body which moves less blood is the same network with more resistance. How much less it
+  // moves is the cardiac output of a body of that age until the heart of this body has been
+  // solved once, and from then on it is what that run said.
+  let reference = bodyReference(data.pressure, flowScale(individual));
+  let steadyBaseline = solvePressure(reference, defaultControls(reference));
   // The reference heart of this body, as pkpdsim exported it. It is what the table shows until
   // the first run of the live heart has come back, and what every number is compared with.
   const exported = data.cases.find(solved => solved.id === "baseline") ?? data.cases[0];
   if (exported === undefined) throw new Error("The export holds no case of the reference heart.");
-  const referenceSummary: HeartSummary = exported.summary.after;
+  // What every number of the table is held against: the heart of this body at rest. Until the
+  // first run of it comes back it is the exported heart of the reference adult, which is what
+  // the table is drawn with while it is still solving.
+  let referenceSummary: HeartSummary = exported.summary.after;
 
   host.progress(copy.startingHeart);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
@@ -131,7 +146,9 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     onBack: () => host.back(),
     onReset: () => host.reset(),
     onChoose: (group, option) => {
-      if (group === "sex") chooseQuery("sex", option, "male");
+      // The body of the person, which the weight of the first screen belongs to: the
+      // other body takes the reference weight of its own age.
+      if (group === "sex") chooseQuery("sex", option, "female", ["bw"]);
       else host.choose(group, option);
     },
   });
@@ -187,7 +204,20 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
       summary = solved.summary.after;
       cycle = beatCycle(solved) ?? cycle;
       // The first run is the heart of the individual at rest, because an empty surface asks
-      // for the reference controls. It stays behind every later one, dashed.
+      // for the reference controls. It stays behind every later one, dashed, and it is what
+      // the bands hold their numbers against: a child at rest is not a grown up at rest, and
+      // what a visitor turns the objects against is the body which is on the table.
+      if (baseline === undefined) {
+        const grown = exported.summary.after.mean_cardiac_output;
+        const mine = summary.mean_cardiac_output;
+        referenceSummary = summary;
+        // The organ flows of the picture are the flows of the heart which was just solved: the
+        // network is scaled so that it moves what this heart moves.
+        if (grown > 0 && mine > 0) {
+          reference = bodyReference(data.pressure, mine / grown);
+          steadyBaseline = solvePressure(reference, defaultControls(reference));
+        }
+      }
       baseline ??= cycle;
       notice = "";
     } catch (error) {
@@ -238,7 +268,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
     chrome.update({
       title: host.title, about: voice.say(copy.about),
       tries: copy.tries.map(entry => voice.say(entry)),
-      reading: cardioReading(voice, heartControls, sex, summary, referenceSummary),
+      reading: cardioReading(voice, heartControls, individual, summary, referenceSummary),
       back: true,
       choices: bodies,
       status, roles: roles, notice,

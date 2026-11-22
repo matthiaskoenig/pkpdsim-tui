@@ -5,8 +5,8 @@
  */
 
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
-import {formatNumber, words} from "@pkpdsim-tui/tui-kit";
-import type {Voice} from "@pkpdsim-tui/tui-kit";
+import {bodyName, formatNumber, GROWN_UP, words} from "@pkpdsim-tui/tui-kit";
+import type {Pictogram, TableIndividual, Voice} from "@pkpdsim-tui/tui-kit";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
 import type {GlimepirideFacts} from "./text.ts";
 import {categoryOf} from "./cards.ts";
@@ -30,7 +30,7 @@ function times(value: number, reference: number): GlimepirideFacts["exposure"] {
 export function glimepirideReading(
   voice: Voice,
   individual: GlimepirideIndividual,
-  sex: Sex,
+  person: TableIndividual,
   current: GlimepirideReadout,
   reference: GlimepirideReadout,
   referenceIndividual: GlimepirideIndividual,
@@ -53,8 +53,9 @@ export function glimepirideReading(
   }
   const factor = reference.pk.auc <= 0 ? 1 : current.pk.auc / reference.pk.auc;
   return copy.reading({
-    sex: sex === "female" ? "female" : "male",
-    weight: formatNumber(referenceIndividual.weight, 0),
+    sex: person.sex,
+    child: person.age < GROWN_UP,
+    weight: formatNumber(referenceIndividual.weight, referenceIndividual.weight < 40 ? 1 : 0),
     who,
     dose: Math.abs(individual.dose - referenceIndividual.dose) > 0.05
       ? copy.takesInstead(
@@ -75,12 +76,16 @@ export function glimepirideReading(
 }
 
 /** The body of the individual, as the switch in the panel offers it. */
-export function bodyChoices(voice: Voice): {
-  id: string; label: string; options: readonly {id: string; label: string}[];
+export function bodyChoices(voice: Voice, age: number = GROWN_UP): {
+  id: string; label: string;
+  options: readonly {id: string; label: string; picture: Pictogram}[];
 } {
   const kit = words(voice);
   return {
     id: "sex", label: kit.bodySwitch,
-    options: [{id: "female", label: kit.female}, {id: "male", label: kit.male}],
+    options: [
+      {id: "female", label: bodyName(voice, "female", age), picture: "woman"},
+      {id: "male", label: bodyName(voice, "male", age), picture: "man"},
+    ],
   };
 }

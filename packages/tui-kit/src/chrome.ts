@@ -9,7 +9,8 @@ import type {TableStatus, TokenRole} from "@pkpdsim-tui/tuio-input";
 import type {TableMark} from "./host.ts";
 import {ICONS} from "./icons.mjs";
 import type {Pictogram} from "./settings.ts";
-import {reportStatus} from "./settings.ts";
+import {sayHtml} from "./say.ts";
+import {pictogram, reportStatus} from "./settings.ts";
 import type {Voice} from "./voice.ts";
 import {markerSpan, words} from "./words.ts";
 
@@ -93,6 +94,20 @@ export interface Chrome {
   update(state: ChromeUpdate): void;
 }
 
+/**
+ * The row in the near corner a table's own buttons stand in: the quiz and the way to start
+ * again. They are the furniture of the table rather than what it says, so they stand together
+ * under the panel instead of one of them taking a line of the panel itself.
+ */
+export function tableFoot(container: HTMLElement): HTMLElement {
+  const found = container.querySelector(".table-foot");
+  if (found instanceof HTMLElement) return found;
+  const row = document.createElement("div");
+  row.className = "table-foot";
+  container.appendChild(row);
+  return row;
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
@@ -113,7 +128,11 @@ function choicesHtml(groups: readonly ChoiceGroup[]): string {
         `data-dwell="${escapeHtml(group.id)}:${escapeHtml(option.id)}"`,
         unavailable === "" ? "" : `disabled title="${escapeHtml(unavailable)}"`,
       ].filter(attribute => attribute !== "").join(" ");
-      return `<button ${attributes}>${escapeHtml(option.label)}</button>`;
+      // A switch whose options carry a picture is read rather than spelled: the body a table
+      // is solved for and the species of a liver are the figure itself over its name.
+      const art = option.picture === undefined ? "" : pictogram(option.picture);
+      return `<button ${attributes}>${art}`
+        + `<span class="choice-text">${escapeHtml(option.label)}</span></button>`;
     }).join("");
     return `<div class="choice-group"><span class="choice-label">${escapeHtml(group.label)}</span>`
       + `<span class="choice-options">${buttons}</span></div>`;
@@ -155,22 +174,20 @@ function panelHtml(state: ChromeUpdate, voice: Voice, mark?: TableMark): string 
     : `<ul class="tries">${state.tries.map(entry => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>`;
   const back = state.back !== true ? "" : `<button class="back" type="button" data-dwell="back"`
     + ` data-info="${escapeHtml(voice.say(copy.backInfo))}">${escapeHtml(copy.back)}</button>`;
+  // The picture of the table and the way out of it are one row: the way out used to take a
+  // line of its own above the picture, which is a finger's worth of panel for two words.
+  const head = mark === undefined && back === ""
+    ? ""
+    : `<div class="edge-head">${markHtml(mark)}${back}</div>`;
   return `
-    ${back}
-    ${markHtml(mark)}
+    ${head}
     <h1 data-info="${escapeHtml(state.about)}">${escapeHtml(state.title)}<!--
       The dot stays with the last word of the title: a title which wraps takes it along rather
       than leaving it alone on a line of its own.
-    -->&#160;<i class="info-dot" aria-hidden="true">i</i></h1>
-    <p class="reading">${escapeHtml(state.reading)}</p>
-    <button class="reset" type="button" data-dwell="reset"
-      data-info="${escapeHtml(voice.say(copy.resetInfo))}">
-      <svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path>
-        <path d="M20.5 3.5v5.2h-5.2"></path>
-      </svg>
-      <span class="reset-label">${escapeHtml(copy.reset)}</span>
-    </button>
+    -->&#8239;<i class="info-dot" aria-hidden="true">i</i></h1>
+    <p class="reading">${escapeHtml(state.reading)}`
+    + `${state.reading === "" ? "" : sayHtml(state.reading, words(voice).readAloud)}</p>`
+    + `
     ${tries}
     ${state.choices === undefined || state.choices.length === 0 ? "" : choicesHtml(state.choices)}
     ${objects}
@@ -183,20 +200,35 @@ function panelHtml(state: ChromeUpdate, voice: Voice, mark?: TableMark): string 
 }
 
 export function createChrome(container: HTMLElement, options: ChromeOptions): Chrome {
+  const copy = words(options.voice);
   const panel = document.createElement("aside");
   panel.className = "edge edge--near";
+  // Start again stands beside the quiz in the corner rather than in the panel: both are the
+  // furniture of the table, and the panel is what the table says.
+  const reset = document.createElement("button");
+  reset.className = "reset";
+  reset.type = "button";
+  reset.dataset["dwell"] = "reset";
+  reset.dataset["info"] = options.voice.say(copy.resetInfo);
+  reset.innerHTML = `
+    <svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path>
+      <path d="M20.5 3.5v5.2h-5.2"></path>
+    </svg>
+    <span class="reset-label">${escapeHtml(copy.reset)}</span>
+  `;
+  reset.addEventListener("click", () => options.onReset?.());
+  tableFoot(container).appendChild(reset);
   // The colour of the table, which the mark, the reading and the switches of the panel read.
   if (options.mark !== undefined) panel.style.setProperty("--table", options.mark.color);
   // The panel is redrawn as a whole, so the handler sits on the panel and not on a button.
   panel.addEventListener("click", event => {
     const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
+    // A picture inside a button is an SVG element and not an HTML one, so the press is
+    // read from any element: a finger or a mouse lands on the flag, not on the button.
+    if (!(target instanceof Element)) return;
     if (target.closest(".back") !== null) {
       options.onBack?.();
-      return;
-    }
-    if (target.closest(".reset") !== null) {
-      options.onReset?.();
       return;
     }
     const choice = target.closest(".choice");

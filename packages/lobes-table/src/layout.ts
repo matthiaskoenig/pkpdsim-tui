@@ -26,10 +26,21 @@ export interface LobeBlock {
   readonly height: number;
 }
 
-/** A leaf is a segment; a split divides its box among its children. */
+/**
+ * A leaf is a segment; a split divides its box among its children.
+ *
+ * A child of a row may stand on less than the whole height of it, which is what `rise` is: the
+ * left lobe of a liver reaches lower than the right one does, and a liver drawn as one square
+ * of blocks is a bar chart. The area of a block stays its share of the mass, because a child
+ * which is shorter is made wider by the same factor.
+ */
 type Arrangement =
-  | {readonly token: string}
-  | {readonly split: "row" | "column"; readonly children: readonly Arrangement[]};
+  | {readonly token: string; readonly rise?: number}
+  | {
+    readonly split: "row" | "column";
+    readonly children: readonly Arrangement[];
+    readonly rise?: number;
+  };
 
 /**
  * The Couinaud segments of the human liver: the right lobe with its posterior sector (VII above
@@ -47,9 +58,12 @@ const HUMAN: Arrangement = {
         {split: "column", children: [{token: "sg8"}, {token: "sg5"}]},
       ],
     },
-    {token: "sg1"},
+    {token: "sg1", rise: 0.9},
     {
+      // The left lobe hangs higher than the right one, which is the shape of the organ the
+      // blocks are drawn inside.
       split: "row",
+      rise: 0.74,
       children: [
         {token: "sg4"},
         {split: "column", children: [{token: "sg2"}, {token: "sg3"}]},
@@ -61,7 +75,10 @@ const HUMAN: Arrangement = {
 /** The lobes of the rat: the right lobe, the two halves of the median lobe, the left lateral lobe. */
 const RAT: Arrangement = {
   split: "row",
-  children: [{token: "rl"}, {token: "rml"}, {token: "cl"}, {token: "lml"}, {token: "lll"}],
+  children: [
+    {token: "rl"}, {token: "rml", rise: 0.94}, {token: "cl", rise: 0.82},
+    {token: "lml", rise: 0.88}, {token: "lll", rise: 0.76},
+  ],
 };
 
 /** The lobes of the mouse: the right superior and inferior lobes, the median and the left lobe. */
@@ -76,6 +93,12 @@ const MOUSE: Arrangement = {
 };
 
 const ARRANGEMENTS: readonly Arrangement[] = [HUMAN, RAT, MOUSE];
+
+/** How much of the height of its row a child stands on, which is all of it by default. */
+function riseOf(arrangement: Arrangement): number {
+  const rise = arrangement.rise;
+  return rise === undefined ? 1 : Math.min(1, Math.max(0.1, rise));
+}
 
 function tokensOf(arrangement: Arrangement): string[] {
   return "token" in arrangement
@@ -123,12 +146,19 @@ export function liverLayout(lobes: readonly Lobe[], box: Box, gap = 0): LobeBloc
     const weight = weightOf(arrangement);
     if (weight <= 0) return;
     let offset = 0;
+    // A child of a row which stands on less than the whole height of it is made wider by the
+    // same factor, so that the area of every block stays its share of the mass of the liver.
+    const stretched = arrangement.split === "row"
+      ? arrangement.children.reduce(
+        (sum, child) => sum + weightOf(child) / riseOf(child), 0)
+      : weight;
     for (const child of arrangement.children) {
       const share = weightOf(child) / weight;
       if (share <= 0) continue;
       if (arrangement.split === "row") {
-        const width = area.width * share;
-        place(child, {x: area.x + offset, y: area.y, width, height: area.height});
+        const rise = riseOf(child);
+        const width = stretched <= 0 ? 0 : area.width * (weightOf(child) / rise) / stretched;
+        place(child, {x: area.x + offset, y: area.y, width, height: area.height * rise});
         offset += width;
       } else {
         const height = area.height * share;

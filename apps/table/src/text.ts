@@ -26,6 +26,24 @@ export interface HubCopy {
   /** The button of the landing page which asks both of them again. */
   readonly startAgain: string;
   readonly startAgainInfo: string;
+  /** The third question of the first screen: who the tables are solved for. */
+  readonly person: {
+    readonly ask: string;
+    readonly note: Phrase;
+    readonly age: string;
+    readonly years: string;
+    readonly weight: string;
+    readonly height: string;
+    readonly ready: string;
+    readonly readyInfo: string;
+    readonly change: string;
+    readonly changeInfo: string;
+    readonly reference: string;
+    /** What the figure of the landing page is: the body every table is run with. */
+    readonly solvedFor: string;
+    readonly ageInfo: string;
+    readonly weightInfo: string;
+  };
   /** The two lines under the heading: what there is to learn here. */
   readonly motivation: Readonly<Record<Level, readonly string[]>>;
   readonly headingInfo: Phrase;
@@ -37,7 +55,6 @@ export interface HubCopy {
   readonly touchHint: string;
   readonly bothHint: string;
   /** What a body is, behind it. Both of them stand on the landing page, side by side. */
-  readonly bodyInfo: Readonly<Record<"male" | "female", Phrase>>;
   /** The object which picks a table: what it is called and what it does. */
   /** What stands in the box at the right while no table is picked. */
   readonly pickTitle: string;
@@ -64,6 +81,11 @@ export interface AboutCopy {
   readonly open: string;
   readonly groupTitle: string;
   readonly groupLines: readonly string[];
+  /** The two houses of the laboratory, as the footer of livermetabolism.com gives them. */
+  readonly contacts: readonly {
+    readonly city: string;
+    readonly lines: readonly string[];
+  }[];
   readonly modelsTitle: string;
   readonly modelsText: string;
   readonly softwareTitle: string;
@@ -81,10 +103,32 @@ const EN: HubCopy = {
     open: "About these tables",
     groupTitle: "The laboratory",
     groupLines: [
-      "Prof. Dr. Matthias König",
-      "Systems Medicine of the Liver",
-      "University of Lübeck and Humboldt-Universität zu Berlin",
+      "Prof. Dr. rer. nat. Matthias König",
+      "Professor of Metabolic Inflammation and Carcinogenesis of the Liver",
+      "Systems Medicine, Digital Twins & AI",
       "livermetabolism.com",
+    ],
+    contacts: [
+      {
+        city: "Lübeck",
+        lines: [
+          "University Hospital Schleswig-Holstein, Campus Lübeck",
+          "First Department of Medicine",
+          "Ratzeburger Allee 160, 23562 Lübeck, Germany",
+          "matthias.koenig@uni-luebeck.de",
+          "+49 451 3101-7845",
+        ],
+      },
+      {
+        city: "Berlin",
+        lines: [
+          "Humboldt-Universität zu Berlin",
+          "Institute for Biology, Institute for Theoretical Biology (ITB)",
+          "Philippstraße 13, 10115 Berlin, Germany",
+          "koenigmx@hu-berlin.de",
+          "+49 30 2093-98435",
+        ],
+      },
     ],
     modelsTitle: "The models",
     modelsText: "Every table is a model of pkpdsim: physiologically based pharmacokinetics in SBML, built against the studies curated in PK-DB. The models and the code are open and free to use.",
@@ -108,11 +152,31 @@ const EN: HubCopy = {
   labName: "Prof. Dr. Matthias König",
   labPlace: "University of Lübeck and Humboldt-Universität zu Berlin",
   labInfo: "The laboratory these models come from. The square takes a phone to",
-  heading: "The body on the table",
+  heading: "The interactive body, focused on the liver",
   askLanguage: "Choose your language",
   askLevel: "Who is looking?",
-  startAgain: "Start again",
-  startAgainInfo: "Asks for the language and who is looking again, and forgets what was open.",
+  startAgain: "Restart the table",
+  startAgainInfo: "Back to the very start: the language, the body and the stars of the quizzes are forgotten, and the next visitor is asked again.",
+  person: {
+    ask: "Who is standing at the table?",
+    note: {
+      child: "Say how old you are and whether the body is a girl or a boy. Every table then shows a body like yours.",
+      adult: "The tables are solved for this body. The age gives its size, the weight moves it from there, and every model of the collection is run again for it.",
+      expert: "The age and the sex give the reference body of ICRP 89, the weight moves it from there, and BW and HEIGHT go into every model of the collection. The physiology is scaled, not matured: this is a body of that size, not a validated paediatric model.",
+    },
+    age: "Age",
+    years: "years",
+    weight: "Weight",
+    height: "Height",
+    ready: "That is me",
+    readyInfo: "Takes this body to the tables. It can be changed again at any time.",
+    change: "The person",
+    changeInfo: "Changes the age, the body and the weight every table is solved for.",
+    reference: "reference",
+    solvedFor: "Every table of the collection is solved for this body.",
+    ageInfo: "Three to a hundred and twenty years. The body of a child is the reference child of ICRP 89 of that age.",
+    weightInfo: "What this body weighs. It starts at the reference of that age and that body, and the organs and their blood flows follow it.",
+  },
   motivation: {
     child: [
       "Four models of the human body you can move with your hands.",
@@ -138,18 +202,6 @@ const EN: HubCopy = {
   clickHint: "Click a card to open its table.",
   touchHint: "Hold a finger on a card to open its table.",
   bothHint: "Hold a finger on a card, or click it, to open its table.",
-  bodyInfo: {
-    male: {
-      child: "A grown man. The tables know where everything in him is.",
-      adult: "The male reference body of pkpdsim, which the tables are solved on.",
-      expert: "The male reference individual of the pkpdsim physiology, 73 kg at 176 cm. Every table is solved on its export, and each one can be switched to the other body.",
-    },
-    female: {
-      child: "A grown woman. The tables know where everything in her is.",
-      adult: "The female reference body of pkpdsim, which the tables are solved on.",
-      expert: "The female reference individual of the pkpdsim physiology, 60 kg at 163 cm, with its own organ volumes and blood flows.",
-    },
-  },
   pickTitle: "Four tables, one body",
   pickText: {
     child: "Press one of the four big circles. Every one of them is something you can try out.",
@@ -162,7 +214,7 @@ const EN: HubCopy = {
   failedHint: "The exported models and reference data are copied in with \"npm run sync\".",
   entries: {
     cardiovascular: {
-      label: "Circulation", title: "The circulation",
+      label: "Circulation", title: "Follow the blood",
       blurb: {child: "Where does your blood go?", adult: "How the blood reaches every organ."},
       about: {
         child: "Your heart pushes blood to every part of you, again and again. Make a vessel narrow, or the heart beat faster, and see what changes.",
@@ -171,7 +223,7 @@ const EN: HubCopy = {
       },
     },
     lobes: {
-      label: "Surgery", title: "Liver surgery",
+      label: "Surgery", title: "The liver grows back",
       blurb: {child: "Take a piece away and watch it grow back.", adult: "Operate, and watch the liver grow back."},
       about: {
         child: "A liver is built of eight pieces. A doctor can take some away, and the rest grows until the liver is big enough again. Every operation grows back at its own speed.",
@@ -180,7 +232,7 @@ const EN: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepiride", title: "How a drug is broken down",
+      label: "Glimepiride", title: "One tablet, one day",
       blurb: {child: "What happens to a tablet?", adult: "What the liver does to a tablet."},
       about: {
         child: "Swallow a tablet and it travels: into the gut, to the liver, into the blood, and out again. In two people the same tablet does different things.",
@@ -189,7 +241,7 @@ const EN: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusion", title: "The liver on the machine",
+      label: "Perfusion", title: "A liver without a body",
       blurb: {child: "A liver that lives outside the body.", adult: "A liver kept alive outside the body."},
       about: {
         child: "A liver can live outside a body for a while. A machine pumps warm liquid with oxygen through it, and you decide how much it gets.",
@@ -207,10 +259,32 @@ const DE: HubCopy = {
     open: "Über diese Tische",
     groupTitle: "Das Labor",
     groupLines: [
-      "Prof. Dr. Matthias König",
-      "Systems Medicine of the Liver",
-      "Universität zu Lübeck und Humboldt-Universität zu Berlin",
+      "Prof. Dr. rer. nat. Matthias König",
+      "Professor für metabolische Entzündung und Karzinogenese der Leber",
+      "Systems Medicine, Digital Twins & AI",
       "livermetabolism.com",
+    ],
+    contacts: [
+      {
+        city: "Lübeck",
+        lines: [
+          "Universitätsklinikum Schleswig-Holstein, Campus Lübeck",
+          "Medizinische Klinik I",
+          "Ratzeburger Allee 160, 23562 Lübeck",
+          "matthias.koenig@uni-luebeck.de",
+          "+49 451 3101-7845",
+        ],
+      },
+      {
+        city: "Berlin",
+        lines: [
+          "Humboldt-Universität zu Berlin",
+          "Institut für Biologie, Institut für Theoretische Biologie (ITB)",
+          "Philippstraße 13, 10115 Berlin",
+          "koenigmx@hu-berlin.de",
+          "+49 30 2093-98435",
+        ],
+      },
     ],
     modelsTitle: "Die Modelle",
     modelsText: "Jeder Tisch ist ein Modell aus pkpdsim: physiologisch basierte Pharmakokinetik in SBML, gebaut gegen die in PK-DB kuratierten Studien. Die Modelle und der Code sind offen und frei verwendbar.",
@@ -234,11 +308,31 @@ const DE: HubCopy = {
   labName: "Prof. Dr. Matthias König",
   labPlace: "Universität zu Lübeck und Humboldt-Universität zu Berlin",
   labInfo: "Das Labor, aus dem diese Modelle kommen. Das Quadrat bringt ein Telefon zu",
-  heading: "Der Körper auf dem Tisch",
+  heading: "Der interaktive Körper mit Fokus auf der Leber",
   askLanguage: "Sprache wählen",
   askLevel: "Wer schaut?",
-  startAgain: "Von vorn",
-  startAgainInfo: "Fragt wieder nach Sprache und danach, wer schaut, und vergisst, was offen war.",
+  startAgain: "Tisch neu starten",
+  startAgainInfo: "Ganz zurück an den Anfang: Sprache, Körper und die Sterne der Quizze werden vergessen, und der nächste Besuch wird wieder gefragt.",
+  person: {
+    ask: "Wer steht am Tisch?",
+    note: {
+      child: "Sag, wie alt du bist und ob der Körper ein Mädchen oder ein Junge ist. Dann zeigt jeder Tisch einen Körper wie deinen.",
+      adult: "Für diesen Körper werden die Tische gerechnet. Das Alter gibt seine Größe, das Gewicht verschiebt ihn von dort aus, und jedes Modell der Sammlung läuft damit neu.",
+      expert: "Alter und Geschlecht geben den Referenzkörper der ICRP 89, das Gewicht verschiebt ihn von dort aus, und BW und HEIGHT gehen in jedes Modell der Sammlung. Die Physiologie wird skaliert, nicht gereift: das ist ein Körper dieser Größe, kein validiertes pädiatrisches Modell.",
+    },
+    age: "Alter",
+    years: "Jahre",
+    weight: "Gewicht",
+    height: "Größe",
+    ready: "Das bin ich",
+    readyInfo: "Nimmt diesen Körper mit auf die Tische. Er lässt sich jederzeit wieder ändern.",
+    change: "Die Person",
+    changeInfo: "Ändert Alter, Körper und Gewicht, für die jeder Tisch gerechnet wird.",
+    reference: "Referenz",
+    solvedFor: "Für diesen Körper wird jeder Tisch der Sammlung gerechnet.",
+    ageInfo: "Drei bis hundertzwanzig Jahre. Der Körper eines Kindes ist das Referenzkind der ICRP 89 dieses Alters.",
+    weightInfo: "Was dieser Körper wiegt. Er beginnt bei der Referenz dieses Alters und dieses Körpers, und die Organe und ihre Durchblutung folgen ihm.",
+  },
   motivation: {
     child: [
       "Vier Modelle des menschlichen Körpers, die du mit den Händen bewegen kannst.",
@@ -264,18 +358,6 @@ const DE: HubCopy = {
   clickHint: "Klicken Sie eine Karte an, um ihren Tisch zu öffnen.",
   touchHint: "Halten Sie einen Finger auf eine Karte, um ihren Tisch zu öffnen.",
   bothHint: "Halten Sie einen Finger auf eine Karte oder klicken Sie sie an.",
-  bodyInfo: {
-    male: {
-      child: "Ein erwachsener Mann. Die Tische wissen, wo alles in ihm liegt.",
-      adult: "Der männliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
-      expert: "Das männliche Referenzindividuum der Physiologie von pkpdsim, 73 kg bei 176 cm. Jeder Tisch rechnet auf dessen Export und lässt sich auf den anderen Körper umstellen.",
-    },
-    female: {
-      child: "Eine erwachsene Frau. Die Tische wissen, wo alles in ihr liegt.",
-      adult: "Der weibliche Referenzkörper von pkpdsim, auf dem die Tische rechnen.",
-      expert: "Das weibliche Referenzindividuum der Physiologie von pkpdsim, 60 kg bei 163 cm, mit eigenen Organvolumina und Blutflüssen.",
-    },
-  },
   pickTitle: "Vier Tische, ein Körper",
   pickText: {
     child: "Drück einen der vier großen Kreise. Jeder ist etwas zum Ausprobieren.",
@@ -288,7 +370,7 @@ const DE: HubCopy = {
   failedHint: "Die exportierten Modelle und Referenzdaten werden mit \"npm run sync\" kopiert.",
   entries: {
     cardiovascular: {
-      label: "Kreislauf", title: "Der Kreislauf",
+      label: "Kreislauf", title: "Dem Blut hinterher",
       blurb: {child: "Wohin fließt dein Blut?", adult: "Wie das Blut zu jedem Organ kommt."},
       about: {
         child: "Dein Herz pumpt Blut in jeden Teil von dir, immer wieder. Mach ein Gefäß enger oder das Herz schneller und schau, was sich ändert.",
@@ -297,7 +379,7 @@ const DE: HubCopy = {
       },
     },
     lobes: {
-      label: "Chirurgie", title: "Operation der Leber",
+      label: "Chirurgie", title: "Die Leber wächst nach",
       blurb: {child: "Nimm ein Stück weg und sieh zu, wie es nachwächst.", adult: "Operieren und die Leber nachwachsen sehen."},
       about: {
         child: "Eine Leber besteht aus acht Stücken. Ärzte können etwas davon wegnehmen, und der Rest wächst, bis die Leber wieder groß genug ist. Jede Operation wächst unterschiedlich schnell nach.",
@@ -306,7 +388,7 @@ const DE: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepirid", title: "Medikamentenabbau",
+      label: "Glimepirid", title: "Eine Tablette, ein Tag",
       blurb: {child: "Was passiert mit einer Tablette?", adult: "Was die Leber mit einer Tablette macht."},
       about: {
         child: "Eine Tablette macht eine Reise: in den Darm, zur Leber, ins Blut und wieder hinaus. Bei zwei Menschen wirkt dieselbe Tablette verschieden.",
@@ -315,7 +397,7 @@ const DE: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusion", title: "Die Leber an der Maschine",
+      label: "Perfusion", title: "Leber ohne Körper",
       blurb: {child: "Eine Leber, die außerhalb des Körpers lebt.", adult: "Eine Leber, außerhalb des Körpers am Leben gehalten."},
       about: {
         child: "Eine Leber kann eine Weile außerhalb des Körpers leben. Eine Maschine pumpt warme Flüssigkeit mit Sauerstoff hindurch, und du bestimmst, wie viel sie bekommt.",
@@ -333,10 +415,32 @@ const ES: HubCopy = {
     open: "Sobre estas mesas",
     groupTitle: "El laboratorio",
     groupLines: [
-      "Prof. Dr. Matthias König",
-      "Systems Medicine of the Liver",
-      "Universidad de Lübeck y Humboldt-Universität zu Berlin",
+      "Prof. Dr. rer. nat. Matthias König",
+      "Catedrático de inflamación metabólica y carcinogénesis del hígado",
+      "Systems Medicine, Digital Twins & AI",
       "livermetabolism.com",
+    ],
+    contacts: [
+      {
+        city: "Lübeck",
+        lines: [
+          "Hospital Universitario Schleswig-Holstein, Campus Lübeck",
+          "Primera Clínica de Medicina",
+          "Ratzeburger Allee 160, 23562 Lübeck, Alemania",
+          "matthias.koenig@uni-luebeck.de",
+          "+49 451 3101-7845",
+        ],
+      },
+      {
+        city: "Berlin",
+        lines: [
+          "Humboldt-Universität zu Berlin",
+          "Instituto de Biología, Instituto de Biología Teórica (ITB)",
+          "Philippstraße 13, 10115 Berlin, Alemania",
+          "koenigmx@hu-berlin.de",
+          "+49 30 2093-98435",
+        ],
+      },
     ],
     modelsTitle: "Los modelos",
     modelsText: "Cada mesa es un modelo de pkpdsim: farmacocinética con base fisiológica en SBML, construida con los estudios curados en PK-DB. Los modelos y el código son abiertos y de uso libre.",
@@ -360,11 +464,31 @@ const ES: HubCopy = {
   labName: "Prof. Dr. Matthias König",
   labPlace: "Universidad de Lübeck y Humboldt-Universität zu Berlin",
   labInfo: "El laboratorio del que vienen estos modelos. El cuadrado lleva un teléfono a",
-  heading: "El cuerpo sobre la mesa",
+  heading: "El cuerpo interactivo, centrado en el hígado",
   askLanguage: "Elige tu idioma",
   askLevel: "¿Quién mira?",
-  startAgain: "Desde el principio",
-  startAgainInfo: "Vuelve a preguntar el idioma y quién mira, y olvida lo que estaba abierto.",
+  startAgain: "Reiniciar la mesa",
+  startAgainInfo: "De vuelta al principio: el idioma, el cuerpo y las estrellas de los concursos se olvidan, y a la próxima visita se le pregunta de nuevo.",
+  person: {
+    ask: "¿Quién está en la mesa?",
+    note: {
+      child: "Di cuántos años tienes y si el cuerpo es de una niña o de un niño. Cada mesa muestra entonces un cuerpo como el tuyo.",
+      adult: "Las mesas se resuelven para este cuerpo. La edad da su tamaño, el peso lo mueve desde ahí, y cada modelo de la colección vuelve a correr con él.",
+      expert: "La edad y el sexo dan el cuerpo de referencia de la ICRP 89, el peso lo mueve desde ahí, y BW y HEIGHT entran en cada modelo de la colección. La fisiología se escala, no se madura: es un cuerpo de ese tamaño, no un modelo pediátrico validado.",
+    },
+    age: "Edad",
+    years: "años",
+    weight: "Peso",
+    height: "Altura",
+    ready: "Ese soy yo",
+    readyInfo: "Lleva este cuerpo a las mesas. Se puede cambiar otra vez cuando quieras.",
+    change: "La persona",
+    changeInfo: "Cambia la edad, el cuerpo y el peso con los que se resuelve cada mesa.",
+    reference: "referencia",
+    solvedFor: "Cada mesa de la colección se resuelve para este cuerpo.",
+    ageInfo: "De tres a ciento veinte años. El cuerpo de un niño es el niño de referencia de la ICRP 89 de esa edad.",
+    weightInfo: "Lo que pesa este cuerpo. Empieza en la referencia de esa edad y ese cuerpo, y los órganos y su flujo de sangre lo siguen.",
+  },
   motivation: {
     child: [
       "Cuatro modelos del cuerpo humano que puedes mover con las manos.",
@@ -390,18 +514,6 @@ const ES: HubCopy = {
   clickHint: "Haga clic en una tarjeta para abrir su mesa.",
   touchHint: "Mantenga un dedo sobre una tarjeta para abrir su mesa.",
   bothHint: "Mantenga un dedo sobre una tarjeta, o haga clic en ella.",
-  bodyInfo: {
-    male: {
-      child: "Un hombre adulto. Las mesas saben dónde está cada cosa dentro de él.",
-      adult: "El cuerpo masculino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
-      expert: "El individuo masculino de referencia de la fisiología de pkpdsim, 73 kg y 176 cm. Cada mesa se resuelve sobre su exportación y puede cambiarse al otro cuerpo.",
-    },
-    female: {
-      child: "Una mujer adulta. Las mesas saben dónde está cada cosa dentro de ella.",
-      adult: "El cuerpo femenino de referencia de pkpdsim, sobre el que se resuelven las mesas.",
-      expert: "El individuo femenino de referencia de la fisiología de pkpdsim, 60 kg y 163 cm, con sus propios volúmenes de órganos y flujos sanguíneos.",
-    },
-  },
   pickTitle: "Cuatro mesas, un cuerpo",
   pickText: {
     child: "Toca uno de los cuatro círculos grandes. Cada uno es algo para probar.",
@@ -414,7 +526,7 @@ const ES: HubCopy = {
   failedHint: "Los modelos exportados y los datos de referencia se copian con \"npm run sync\".",
   entries: {
     cardiovascular: {
-      label: "Circulación", title: "La circulación",
+      label: "Circulación", title: "Sigue la sangre",
       blurb: {child: "¿Adónde va tu sangre?", adult: "Cómo llega la sangre a cada órgano."},
       about: {
         child: "Tu corazón empuja la sangre a todas las partes de ti, una y otra vez. Estrecha un vaso, o haz latir el corazón más rápido, y mira qué cambia.",
@@ -423,7 +535,7 @@ const ES: HubCopy = {
       },
     },
     lobes: {
-      label: "Cirugía", title: "Cirugía del hígado",
+      label: "Cirugía", title: "El hígado vuelve a crecer",
       blurb: {child: "Quita un trozo y mira cómo vuelve a crecer.", adult: "Opere y vea crecer el hígado de nuevo."},
       about: {
         child: "Un hígado está hecho de ocho piezas. Los médicos pueden quitar algunas y el resto crece hasta que el hígado vuelve a ser bastante grande.",
@@ -432,7 +544,7 @@ const ES: HubCopy = {
       },
     },
     glimepiride: {
-      label: "Glimepirida", title: "Cómo se degrada un fármaco",
+      label: "Glimepirida", title: "Una pastilla, un día",
       blurb: {child: "¿Qué le pasa a una pastilla?", adult: "Qué hace el hígado con una pastilla."},
       about: {
         child: "Una pastilla hace un viaje: al intestino, al hígado, a la sangre y otra vez fuera. En dos personas la misma pastilla hace cosas distintas.",
@@ -441,7 +553,7 @@ const ES: HubCopy = {
       },
     },
     perfusion: {
-      label: "Perfusión", title: "El hígado en la máquina",
+      label: "Perfusión", title: "Un hígado sin cuerpo",
       blurb: {child: "Un hígado que vive fuera del cuerpo.", adult: "Un hígado mantenido vivo fuera del cuerpo."},
       about: {
         child: "Un hígado puede vivir un rato fuera del cuerpo. Una máquina le bombea líquido caliente con oxígeno, y tú decides cuánto recibe.",

@@ -34,6 +34,25 @@ export interface LobeCopy {
   readonly operations: Readonly<Record<string, Phrase>>;
   /** The plot of the curves: what it is, and the line of a whole liver. */
   readonly regeneration: {readonly title: string; readonly whole: string};
+  /** The two monitors beside the liver: the pressure around it and the blood through it. */
+  readonly monitors: {
+    readonly pressure: string;
+    readonly flow: string;
+    readonly portal: string;
+    readonly liver: string;
+    readonly artery: string;
+    readonly total: string;
+    readonly days: string;
+  };
+  /** The one line under the organ which says what the blocks are. */
+  readonly segmentsNote: Phrase;
+  /** What a segment is, for the finger resting on it. */
+  readonly segmentInfo: (facts: {
+    readonly name: string;
+    readonly where: string;
+    readonly share: string;
+    readonly state: string;
+  }) => string;
   readonly traces: Readonly<Record<"volume" | "portal", string>>;
   readonly speciesSwitch: string;
   readonly species: Readonly<Record<string, string>>;
@@ -116,14 +135,14 @@ const EN: LobeCopy = {
   },
   tries: [
     {
-      child: "Turn the knife: every turn is another operation, and you see what it takes away.",
-      adult: "Turn the scalpel to walk through the operations, from one segment to the whole right side.",
-      expert: "Turn the scalpel through the resections of the export and read the remnant and the portal pressure of each.",
+      child: "Turn 1: a bigger operation, more liver gone.",
+      adult: "Turn 1 from no operation to the largest resection.",
+      expert: "Turn 1 through the resections: remnant, portal pressure, flows.",
     },
     {
-      child: "Turn the other dial back to the operation and forward again, and watch the liver grow.",
-      adult: "Wind the day dial back to the operation and forward again to watch the liver grow back.",
-      expert: "Wind the day dial back to day zero and forward to follow the regeneration of the remnant against the other operations.",
+      child: "Turn 2: the liver grows back faster or slower.",
+      adult: "Turn 2 for a liver that grows back faster or slower.",
+      expert: "Turn 2 to scale the growth constant of this species.",
     },
   ],
   stats: {
@@ -199,6 +218,18 @@ const EN: LobeCopy = {
     hepatectomy90: {child: "Almost everything", adult: "90 % of the liver", expert: "90 % hepatectomy"},
   },
   regeneration: {title: "What grows back", whole: "whole"},
+  monitors: {
+    pressure: "Pressure at the liver", flow: "Blood through the liver",
+    portal: "portal vein", liver: "liver", artery: "artery", total: "all",
+    days: "days",
+  },
+  segmentsNote: {
+    child: "Eight pieces, each with its own pipes.",
+    adult: "Eight Couinaud segments, each with its own vessels and bile duct.",
+    expert: "Eight Couinaud segments; the area of a block is its share of the liver mass.",
+  },
+  segmentInfo: facts => `${facts.name}${facts.where === "" ? "" : ` (${facts.where})`}: `
+    + `${facts.share} of the liver, ${facts.state}`,
   traces: {volume: "liver volume", portal: "portal pressure"},
   speciesSwitch: "Species",
   species: {human: "Human", rat: "Rat", mouse: "Mouse"},
@@ -301,14 +332,14 @@ const DE: LobeCopy = {
   },
   tries: [
     {
-      child: "Dreh das Messer: jede Drehung ist eine andere Operation, und du siehst, was sie wegnimmt.",
-      adult: "Drehen Sie das Skalpell durch die Operationen, von einem Segment bis zur ganzen rechten Seite.",
-      expert: "Drehen Sie das Skalpell durch die Resektionen des Exports und lesen Sie Rest und Pfortaderdruck jeder einzelnen.",
+      child: "Dreh 1: größere Operation, weniger Leber.",
+      adult: "Drehen Sie 1 von keiner Operation bis zur größten Resektion.",
+      expert: "Drehen Sie 1 durch die Resektionen: Rest, Pfortaderdruck, Flüsse.",
     },
     {
-      child: "Dreh das andere Rad zurück zur Operation und wieder vor, und sieh zu, wie die Leber wächst.",
-      adult: "Drehen Sie das Tagesrad zurück zur Operation und wieder vor, um die Leber nachwachsen zu sehen.",
-      expert: "Drehen Sie das Tagesrad auf Tag null zurück und vor, um der Regeneration des Restes neben den anderen Operationen zu folgen.",
+      child: "Dreh 2: die Leber wächst schneller oder langsamer nach.",
+      adult: "Drehen Sie 2 für eine Leber, die schneller oder langsamer nachwächst.",
+      expert: "Drehen Sie 2, um die Wachstumskonstante dieser Spezies zu skalieren.",
     },
   ],
   stats: {
@@ -384,6 +415,18 @@ const DE: LobeCopy = {
     hepatectomy90: {child: "Fast alles", adult: "90 % der Leber", expert: "90-%-Hepatektomie"},
   },
   regeneration: {title: "Was nachwächst", whole: "ganz"},
+  monitors: {
+    pressure: "Druck an der Leber", flow: "Blut durch die Leber",
+    portal: "Pfortader", liver: "Leber", artery: "Arterie", total: "gesamt",
+    days: "Tage",
+  },
+  segmentsNote: {
+    child: "Acht Stücke, jedes mit eigenen Leitungen.",
+    adult: "Acht Couinaud-Segmente, jedes mit eigenen Gefäßen und Gallengang.",
+    expert: "Acht Couinaud-Segmente; die Fläche eines Blocks ist sein Anteil an der Lebermasse.",
+  },
+  segmentInfo: facts => `${facts.name}${facts.where === "" ? "" : ` (${facts.where})`}: `
+    + `${facts.share} der Leber, ${facts.state}`,
   traces: {volume: "Lebervolumen", portal: "Pfortaderdruck"},
   speciesSwitch: "Spezies",
   species: {human: "Mensch", rat: "Ratte", mouse: "Maus"},
@@ -485,14 +528,14 @@ const ES: LobeCopy = {
   },
   tries: [
     {
-      child: "Gira el cuchillo: cada giro es otra operación, y ves lo que se lleva.",
-      adult: "Gire el bisturí para recorrer las operaciones, de un segmento a todo el lado derecho.",
-      expert: "Gire el bisturí por las resecciones del export y lea el remanente y la presión portal de cada una.",
+      child: "Gira 1: operación más grande, menos hígado.",
+      adult: "Gire 1 desde ninguna operación hasta la resección más grande.",
+      expert: "Gire 1 por las resecciones: remanente, presión portal, flujos.",
     },
     {
-      child: "Gira el otro dial hacia atrás hasta la operación y otra vez hacia delante, y mira crecer el hígado.",
-      adult: "Gire el dial de los días hacia atrás hasta la operación y de nuevo hacia delante para ver crecer el hígado.",
-      expert: "Gire el dial de los días al día cero y hacia delante para seguir la regeneración del remanente junto a las otras operaciones.",
+      child: "Gira 2: el hígado vuelve a crecer más rápido o más lento.",
+      adult: "Gire 2 para un hígado que vuelve a crecer más rápido o más lento.",
+      expert: "Gire 2 para escalar la constante de crecimiento de esta especie.",
     },
   ],
   stats: {
@@ -568,6 +611,18 @@ const ES: LobeCopy = {
     hepatectomy90: {child: "Casi todo", adult: "90 % del hígado", expert: "Hepatectomía del 90 %"},
   },
   regeneration: {title: "Lo que vuelve a crecer", whole: "entero"},
+  monitors: {
+    pressure: "Presión en el hígado", flow: "Sangre por el hígado",
+    portal: "vena porta", liver: "hígado", artery: "arteria", total: "total",
+    days: "días",
+  },
+  segmentsNote: {
+    child: "Ocho piezas, cada una con sus propios tubos.",
+    adult: "Ocho segmentos de Couinaud, cada uno con sus vasos y su vía biliar.",
+    expert: "Ocho segmentos de Couinaud; el área de un bloque es su parte de la masa del hígado.",
+  },
+  segmentInfo: facts => `${facts.name}${facts.where === "" ? "" : ` (${facts.where})`}: `
+    + `${facts.share} del hígado, ${facts.state}`,
   traces: {volume: "volumen del hígado", portal: "presión portal"},
   speciesSwitch: "Especie",
   species: {human: "Humano", rat: "Rata", mouse: "Ratón"},

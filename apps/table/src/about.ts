@@ -43,6 +43,8 @@ ${escapeHtml(kit.back)}
         <section class="about-card about-card--lab">
           <h2>${escapeHtml(copy.groupTitle)}</h2>
           <div class="about-lab">
+            <img class="about-photo" src="people/matthias-koenig.webp"
+              alt="${escapeHtml(copy.groupLines[0] ?? "")}" width="300" height="300">
             <div class="about-lines">${
               copy.groupLines.map((line, index) => `<p class="about-line${
                 index === 0 ? " about-line--name" : ""}">${escapeHtml(line)}</p>`).join("")
@@ -54,6 +56,13 @@ ${escapeHtml(kit.back)}
               <path d="${LAB_QR_PATH}" fill="#0f1d28"></path>
             </svg>
           </div>
+          <div class="about-contacts">${
+            copy.contacts.map(contact => `<div class="about-contact">`
+              + `<h3 class="about-city">${escapeHtml(contact.city)}</h3>`
+              + contact.lines.map(line =>
+                `<p class="about-line">${escapeHtml(line)}</p>`).join("")
+              + `</div>`).join("")
+          }</div>
         </section>
         <section class="about-card">
           <h2>${escapeHtml(copy.modelsTitle)}</h2>

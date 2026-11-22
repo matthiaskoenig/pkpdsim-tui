@@ -15,16 +15,29 @@ describe("liverLayout", () => {
       .toEqual(["sg1", "sg2", "sg3", "sg4", "sg5", "sg6", "sg7", "sg8"]);
   });
 
+  // The blocks are drawn inside the outline of a liver rather than filling a square, so the
+  // area of a block is its share of the mass of the liver against the other blocks, and the
+  // whole of them covers the organ rather than the box.
   it("gives a segment the area of its mass", () => {
-    const area = box.width * box.height;
+    const covered = blocks.reduce((sum, block) => sum + block.width * block.height, 0);
     for (const block of blocks) {
-      expect(block.width * block.height / area, block.token).toBeCloseTo(block.share, 6);
+      expect(block.width * block.height / covered, block.token).toBeCloseTo(block.share, 6);
     }
   });
 
-  it("fills the box without a gap or an overlap", () => {
+  it("covers most of the box, and no block leaves it", () => {
     const covered = blocks.reduce((sum, block) => sum + block.width * block.height, 0);
-    expect(covered).toBeCloseTo(box.width * box.height, 6);
+    expect(covered).toBeGreaterThan(box.width * box.height * 0.8);
+    expect(covered).toBeLessThanOrEqual(box.width * box.height + 1e-6);
+    for (const block of blocks) {
+      expect(block.x, block.token).toBeGreaterThanOrEqual(box.x - 1e-6);
+      expect(block.y, block.token).toBeGreaterThanOrEqual(box.y - 1e-6);
+      expect(block.x + block.width, block.token).toBeLessThanOrEqual(box.x + box.width + 1e-6);
+      expect(block.y + block.height, block.token).toBeLessThanOrEqual(box.y + box.height + 1e-6);
+    }
+  });
+
+  it("never lays one block over another", () => {
     for (const block of blocks) {
       for (const other of blocks) {
         if (other === block) continue;
@@ -55,7 +68,7 @@ describe("liverLayout", () => {
       return block;
     };
     const caudate = of("sg1");
-    expect(caudate.height).toBe(box.height);
+    expect(caudate.height).toBeCloseTo(box.height * 0.9, 6);
     expect(caudate.x).toBeGreaterThan(of("sg5").x);
     expect(caudate.x).toBeLessThan(of("sg4").x);
   });
@@ -65,6 +78,18 @@ describe("liverLayout", () => {
     for (const block of blocks) {
       const same = without.find(candidate => candidate.token === block.token);
       expect(same?.x, block.token).toBe(block.x);
+    }
+  });
+
+  // The left lobe of a liver hangs higher than the right one, which is what the blocks do.
+  it("hangs the left lobe above the floor of the right one", () => {
+    const low = (token: string): number => {
+      const block = blocks.find(candidate => candidate.token === token);
+      if (block === undefined) throw new Error(token);
+      return block.y + block.height;
+    };
+    for (const left of ["sg2", "sg3", "sg4"]) {
+      expect(low(left), left).toBeLessThan(low("sg6"));
     }
   });
 

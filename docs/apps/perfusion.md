@@ -1,4 +1,4 @@
-# Machine perfusion
+# A liver without a body
 
 A liver outside a body, kept alive on a machine, and the three settings which decide whether it stays that way.
 
@@ -36,7 +36,9 @@ The temperature is given to the model before the initial values are resolved, be
 | ALT released | The enzyme which only reaches the fluid when cells break open, in ukat/l |
 | Lactate | The lactate in the perfusate, in mM |
 
-The machine is drawn on the left: the reservoir, the pump whose blades turn at the rate it is set to, the oxygenator, and the organ with the four zones of its sinusoid between the inflow and the outflow. Each zone carries the oxygen which reaches it and is coloured by it, and a zone whose cells are dying turns towards the colour of dead tissue. The course on the right draws the oxygen leaving, the bile and the cells alive over the six hours, each on a scale which does not move, so that a flat line is a flat line and a fall is a fall.
+The machine is drawn on the left as the diagram of one, and it carries its own settings: the reservoir with the fluid in it, the roller pump whose rollers turn at the rate it is set to, the heat exchanger which holds the perfusate at the temperature of the bath, the membrane oxygenator with the gas line into it, and the organ hanging in the circuit, with arrows along the tubes which say which way the fluid runs. The flow, the temperature, the oxygen of the gas and the bile stand beside the part each belongs to, so the three objects of the table are read on the machine itself and not only in the panel.
+
+Inside the organ is what the model solves: one sinusoid from the portal inlet to the central vein, with the hepatocytes along it in four zones, the periportal end named at one side and the perivenous end at the other. Each zone carries the oxygen which reaches it, above the cells, and is coloured by it, and a zone whose cells are dying turns towards the colour of dead tissue. Over the drawing stands the one sentence which says why a liver is on a machine at all: a donor liver has to stay alive until it is transplanted, and a machine both keeps it working and makes it measurable. The course on the right draws the oxygen leaving, the bile and the cells alive over the six hours, each on a scale which does not move, so that a flat line is a flat line and a fall is a fall.
 
 ## Things to try
 

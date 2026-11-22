@@ -15,6 +15,9 @@ export const OVERVIEW = "overview";
 /** The page about the models, the software, the licences and the laboratory. */
 export const ABOUT = "about";
 
+/** The question of who is at the table, which can be asked again at any time. */
+export const PERSON = "person";
+
 /** The picture of the body, which is the table every other one is opened from. */
 export const OVERVIEW_PICTURE: Pictogram = "body";
 
@@ -50,15 +53,6 @@ export const TABLES: readonly TableEntry[] = [
     load: async () => (await import("@pkpdsim-tui/cardiovascular-table")).startCardiovascularTable,
   },
   {
-    id: "lobes",
-    color: "#7a4fa3",
-    picture: "scalpel",
-    organ: "li",
-    organs: ["li"],
-    assets: "lobes/",
-    load: async () => (await import("@pkpdsim-tui/lobes-table")).startLobesTable,
-  },
-  {
     id: "glimepiride",
     color: "#3d8b4f",
     picture: "tablet",
@@ -66,6 +60,15 @@ export const TABLES: readonly TableEntry[] = [
     organs: ["si", "li", "ki"],
     assets: "glimepiride/",
     load: async () => (await import("@pkpdsim-tui/glimepiride-table")).startGlimepirideTable,
+  },
+  {
+    id: "lobes",
+    color: "#7a4fa3",
+    picture: "scalpel",
+    organ: "li",
+    organs: ["li"],
+    assets: "lobes/",
+    load: async () => (await import("@pkpdsim-tui/lobes-table")).startLobesTable,
   },
   {
     id: "perfusion",

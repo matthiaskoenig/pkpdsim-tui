@@ -17,10 +17,11 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer, driveHint,
-  formatNumber, pointerPoints, visibleStats, words,
+  bodyName, chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer,
+  driveHint, formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
-import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
+import type {ChoiceGroup, Pictogram, TableHost} from "@pkpdsim-tui/tui-kit";
+import {bodyParameters} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
   TableSnapshot, TableStatus, TokenRole,
@@ -29,6 +30,7 @@ import {cardFor, lobeStats} from "./cards.ts";
 import type {Sample} from "./cards.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
 import {createRegeneration} from "./regeneration.ts";
+import {createMonitors} from "./monitors.ts";
 import {
   GROWTH_MARKER, LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
 } from "./operations.ts";
@@ -46,6 +48,20 @@ const HOLD = 4000;
 /** How many points a run of the table has, which is the smoothness of its curves. */
 const POINTS = 181;
 
+/**
+ * The animals a liver of this table belongs to, in the order the switch offers them, each with
+ * the figure it is drawn as. The export carries a mouse as well, which the table does not
+ * offer: the operations of this table are the ones of a person and the ones of the rat the
+ * regeneration is known from, and a third animal is one switch too many in front of an
+ * audience. The export of the female body carries the human alone, because the female body is
+ * a human one: the switch offers both there too, and picking the rat opens the export with it.
+ */
+const SPECIES_ORDER = ["human", "rat"] as const;
+
+const SPECIES_PICTURES: Readonly<Record<string, Pictogram>> = {
+  human: "human", rat: "rat", mouse: "mouse",
+};
+
 /** The lobed liver table, on the surface of the application. */
 export async function startLobesTable(host: TableHost): Promise<void> {
   const voice = host.voice;
@@ -57,8 +73,10 @@ export async function startLobesTable(host: TableHost): Promise<void> {
 
   host.progress(copy.loading);
   const wanted = parameters.get("species") ?? "human";
-  // The female liver is exported for the human only, so another species is the one body there is.
-  const sex = parameters.get("sex") === "female" && wanted === "human" ? "female" : "male";
+  // Who the table is solved for, and which animal the liver is of. The female liver is exported
+  // for the human only, so another species is the one body there is.
+  const person = host.individual;
+  const sex = person.sex === "female" && wanted === "human" ? "female" : "male";
   const base = sex === "female" ? new URL("female/", assets) : assets;
   const data = await loadLobeData(new URL("lobes-data.json", base));
   const species = data.species[wanted] === undefined ? Object.keys(data.species)[0] ?? "human" : wanted;
@@ -67,20 +85,26 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const lobes: readonly Lobe[] = liver.lobes;
   const bodies: readonly ChoiceGroup[] = [
     {
+      // The two bodies, as the figures themselves: a visitor sees which one the liver is in.
       id: "sex", label: kit.bodySwitch, selected: sex,
       options: [
         {
-          id: "female", label: kit.female,
+          id: "female", label: bodyName(voice, "female", person.age), picture: "woman",
           ...(species === "human" ? {} : {unavailable: copy.femaleOnlyHuman}),
         },
-        {id: "male", label: kit.male},
+        {id: "male", label: bodyName(voice, "male", person.age), picture: "man"},
       ],
     },
     {
+      // The animal the liver belongs to, drawn rather than named: the operations of this table
+      // are the ones done to a rat and to a mouse in the laboratory, and to a person in a
+      // clinic, and the figure says which of the three is on the glass.
       id: "species", label: copy.speciesSwitch, selected: species,
-      options: Object.keys(data.species).length > 1
-        ? Object.keys(data.species).map(id => ({id, label: copy.species[id] ?? id}))
-        : [{id: species, label: copy.species[species] ?? species}],
+      options: (sex === "female"
+        ? SPECIES_ORDER
+        : SPECIES_ORDER.filter(id => id in data.species)).map(id => ({
+          id, label: copy.species[id] ?? id, picture: SPECIES_PICTURES[id] as Pictogram,
+        })),
     },
   ];
 
@@ -93,7 +117,13 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   // back over its own time, so the table runs the course of this species over its own span.
   const course = courseOf(species);
   const days = course.days;
-  const config: LobeConfig = {...exported, end: days * 24 * 60, points: POINTS};
+  const config: LobeConfig = {
+    ...exported, end: days * 24 * 60, points: POINTS,
+    // A human liver is the liver of the person at the table: the model scales it, its blood
+    // flows and its share of the cardiac output from the body weight and the height. The liver
+    // of a rat or a mouse is the animal's own and carries no body of ours.
+    ...(species === "human" ? {preinit: bodyParameters(person)} : {}),
+  };
   const roles = lobeRoles(voice, operations.length);
 
   host.progress(copy.startingSolver);
@@ -107,6 +137,9 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const root = host.scene;
   const scene = createLiverScene(root, lobes, voice);
   const plot = createRegeneration(root, voice, operations);
+  // What the operation costs while the liver grows back: the pressure around it and the blood
+  // through it, beside the organ and against the liver nobody operated on.
+  const monitors = createMonitors(root, voice);
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
@@ -118,7 +151,9 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     onBack: () => host.back(),
     onReset: () => host.reset(),
     onChoose: (group, option) => {
-      if (group === "sex") chooseQuery("sex", option, "male");
+      // The body of the person, which the weight of the first screen belongs to: the
+      // other body takes the reference weight of its own age.
+      if (group === "sex") chooseQuery("sex", option, "female", ["bw"]);
       else if (group === "species") chooseQuery("species", option, "human");
       else host.choose(group, option);
     },
@@ -246,6 +281,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     root.setAttribute("data-solving", String(solving));
     scene.update({states, sample, baseline: reference});
     plot.update({day, days, selected: operation, runs});
+    monitors.update({series, baseline, day, days});
     readout.update(sample, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
@@ -274,7 +310,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       credit: copy.credit(
         formatNumber(remnantFraction(lobes, states) * 100, 0),
         copy.species[species] ?? species,
-        sex === "female" ? kit.female : kit.male,
+        bodyName(voice, sex, person.age),
       ),
     });
   };
@@ -296,6 +332,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     scene.resize(viewport);
     plot.resize(plotBox(viewport));
+    monitors.resize(viewport);
     readout.resize(viewport);
     schedule();
   };

@@ -30,12 +30,22 @@
   cursor: help;
 }
 
+/* The rollers of the pump head, which turn at the rate the pump is set to. */
 .circuit-blades {
-  fill: none;
-  stroke: #3f5a74;
-  stroke-width: 0.8;
-  transform-origin: 16px 48px;
+  transform-origin: 16px 40px;
   animation: circuit-spin var(--spin, 1s) linear infinite;
+}
+
+.circuit-roller {
+  fill: #3f5a74;
+}
+
+/* The tube the rollers run along, which is what a roller pump is. */
+.circuit-housing {
+  fill: none;
+  stroke: #51687f;
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 @keyframes circuit-spin {
@@ -54,6 +64,54 @@
   }
 }
 
+/* What is in the reservoir, and the thin lines of the drawing: a vent, a gas line, the heat. */
+.circuit-fluid {
+  fill: rgba(47, 111, 208, 0.18);
+  stroke: none;
+  pointer-events: none;
+}
+
+.circuit-thin {
+  fill: none;
+  stroke: #6e8eae;
+  stroke-width: 0.6;
+  stroke-linecap: round;
+}
+
+.circuit-wave {
+  stroke: #cf7034;
+  stroke-width: 0.8;
+}
+
+.circuit-part--heater {
+  fill: #fbeee2;
+  stroke: #cf7034;
+}
+
+.circuit-part--vial {
+  fill: rgba(207, 166, 61, 0.18);
+  stroke: #cfa63d;
+}
+
+.circuit-membrane {
+  fill: none;
+  stroke: rgba(42, 158, 151, 0.5);
+  stroke-width: 0.5;
+}
+
+.circuit-gas {
+  fill: none;
+  stroke: #2a9e97;
+  stroke-width: 0.8;
+  stroke-dasharray: 1.6 1.2;
+}
+
+/* Which way the fluid runs, which is what makes the drawing a circuit and not a picture. */
+.circuit-arrow {
+  fill: #51687f;
+  stroke: none;
+}
+
 .circuit-organ {
   fill: rgba(150, 92, 62, 0.55);
   stroke: rgba(72, 44, 30, 0.45);
@@ -67,10 +125,45 @@
   cursor: help;
 }
 
-.circuit-zone-plate {
-  stroke: rgba(72, 44, 30, 0.3);
-  stroke-width: 0.5;
+/* The hepatocytes along the sinusoid, and the lumen they live beside. */
+.circuit-cells {
+  stroke: rgba(72, 44, 30, 0.35);
+  stroke-width: 0.4;
   transition: fill 160ms linear;
+}
+
+/* The lumen of the sinusoid: one channel the fluid runs along, not a row of blocks. */
+.circuit-lumen {
+  stroke: none;
+  transition: fill 160ms linear;
+}
+
+/* The two vessels the sinusoid runs between: the portal inlet and the central vein. */
+.circuit-vessel {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.circuit-vessel--portal {
+  stroke: #8a4fc8;
+}
+
+.circuit-vessel--central {
+  stroke: #2f6fd0;
+}
+
+.circuit-vessel-end {
+  fill: #2f6fd0;
+  stroke: none;
+}
+
+.circuit-zone-name {
+  font-size: 2.4px;
+  fill: var(--ink-dim);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 1px;
 }
 
 .circuit-zone-number,
@@ -93,10 +186,6 @@
   cursor: help;
 }
 
-.circuit-label--left {
-  text-anchor: end;
-}
-
 .circuit-label {
   font-size: 2.8px;
   font-weight: 600;
@@ -107,4 +196,39 @@
   stroke: var(--surface);
   stroke-width: 1.1px;
   stroke-linejoin: round;
+}
+
+/* What the machine is set to, written on the part it belongs to. */
+.circuit-value {
+  font-size: 2.6px;
+  font-weight: 700;
+  fill: var(--ink);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 1.1px;
+  stroke-linejoin: round;
+}
+
+.circuit-label--gas {
+  text-anchor: middle;
+}
+
+/* Why a liver is on a machine at all, over the drawing of one. */
+.circuit-motivation {
+  font-size: 0.95rem;
+  fill: var(--ink-dim);
+}
+
+/* A label or a value which stands to the left of what it belongs to. */
+.circuit-label--left,
+.circuit-value.circuit-label--left {
+  text-anchor: end;
+}
+
+/* The oxygen of the gas, beside the line which carries it in. */
+.circuit-value.circuit-label--gas-value {
+  text-anchor: start;
+  fill: #1f7a74;
 }

@@ -1,4 +1,4 @@
-# Liver surgery
+# The liver grows back
 
 The liver divided into its segments, the operations a surgeon does on one object, and what grows back after each of them.
 
@@ -16,16 +16,18 @@ Why a pharmacokinetic model cares: the liver is where most drugs are broken down
 
 | Marker | Object | What it does |
 | --- | --- | --- |
-| 1 | The operation | Turns through the resections a surgeon does, from one segment to the whole right side of the liver |
+| 1 | The operation | Turns through the resections a surgeon does, from the liver nobody touched to the largest one of the species, over the whole turn of the dial |
 | 2 | Regeneration rate | How fast what is left grows back, between a third of the rate of a healthy liver of this species and three times it |
 
-The panel also carries two switches a finger touches rather than an object: the body of the individual, male or female, and the species. The female export is the human liver only, so the female body cannot be chosen for the rat or the mouse.
+The panel also carries two switches a finger touches rather than an object: the body of the individual, male or female, and the species, the human liver or the rat one. The female export is the human liver only, so the female body cannot be chosen for the rat. The mouse is not offered: its export carries the lobes but not the operations a visitor turns through, so the switch would have led to a liver nothing could be done to.
 
 The three instruments carry their meaning in their **position**, not in their angle: the segment they lie on is the one they act on, and there is nothing to read off a dial. Two instruments on one segment combine, and a segment whose portal branch and artery are both closed has no inflow left at all, which the table treats as a resection. Lifting an instrument undoes what it did.
 
 The day object is the one dial. It is relative: it starts at the end of the course wherever it is put down, and winding it back walks through the days towards the operation. Turning it solves nothing, it only moves the moment the table is read at, so it answers instantly.
 
 ## The liver
+
+The segments are drawn inside the silhouette of a liver, which is built from the blocks themselves and lies behind them in a warm, translucent tone, so that a mosaic of rectangles is read as the organ it is. The blocks are clipped to that outline, and the left lobe hangs higher than the right one does, as it does in a body. A line above the organ says what the eight pieces are, and each block carries a note of its own: which segment it is, where in the liver it lies, what share of the mass it holds and what the operation did to it.
 
 Each segment is a block whose **area** is its share of the mass of the liver, laid out as the body is seen from the front: the right lobe on the left of the picture with its posterior sector (VII above VI) and its anterior sector (VIII above V), the caudate lobe as the strip in the middle where it lies between the portal vein and the vena cava, and the left lobe on the right with the medial segment IV against the right lobe and the lateral segments II and III.
 
@@ -48,6 +50,8 @@ The five numbers of the band, read at the day the dial points at. Hovering one, 
 | Arterial flow | The flow through the hepatic artery, in l/min |
 
 The small number under each one is the change against the same liver without the operation, at the same day. The course below the liver draws the volume and the portal pressure over the five days, with that untouched liver behind them as a dashed line.
+
+Two cards at the right of the table draw what the operation did to the **pressure** and to the **flow**, over the same days: the portal pressure and the pressure in the liver on one, the portal flow, the arterial flow and their sum on the other, each with the liver nobody operated on behind it as a dashed line and a cursor at the day the dial points at. The numbers of the band say where the liver stands now; these say how it got there, which is the part of a resection a visitor cannot see on the organ.
 
 ## Things to try
 
@@ -79,4 +83,4 @@ The table is the second card on the body at `http://localhost:5173/`, and `?app=
 | `http://localhost:5173/?app=lobes&tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
 | `http://localhost:5173/?app=lobes&tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
 | `http://localhost:5173/?app=lobes&sex=female` | The female reference body, for the human liver |
-| `http://localhost:5173/?app=lobes&species=rat` | The rat liver, with its five lobes, instead of the human one; `?species=mouse` for the mouse |
+| `http://localhost:5173/?app=lobes&species=rat` | The rat liver, with its five lobes, instead of the human one |

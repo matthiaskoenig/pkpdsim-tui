@@ -22,7 +22,6 @@ import {HUB_TEXT} from "../apps/table/src/text.ts";
 import {entryCopy, TABLES} from "../apps/table/src/tables.ts";
 import {CARDIO_TEXT} from "../packages/cardiovascular-table/src/text.ts";
 import {GLIMEPIRIDE_TEXT} from "../packages/glimepiride-table/src/text.ts";
-import {LIVER_TEXT} from "../packages/liver-table/src/text.ts";
 import {LOBE_TEXT} from "../packages/lobes-table/src/text.ts";
 import {PERFUSION_TEXT} from "../packages/perfusion-table/src/text.ts";
 
@@ -31,7 +30,7 @@ const OUT = join(ROOT, "apps", "table", "public", "audio", "texts.json");
 
 /** The copy of every table, by the name it is known under. */
 const BOOKS = {
-  cardiovascular: CARDIO_TEXT, glimepiride: GLIMEPIRIDE_TEXT, liver: LIVER_TEXT,
+  cardiovascular: CARDIO_TEXT, glimepiride: GLIMEPIRIDE_TEXT,
   lobes: LOBE_TEXT, perfusion: PERFUSION_TEXT,
 };
 

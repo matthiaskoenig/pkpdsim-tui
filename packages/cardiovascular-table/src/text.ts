@@ -9,7 +9,8 @@ export interface Named {
 
 /** What the sentence of the panel is built from. */
 export interface CardioFacts {
-  readonly sex: "male" | "female";
+  /** Who the table is solved for, as the sentence names them: a girl of 26.8 kg. */
+  readonly body: string;
   readonly pressure: string;
   readonly output: string;
   /** What the objects have done, as keys, in the order they were found. */
@@ -58,6 +59,10 @@ export interface CardioCopy {
   readonly organNote: (name: string, flow: string, share: string, portal: boolean) => string;
   readonly lungNote: (flow: string) => string;
   readonly reading: (facts: CardioFacts) => string;
+  /** The person at the table, as the reading names them: the body, and what it weighs. */
+  readonly body: (person: {
+    sex: "male" | "female"; child: boolean; weight: string;
+  }) => string;
   readonly loadingCirculation: string;
   readonly startingHeart: string;
 }
@@ -230,7 +235,7 @@ const EN: CardioCopy = {
     + (portal ? ". Its blood goes on through the portal vein to the liver before it returns." : "."),
   lungNote: flow => `The lungs take everything the heart moves: ${flow} litres a minute.`,
   reading: facts => {
-    const body = facts.sex === "female" ? "A woman of 60 kg" : "A man of 73 kg";
+    const body = facts.body;
     const said: Record<CardioDone, string> = {
       systemicUp: "the vessels of the body are narrowed",
       systemicDown: "the vessels of the body are wide open",
@@ -245,6 +250,8 @@ const EN: CardioCopy = {
     const sentence = first.length === 1 ? first[0] : `${first[0]} and ${first[1]}`;
     return `${body} in whom ${sentence}: ${pressure}`;
   },
+  body: ({sex, child, weight}) => `${child ? (sex === "female" ? "A girl" : "A boy")
+    : (sex === "female" ? "A woman" : "A man")} of ${weight} kg`,
   loadingCirculation: "Loading the circulation...",
   startingHeart: "Starting the heart...",
 };
@@ -417,7 +424,7 @@ const DE: CardioCopy = {
     + (portal ? ". Sein Blut fließt durch die Pfortader weiter zur Leber, bevor es zurückkommt." : "."),
   lungNote: flow => `Die Lunge nimmt alles auf, was das Herz bewegt: ${flow} Liter pro Minute.`,
   reading: facts => {
-    const body = facts.sex === "female" ? "Eine Frau von 60 kg" : "Ein Mann von 73 kg";
+    const body = facts.body;
     const said: Record<CardioDone, string> = {
       systemicUp: "die Gefäße des Körpers verengt sind",
       systemicDown: "die Gefäße des Körpers weit offen sind",
@@ -432,6 +439,8 @@ const DE: CardioCopy = {
     const sentence = first.length === 1 ? first[0] : `${first[0]} und ${first[1]}`;
     return `${body}, bei dem ${sentence}: ${pressure}`;
   },
+  body: ({sex, child, weight}) => `${child ? (sex === "female" ? "Ein Mädchen" : "Ein Junge")
+    : (sex === "female" ? "Eine Frau" : "Ein Mann")} von ${weight} kg`,
   loadingCirculation: "Der Kreislauf wird geladen...",
   startingHeart: "Das Herz wird gestartet...",
 };
@@ -604,7 +613,7 @@ const ES: CardioCopy = {
     + (portal ? ". Su sangre sigue por la vena porta hasta el hígado antes de volver." : "."),
   lungNote: flow => `Los pulmones reciben todo lo que mueve el corazón: ${flow} litros por minuto.`,
   reading: facts => {
-    const body = facts.sex === "female" ? "Una mujer de 60 kg" : "Un hombre de 73 kg";
+    const body = facts.body;
     const said: Record<CardioDone, string> = {
       systemicUp: "los vasos del cuerpo están estrechados",
       systemicDown: "los vasos del cuerpo están bien abiertos",
@@ -619,6 +628,8 @@ const ES: CardioCopy = {
     const sentence = first.length === 1 ? first[0] : `${first[0]} y ${first[1]}`;
     return `${body} en quien ${sentence}: ${pressure}`;
   },
+  body: ({sex, child, weight}) => `${child ? (sex === "female" ? "Una niña" : "Un niño")
+    : (sex === "female" ? "Una mujer" : "Un hombre")} de ${weight} kg`,
   loadingCirculation: "Cargando la circulación...",
   startingHeart: "Arrancando el corazón...",
 };

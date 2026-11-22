@@ -1,6 +1,6 @@
 /** What every table application of pkpdsim shares. */
 
-export {createChrome} from "./chrome.ts";
+export {createChrome, tableFoot} from "./chrome.ts";
 export type {Chrome, ChoiceGroup, ChoiceOption, ChromeOptions, ChromeUpdate} from "./chrome.ts";
 export {
   clamp, describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
@@ -9,7 +9,9 @@ export {
 export {createGlyph} from "./glyph.ts";
 export {ICONS} from "./icons.mjs";
 export type {Glyph, GlyphKind, TokenGlyph} from "./glyph.ts";
-export type {TableApp, TableHost, TableMark} from "./host.ts";
+export type {TableApp, TableHost, TableIndividual, TableMark} from "./host.ts";
+export {createLab, LAB_ROOM} from "./lab.ts";
+export type {Lab, LabOptions} from "./lab.ts";
 export {createMirror, MIRROR_SOURCE} from "./mirror.ts";
 export type {Mirror, MirroredObject, MirrorState} from "./mirror.ts";
 export {createInfo, pointerPoints, tokenPoints} from "./info.ts";
@@ -23,8 +25,9 @@ export {createReadout, visibleStats} from "./readout.ts";
 export {createSettings, pictogram, reportStatus} from "./settings.ts";
 export {clearStars, keepStars, readStars, starMarks, starsOf, watchStars} from "./stars.ts";
 export type {Stars} from "./stars.ts";
-export type {Pictogram, Settings, SettingsOptions} from "./settings.ts";
+export type {FigureKind, Pictogram, Settings, SettingsOptions} from "./settings.ts";
 export {normalizeSpeech, speechFor, speechKey} from "./speech.ts";
+export {sayHtml, sayLabel, SAY_PATH, SAY_WAVES, watchSay} from "./say.ts";
 export type {Speech} from "./speech.ts";
 export type {Readout, StatDefinition} from "./readout.ts";
 export {attributes, clear, line, svg, SVG_NS} from "./svg.ts";
@@ -37,6 +40,6 @@ export {
 } from "./voice.ts";
 export type {Level, Locale, Phrase, PhraseLevels, Voice} from "./voice.ts";
 export {
-  driveHint, KIT_TEXT, languageOptions, markerSpan, organName, words,
+  bodyName, driveHint, GROWN_UP, KIT_TEXT, languageOptions, markerSpan, organName, words,
 } from "./words.ts";
 export type {DriveState, KitCopy} from "./words.ts";

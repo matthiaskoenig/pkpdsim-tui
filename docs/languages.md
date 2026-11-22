@@ -32,7 +32,7 @@ A band of six numbers is not what a six year old came to read, so a number carri
 
 ## Reading it aloud
 
-**The reading is off at the moment.** The buttons which played it are gone from the panel, from a note and from the quiz, and a table is read rather than listened to. Everything below is kept, because the sentences are written down and the clips are recorded: putting the button back is a change of the chrome and not of the copy.
+A speaker stands beside the sentence of the panel, inside the note behind an element, beside what the sidebar of the landing page says and beside the questions of the first screen. It reads in the language of the visitor, marks itself while it is reading, and stops when it is pressed again. One handler on the page serves all of them, because the thing a speaker belongs to is drawn again whenever the table changes.
 
 What would be read comes from two places:
 

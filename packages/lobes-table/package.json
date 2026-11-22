@@ -9,6 +9,7 @@
     "./text": "./src/text.ts"
   },
   "dependencies": {
+    "@pkpdsim-tui/cardio-sim": "*",
     "@pkpdsim-tui/core-runtime": "*",
     "@pkpdsim-tui/lobes-sim": "*",
     "@pkpdsim-tui/tui-kit": "*",

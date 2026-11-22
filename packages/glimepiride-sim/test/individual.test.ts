@@ -3,29 +3,34 @@ import {
   CIRRHOSIS_CLASSES, GENOTYPES, nearestCategory, RENAL_CLASSES,
 } from "../src/categories.ts";
 import {
-  GLIMEPIRIDE_CONTROLS, NORMAL_CRCL, normalizeIndividual, parametersOf, REFERENCE_BODIES,
+  GLIMEPIRIDE_CONTROLS, heightOf, NORMAL_CRCL, normalizeIndividual, parametersOf,
+  REFERENCE_BODIES,
   referenceIndividual,
 } from "../src/individual.ts";
 import {GLIMEPIRIDE_SIMULATION, glimepirideRequest} from "../src/request.ts";
 
 describe("the reference individual", () => {
   it("takes four milligrams and is otherwise the reference adult of their sex", () => {
-    expect(referenceIndividual()).toEqual({dose: 4, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 73});
-    expect(referenceIndividual("female").weight).toBe(60);
+    expect(referenceIndividual()).toEqual({dose: 4, cyp2c9: 1, cirrhosis: 0, renal: 110, weight: 60});
+    expect(referenceIndividual("male").weight).toBe(73);
     expect(REFERENCE_BODIES.female).toEqual({weight: 60, height: 163});
   });
 
   it("leaves the parameters of the model at their own defaults, apart from the dose", () => {
     expect(parametersOf()).toEqual([
-      ["HEIGHT", 176], ["PODOSE_gli", 4], ["LI__f_cyp2c9", 1], ["f_cirrhosis", 0],
-      ["KI__f_renal_function", 1], ["BW", 73],
+      ["HEIGHT", 163], ["PODOSE_gli", 4], ["LI__f_cyp2c9", 1], ["f_cirrhosis", 0],
+      ["KI__f_renal_function", 1], ["BW", 60],
     ]);
   });
 
-  it("is the female body in its height as well as in its weight", () => {
-    const parameters = new Map(parametersOf(referenceIndividual("female"), "female"));
-    expect(parameters.get("HEIGHT")).toBe(163);
-    expect(parameters.get("BW")).toBe(60);
+  it("is the body of the person in its height as well as in its weight", () => {
+    const male = new Map(parametersOf(referenceIndividual("male"), heightOf("male")));
+    expect(male.get("HEIGHT")).toBe(176);
+    expect(male.get("BW")).toBe(73);
+    // A body of nine years, which is neither of the two reference adults.
+    const child = new Map(parametersOf({...referenceIndividual("female"), weight: 29}, 131));
+    expect(child.get("HEIGHT")).toBe(131);
+    expect(child.get("BW")).toBe(29);
   });
 });
 
@@ -60,13 +65,13 @@ describe("glimepirideRequest", () => {
     expect(request.changes).toEqual([]);
   });
 
-  it("runs one day after the last tablet, at the resolution of the table", () => {
+  it("runs the day of every tablet, at the resolution of the table", () => {
     const one = glimepirideRequest();
-    expect(one.output.times.at(-1)).toBe(2 * 24 * 60);
+    expect(one.output.times.at(-1)).toBe(24 * 60);
     expect(one.output.times.length).toBeGreaterThan(200);
     expect(one.changes).toEqual([]);
-    const ten = glimepirideRequest({dose: 2}, "male", undefined, 10);
-    expect(ten.output.times.at(-1)).toBe(11 * 24 * 60);
+    const ten = glimepirideRequest({dose: 2}, heightOf("male"), undefined, 10);
+    expect(ten.output.times.at(-1)).toBe(10 * 24 * 60);
     // A tablet every morning after the first one, which is the dose put back in the stomach.
     expect(ten.changes).toHaveLength(9);
     expect(ten.changes[0]).toEqual({time: 24 * 60, values: [["PODOSE_gli", 2]]});
