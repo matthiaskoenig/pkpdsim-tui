@@ -190,7 +190,8 @@ export function createTokenLayer(
     // down, and as thick as the change from the baseline is large. An object nobody has moved
     // wears none at all, which is how a table says that what is on it is the body at rest.
     const band = bandOf(role, degrees);
-    visual.arc.setAttribute("d", !dial || Math.abs(band.to - band.from) < 0.5
+    const turned = dial && Math.abs(band.to - band.from) >= 0.5;
+    visual.arc.setAttribute("d", !turned
       ? "" : describeArc(0, 0, RING_RADIUS, band.from, band.to));
     visual.arc.setAttribute("stroke-width", band.width.toFixed(1));
     visual.arc.setAttribute("class",
@@ -216,7 +217,11 @@ export function createTokenLayer(
     visual.plate.setAttribute("class",
       card.kind === "unassigned" ? "card card--unassigned" : "card");
     visual.title.textContent = clipLine(card.title, 24);
-    visual.value.textContent = clipLine(card.value, 18);
+    // Which way the object was turned is written beside its value as well as drawn in the
+    // colour of the band, because red and blue alone are no answer for a visitor who cannot
+    // tell the two apart.
+    const way = !turned ? "" : band.rising ? "\u2191\u2009" : "\u2193\u2009";
+    visual.value.textContent = way + clipLine(card.value, 18);
     visual.note.textContent = clipLine(card.note, 36);
     // A finger which rests on an object opens the sentence behind it, like one on a panel.
     if (card.info === undefined || card.info === "") visual.group.removeAttribute("data-info");

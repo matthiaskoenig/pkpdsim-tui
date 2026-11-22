@@ -26,6 +26,19 @@ export const DEFAULT_TUIO_VERSION: TuioVersion = "2.0";
 const CURSOR_RADIUS = 0.02;
 const CURSOR_PRESS = 0.5;
 
+/** The first wait before the page tries a tracker again, and the longest wait it ever takes. */
+const RETRY_FIRST = 1000;
+const RETRY_LONGEST = 8000;
+
+/**
+ * How long to wait before attempt number `attempt`, counted from one. The wait doubles until it
+ * stands at `RETRY_LONGEST`, so a tracker which is restarting is back within a second and one
+ * which is off for the evening is asked about every eight.
+ */
+export function retryDelay(attempt: number): number {
+  return Math.min(RETRY_LONGEST, RETRY_FIRST * 2 ** Math.max(0, attempt - 1));
+}
+
 export interface TuioTableInputOptions {
   readonly host?: string;
   readonly port?: number;
@@ -82,6 +95,10 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   let snapshot = emptySnapshot();
   let status: TableStatus = {state: "idle", source: `ws://${host}:${port}`, detail: ""};
   let dirty = false;
+  /** Whether the application asked for the tracker and has not let it go again. */
+  let wanted = false;
+  let attempt = 0;
+  let timer: number | undefined;
 
   const publish = (): void => {
     for (const listener of listeners) listener(snapshot, status);
@@ -91,16 +108,51 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
     publish();
   };
 
+  const waiting = (): TableStatus => ({
+    state: "connecting", source: receiver.url,
+    detail: `Waiting for a TUIO ${version} tracker on ${receiver.url}.`,
+  });
+
+  /**
+   * A tracker which went away. The table of an exhibition stands for a day, and a tracker which
+   * is restarted or a socket which is dropped once must not end the day, so the page asks again
+   * until it answers. The objects of a tracker which is gone are not known to be on the glass
+   * any anymore, so the surface is emptied and the table falls back to the body at rest; a
+   * tracker which comes back reports what is on it with its first bundle.
+   */
+  const lost = (detail: string): void => {
+    snapshot = emptySnapshot();
+    if (!wanted) {
+      setStatus({state: "idle", source: receiver.url, detail: ""});
+      return;
+    }
+    if (timer !== undefined) {
+      // A socket which fails reports the error and the close, which is one loss, not two.
+      publish();
+      return;
+    }
+    attempt += 1;
+    const wait = retryDelay(attempt);
+    setStatus({
+      state: "error", source: receiver.url,
+      detail: `${detail} Trying again in ${Math.round(wait / 1000)} s.`,
+    });
+    timer = window.setTimeout(() => {
+      timer = undefined;
+      if (!wanted) return;
+      setStatus(waiting());
+      client.connect();
+    }, wait);
+  };
+
   const receiver = new WebsocketTuioReceiver({
     host, port, secure: options.secure ?? false, path: options.path ?? DEFAULT_TUIO_PATH,
-    onOpen: () => setStatus({state: "connected", source: receiver.url, detail: ""}),
-    // What to do about it is the business of the application, which knows how it was started.
-    onClose: () => setStatus({
-      state: "error", source: receiver.url, detail: `The tracker on ${receiver.url} closed the connection.`,
-    }),
-    onError: () => setStatus({
-      state: "error", source: receiver.url, detail: `No tracker answers on ${receiver.url}.`,
-    }),
+    onOpen: () => {
+      attempt = 0;
+      setStatus({state: "connected", source: receiver.url, detail: ""});
+    },
+    onClose: () => lost(`The tracker on ${receiver.url} closed the connection.`),
+    onError: () => lost(`No tracker answers on ${receiver.url}.`),
   });
 
   const apply = (object: TuioObjectLike): void => {
@@ -162,13 +214,17 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
       return snapshot;
     },
     connect(): void {
-      setStatus({
-        state: "connecting", source: receiver.url,
-        detail: `Waiting for a TUIO ${version} tracker on ${receiver.url}.`,
-      });
+      wanted = true;
+      attempt = 0;
+      setStatus(waiting());
       client.connect();
     },
     disconnect(): void {
+      wanted = false;
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        timer = undefined;
+      }
       client.disconnect();
       setStatus({state: "idle", source: receiver.url, detail: ""});
     },

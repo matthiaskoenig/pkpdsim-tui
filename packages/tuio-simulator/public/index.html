@@ -101,7 +101,11 @@
 
     <main class="stage" id="stage">
       <div class="surface" id="surface">
-        <iframe class="app" id="frame" title="The table application under the surface" hidden></iframe>
+        <!-- The frame holds a table which was typed in, so it keeps its own origin and its
+             scripts and runs sandboxed otherwise: a page under the surface cannot take the
+             window it is shown in. -->
+        <iframe class="app" id="frame" title="The table application under the surface"
+          sandbox="allow-scripts allow-same-origin" hidden></iframe>
         <svg id="table" class="table" role="application" aria-label="The surface of the table">
           <g id="pointers"></g>
           <g id="tokens"></g>

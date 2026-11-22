@@ -19,6 +19,7 @@
  *
  *   --app <id>         print the address of one table, e.g. cardiovascular
  *   --port <port>      the one port of the table (default 5173)
+ *   --host <host>      open the table to the network (default: this machine only)
  *   --page-port <port> the port the simulator serves its page on (default 3344)
  *   --tuio-port <port> the port of the tracker (default 3333)
  *   --no-simulator     the application alone, for a real table or another tracker
@@ -33,8 +34,14 @@ import {fileURLToPath} from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const DEFAULTS = {
-  port: 5173, pagePort: 3344, tuioPort: 3333, app: "", simulator: true, preview: false,
+  port: 5173, pagePort: 3344, tuioPort: 3333, app: "", host: "localhost",
+  simulator: true, preview: false,
 };
+
+/** Whether an address is this machine, which is where the table stays unless it is sent out. */
+function loopback(host) {
+  return host === "localhost" || host === "::1" || /^127(\.\d{1,3}){3}$/u.test(host);
+}
 
 /** How long the banner waits for the server before it prints anyway. */
 const READY_TIMEOUT = 20000;
@@ -47,6 +54,7 @@ function usage() {
     "",
     `  --app <id>         print the address of one table (default: the body)`,
     `  --port <port>      the one port of the table (default ${DEFAULTS.port})`,
+    `  --host <host>      open the table to the network (default ${DEFAULTS.host}, this machine only)`,
     `  --page-port <port> the page of the simulator (default ${DEFAULTS.pagePort})`,
     `  --tuio-port <port> the tracker (default ${DEFAULTS.tuioPort})`,
     "  --no-simulator     the application alone, for a real table or another tracker",
@@ -71,6 +79,15 @@ function parseOptions(argv) {
     } else if (flag === "--app") {
       index += 1;
       options.app = argv[index] ?? "";
+    } else if (flag === "--host") {
+      // `--host` on its own is every interface, which is what vite means by it as well.
+      const next = argv[index + 1];
+      if (next === undefined || next.startsWith("--")) {
+        options.host = "0.0.0.0";
+      } else {
+        index += 1;
+        options.host = next;
+      }
     } else if (flag in numbers) {
       index += 1;
       const value = Number(argv[index]);
@@ -120,8 +137,14 @@ function banner(options) {
   lines.push(
     `  Over ssh             ssh -L ${options.port}:localhost:${options.port} <machine>`,
     "                       one port carries the table, the surface and the tracker",
-    "",
   );
+  if (!loopback(options.host)) {
+    lines.push(
+      `  On the network       the table listens on ${options.host} and asks for no password`,
+      "                       anyone who reaches it can drive the table and the simulator",
+    );
+  }
+  lines.push("");
   process.stdout.write(`${lines.join("\n")}\n`);
 }
 
@@ -159,6 +182,10 @@ async function main() {
     const simulator = spawn(process.execPath, [
       join(root, "packages", "tuio-simulator", "src", "server.mjs"),
       "--page-port", String(options.pagePort), "--port", String(options.tuioPort),
+      // The simulator only lets pages of this machine drive it. A table which was opened to the
+      // network is reached under an address of the network, and the page of the simulator comes
+      // with it through the proxy, so its origin is allowed along with the table itself.
+      ...(loopback(options.host) ? [] : ["--allow-origin", "*"]),
     ], {cwd: root, stdio: ["ignore", "pipe", "pipe"]});
     prefixed(simulator.stdout, "simulator |", process.stdout);
     prefixed(simulator.stderr, "simulator |", process.stderr);
@@ -177,6 +204,7 @@ async function main() {
     stdio: "inherit",
     env: {
       ...process.env,
+      TUIO_TABLE_HOST: options.host,
       TUIO_SIMULATOR_PAGE: `127.0.0.1:${options.pagePort}`,
       TUIO_TRACKER: `127.0.0.1:${options.tuioPort}`,
     },

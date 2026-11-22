@@ -1,13 +1,6 @@
 /** What the circulation table says, in the three languages and at the three levels. */
 
-import type {Locale, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
-
-export interface Named {
-  readonly label: Phrase;
-  readonly info: Phrase;
-  /** What this object is in the body, behind the light bulb of the page the table opens with. */
-  readonly more?: Phrase;
-}
+import type {Locale, Named, Phrase, QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 /** What the sentence of the panel is built from. */
 export interface CardioFacts {

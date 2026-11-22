@@ -9,6 +9,7 @@
  * are hollow. There is no state in which none of them is on.
  */
 
+import {MOCK_SOURCE} from "@pkpdsim-tui/tuio-input";
 import type {TableStatus} from "@pkpdsim-tui/tuio-input";
 import type {ChoiceGroup} from "./chrome.ts";
 import {ICONS} from "./icons.mjs";
@@ -271,7 +272,11 @@ export function createSettings(container: HTMLElement, options: SettingsOptions)
       // The tracker is said in the card, in words, rather than as a dot on the gear: a visitor
       // who sees a dot on a button learns nothing from it.
       if (tracker instanceof HTMLElement) tracker.dataset["state"] = state.state;
-      if (source instanceof HTMLElement) source.textContent = state.source;
+      // The tracker is named by its address, except for the mouse of a laptop, which is a name
+      // and is said in the language of the visitor.
+      if (source instanceof HTMLElement) {
+        source.textContent = state.source === MOCK_SOURCE ? copy.mouse : state.source;
+      }
       const detail = state.detail === "" ? state.source : state.detail;
       button.title = `${copy.settings}: ${detail}`;
     },

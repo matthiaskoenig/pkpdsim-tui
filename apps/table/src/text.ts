@@ -66,6 +66,9 @@ export interface HubCopy {
   readonly loadingBodies: string;
   readonly loadingTable: string;
   readonly failed: string;
+  /** What a visitor is told, in front of whom a table fails in the middle of an exhibition. */
+  readonly failedVisitor: string;
+  readonly failedAgain: string;
   readonly failedHint: string;
   /** The laboratory at the foot of the page, and the square which points at it. */
   readonly labName: string;
@@ -215,6 +218,8 @@ const EN: HubCopy = {
   loadingBodies: "Loading the bodies...",
   loadingTable: "Loading the table...",
   failed: "The table could not start",
+  failedVisitor: "The table is taking a short break and tries again by itself.",
+  failedAgain: "Try again",
   failedHint: "The exported models and reference data are copied in with \"npm run sync\".",
   entries: {
     cardiovascular: {
@@ -372,6 +377,8 @@ const DE: HubCopy = {
   loadingBodies: "Die Körper werden geladen...",
   loadingTable: "Der Tisch wird geladen...",
   failed: "Der Tisch konnte nicht starten",
+  failedVisitor: "Der Tisch macht eine kurze Pause und versucht es von selbst noch einmal.",
+  failedAgain: "Nochmal versuchen",
   failedHint: "Die exportierten Modelle und Referenzdaten werden mit \"npm run sync\" kopiert.",
   entries: {
     cardiovascular: {
@@ -529,6 +536,8 @@ const ES: HubCopy = {
   loadingBodies: "Cargando los cuerpos...",
   loadingTable: "Cargando la mesa...",
   failed: "La mesa no pudo arrancar",
+  failedVisitor: "La mesa hace una pausa breve y lo intenta otra vez por su cuenta.",
+  failedAgain: "Intentar otra vez",
   failedHint: "Los modelos exportados y los datos de referencia se copian con \"npm run sync\".",
   entries: {
     cardiovascular: {

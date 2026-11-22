@@ -24,6 +24,8 @@ export {createQuiz} from "./quiz.ts";
 export type {Quiz, QuizChoice, QuizOptions, QuizQuestion} from "./quiz.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";
 export {createReadout, visibleStats} from "./readout.ts";
+export {namedRole} from "./roles.ts";
+export type {Named, NamedDial} from "./roles.ts";
 export {createSettings, pictogram, reportStatus} from "./settings.ts";
 export {clearStars, keepStars, readStars, starMarks, starsOf, watchStars} from "./stars.ts";
 export type {Stars} from "./stars.ts";

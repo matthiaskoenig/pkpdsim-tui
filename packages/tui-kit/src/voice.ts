@@ -77,8 +77,8 @@ export function createVoice(locale: Locale, level: Level): Voice {
 }
 
 /** What a table opens on when nothing says otherwise: the youngest visitor, in German. */
-export const DEFAULT_LOCALE: Locale = "de";
-export const DEFAULT_LEVEL: Level = "child";
+const DEFAULT_LOCALE: Locale = "de";
+const DEFAULT_LEVEL: Level = "child";
 
 /**
  * The voice of a page: `?lang` and `?level`, which every link of the application carries along.

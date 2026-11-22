@@ -90,6 +90,16 @@ function appSettings(
   ];
 }
 
+/** How long a table which could not start waits before it tries by itself. */
+const BOOT_RETRY = 20000;
+
+/**
+ * A table which could not start, as the two people in front of it need it: a visitor reads one
+ * sentence and nothing technical, and whoever looks after the table reads what actually went
+ * wrong under it. Nobody has to press anything, because a tracker is no help here and the glass
+ * of an exhibition is often behind a rope: the page loads itself again after a moment, so a
+ * model which was not copied in yet or a file which did not arrive the first time fixes itself.
+ */
 function fail(voice: Voice, message: string): void {
   const copy = voice.pick(HUB_TEXT);
   const boot = element<HTMLElement>("boot");
@@ -97,7 +107,18 @@ function fail(voice: Voice, message: string): void {
   boot.hidden = false;
   const heading = boot.querySelector("h1");
   if (heading !== null) heading.textContent = copy.failed;
-  element<HTMLElement>("boot-message").textContent = message;
+  element<HTMLElement>("boot-message").textContent = copy.failedVisitor;
+  const detail = document.createElement("p");
+  detail.className = "boot-detail";
+  detail.textContent = `${message} ${copy.failedHint}`;
+  const again = document.createElement("button");
+  again.className = "boot-again";
+  again.type = "button";
+  again.dataset["dwell"] = "boot-again";
+  again.textContent = copy.failedAgain;
+  again.addEventListener("click", () => window.location.reload());
+  boot.append(detail, again);
+  window.setTimeout(() => window.location.reload(), BOOT_RETRY);
 }
 
 let voice = voiceOf(
@@ -313,6 +334,6 @@ try {
   await start();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  fail(voice, `${message} ${voice.pick(HUB_TEXT).failedHint}`);
+  fail(voice, message);
   console.error(error);
 }

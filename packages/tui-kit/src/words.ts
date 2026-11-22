@@ -44,6 +44,8 @@ export interface KitCopy {
   };
   /** The button in the corner which everything about the table itself waits behind. */
   readonly settings: string;
+  /** What the settings card calls a table which is driven from the machine it runs on. */
+  readonly mouse: string;
   readonly settingsInfo: Phrase;
   readonly tableSwitch: string;
   readonly languageSwitch: string;
@@ -123,6 +125,7 @@ const EN: KitCopy = {
       : `${right} of ${of} right.`,
   },
   settings: "Settings",
+  mouse: "mouse and keyboard",
   settingsInfo: "Which table this is, which language it speaks, and how much it says.",
   tableSwitch: "Table",
   languageSwitch: "Language",
@@ -214,6 +217,7 @@ const DE: KitCopy = {
       : `${right} von ${of} richtig.`,
   },
   settings: "Einstellungen",
+  mouse: "Maus und Tastatur",
   settingsInfo: "Welcher Tisch das ist, welche Sprache er spricht und wie viel er sagt.",
   tableSwitch: "Tisch",
   languageSwitch: "Sprache",
@@ -306,6 +310,7 @@ const ES: KitCopy = {
       : `${right} de ${of} correctas.`,
   },
   settings: "Ajustes",
+  mouse: "ratón y teclado",
   settingsInfo: "Qué mesa es esta, en qué idioma habla y cuánto cuenta.",
   tableSwitch: "Mesa",
   languageSwitch: "Idioma",

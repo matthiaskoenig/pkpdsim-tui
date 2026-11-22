@@ -9,6 +9,14 @@ import type {Connect, Plugin, ProxyOptions} from "vite";
  * on `/`, the surface which drives it on `/simulator/`, and the tracker itself on `/tuio`, which
  * an application is pointed at with `?tuio=/tuio`.
  */
+/**
+ * Which interface the server listens on. It stays on this machine unless it is sent out with
+ * `npm run dev -- --host`: the proxy below carries the control socket of the simulator and the
+ * tracker with it, and neither asks for a password, so a table on the network of an exhibition
+ * would hand them to everybody on it.
+ */
+const HOST = process.env["TUIO_TABLE_HOST"] ?? "localhost";
+
 const SIMULATOR_PAGE = process.env["TUIO_SIMULATOR_PAGE"] ?? "127.0.0.1:3344";
 const TUIO_TRACKER = process.env["TUIO_TRACKER"] ?? "127.0.0.1:3333";
 
@@ -68,13 +76,13 @@ export default defineConfig({
     chunkSizeWarningLimit: 1024,
   },
   server: {
-    host: true,
+    host: HOST,
     port: 5173,
     strictPort: true,
     proxy,
   },
   preview: {
-    host: true,
+    host: HOST,
     port: 4173,
     strictPort: true,
     proxy,

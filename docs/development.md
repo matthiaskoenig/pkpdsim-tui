@@ -96,6 +96,7 @@ A table is developed against the [simulator](simulator.md) of `packages/tuio-sim
 | `--port <port>` | The one port of the table: the application, the simulator page and the tracker behind it | `5173` |
 | `--page-port <port>` | The port the simulator serves its own control page on | `3344` |
 | `--tuio-port <port>` | The port of the tracker itself | `3333` |
+| `--host <host>` | Opens the table to the network. Without it the three ports are only reachable from this machine | this machine |
 | `--app <id>` | Also prints the address of that one table | |
 | `--no-simulator` | The application alone, for a real table or another tracker | |
 | `--preview` | The built application instead of the development server | |
@@ -109,6 +110,23 @@ npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335   # a second copy b
 ```
 
 `--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken. `npm run preview` takes the same flags.
+
+### The table on the network
+
+The development server listens on this machine only. That is on purpose: it carries the control socket of the simulator and the tracker with it, and neither of them asks for a password, so a table on the network of an exhibition would hand the objects on the glass to everybody on that network. A machine somewhere else reaches the table over a forwarded port instead:
+
+```bash
+ssh -L 5173:localhost:5173 <machine>
+```
+
+`--host` is the way out of that, for the table itself or a tablet beside it:
+
+```bash
+npm run dev -- --host                  # every interface
+npm run dev -- --host 192.168.1.14     # one of them
+```
+
+It says in the banner what it opens, and the simulator then accepts the control page under the address of the network as well, which it otherwise only does for a page of its own machine. Serve the built `dist/` with a server of your own for anything that stands longer than a session.
 
 ## The input layer
 

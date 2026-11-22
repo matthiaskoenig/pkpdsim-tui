@@ -100,8 +100,11 @@ export function createBeats(parent: SVGSVGElement, voice: Voice): Beats {
   let beats = 0;
   let kept = 0;
   let last = 0;
-  // The ceiling of the scale, which rises with what the table has shown and never falls.
+  // The ceiling of the scale, which rises with what the table has shown and never falls, and
+  // the largest sample it is held above. The sample is kept as it arrives rather than looked
+  // for in the whole window: a scale which never falls reads the same either way.
   let top = FLOOR;
+  let seen = 0;
 
   const across = (at: number, now: number): number => {
     const age = Math.min(WINDOW, Math.max(0, (now - at) / 1000));
@@ -127,11 +130,12 @@ export function createBeats(parent: SVGSVGElement, voice: Voice): Beats {
       if (now - kept < EVERY) return;
       kept = now;
       history.push({at: now, arterial: beat.arterial});
+      seen = Math.max(seen, beat.arterial);
       while (history.length > 0 && now - (history[0]?.at ?? now) > WINDOW * 1000) {
         const gone = history.shift();
         if (gone !== undefined) beats -= EVERY / 1000 * (beat.heartRate / 60);
       }
-      top = ceilingOf(top, Math.max(FLOOR, ...history.map(sample => sample.arterial * 1.05)));
+      top = ceilingOf(top, Math.max(FLOOR, seen * 1.05));
       high.textContent = formatNumber(top, 0);
       middle.textContent = formatNumber(top / 2, 0);
       count.textContent = copy.count(formatNumber(Math.max(0, beats), 0));

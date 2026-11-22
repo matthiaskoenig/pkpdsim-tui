@@ -23,7 +23,6 @@
     "dev:cardiovascular": "node scripts/dev.mjs --app cardiovascular",
     "dev:lobes": "node scripts/dev.mjs --app lobes",
     "dev:glimepiride": "node scripts/dev.mjs --app glimepiride",
-    "dev:liver": "node scripts/dev.mjs --app liver",
     "dev:perfusion": "node scripts/dev.mjs --app perfusion",
     "build": "npm run build --workspaces --if-present",
     "preview": "node scripts/dev.mjs --preview",
