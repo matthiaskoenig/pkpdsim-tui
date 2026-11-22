@@ -87,7 +87,28 @@ PERFUSION_MODEL=../pkpdsim/models/rat_liver_nmp_flat.xml npm run export:perfusio
 
 `npm run speech` writes the clips a table reads aloud. `scripts/speech.mjs` imports the copy modules straight into `node`, which reads TypeScript of its own, so there is one copy of the text and no build step between it and the clips. [Languages and the voice](languages.md) covers the engines and what is recorded.
 
-A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface which drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`. The flags of `scripts/dev.mjs` move the ports (`--port`, `--page-port`, `--tuio-port`), leave the simulator out (`--no-simulator`) or serve the build (`--preview`).
+A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both, and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface that drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`.
+
+### The ports and the other flags of `npm run dev`
+
+| Flag | What it does | Default |
+| --- | --- | --- |
+| `--port <port>` | The one port of the table: the application, the simulator page and the tracker behind it | `5173` |
+| `--page-port <port>` | The port the simulator serves its own control page on | `3344` |
+| `--tuio-port <port>` | The port of the tracker itself | `3333` |
+| `--app <id>` | Also prints the address of that one table | |
+| `--no-simulator` | The application alone, for a real table or another tracker | |
+| `--preview` | The built application instead of the development server | |
+| `--help` | The list above | |
+
+The flags come after `--`, because npm takes the ones before it for itself:
+
+```bash
+npm run dev -- --port 8080
+npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335   # a second copy beside the first
+```
+
+`--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken. `npm run preview` takes the same flags.
 
 ## The input layer
 

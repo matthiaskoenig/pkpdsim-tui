@@ -2,75 +2,73 @@
 
 One individual on the table, six objects that say who they are, and the body of that individual with the drug moving through it.
 
-The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiride-model), a whole body PBPK model of the sulfonylurea glimepiride and of its two metabolites M1 and M2. A tablet is swallowed, the liver turns glimepiride into M1 with CYP2C9, M1 becomes M2, and the kidneys clear both into the urine. Every dial on this table is one of the things that make two people respond differently to the same tablet.
+![The drug breakdown table, with the dose and the CYP2C9 activity on the glass](../images/glimepiride.png)
+
+The model is the [glimepiride model](https://github.com/matthiaskoenig/glimepiride-model), a whole body PBPK model of the sulfonylurea glimepiride and of its two metabolites M1 and M2. A tablet is swallowed, the liver turns glimepiride into M1 with CYP2C9, M1 becomes M2, and the kidneys clear both into the urine. Every dial is one of the things that make two people respond differently to the same tablet.
 
 ## Background
 
-Glimepiride is taken for type 2 diabetes: it makes the pancreas release insulin, which lowers the blood sugar. Too much of it in the blood lowers the blood sugar too far, and a hypoglycaemia in an elderly patient is a fall, a confusion or a hospital admission. So the question the table asks is the question of the prescription: the same tablet, in two different people, leaves how much drug in the blood?
+Glimepiride is taken for type 2 diabetes: it makes the pancreas release insulin, which lowers the blood sugar. Too much of it lowers the blood sugar too far, and a hypoglycaemia in an elderly patient is a fall, a confusion or a hospital admission. The table asks the question of the prescription: the same tablet, in two different people, leaves how much drug in the blood?
 
-What the body does with the tablet is the four steps every drug makes, which are called absorption, distribution, metabolism and elimination. The stomach dissolves the tablet and the gut lets it through, which is the absorption. The blood carries it around the body, into organs of very different sizes, which is the distribution and which is why the body on the table is the body of a particular person. The liver takes it apart with the enzyme CYP2C9, into M1, which is itself active, and then into M2, which is not, which is the metabolism. The kidneys wash M1 and M2 out in the urine, which is the elimination. One object of the table stands at each of these steps, and each of them can be slower in one person than in another.
+A drug makes four steps, and one object stands at each of them. The stomach dissolves the tablet and the gut lets it through, which is the absorption. The blood carries it into organs of very different sizes, which is the distribution and which is why the body on the table is the body of a particular person. The liver takes it apart with CYP2C9 into M1, which is itself active, and then into M2, which is not. The kidneys wash both out in the urine.
 
-CYP2C9 is the interesting one. The gene comes in variants: about one person in eight carries a slow allele, and somebody with two of them breaks glimepiride down at roughly a quarter of the usual rate. They get a multiple of the exposure from the same tablet, and the guidance for them is a lower dose. A cirrhotic liver has less working tissue and less enzyme in it, so it acts in the same direction, and failing kidneys hold the metabolites back instead.
+CYP2C9 is the interesting one. About one person in eight carries a slow allele, and somebody with two of them breaks glimepiride down at roughly a quarter of the usual rate. They get a multiple of the exposure from the same tablet, and the guidance for them is a lower dose. A cirrhotic liver has less working tissue and less enzyme in it, so it acts in the same direction. Failing kidneys hold the metabolites back instead.
 
-This is what a physiologically based model is for. It does not fit a curve to a population; it carries the organs, their blood flows and the enzyme in the liver, so that each of these can be turned on its own and the answer follows from the physiology.
+This is what a physiologically based model is for. It does not fit a curve to a population; it carries the organs, their blood flows and the enzyme in the liver, so each of these can be turned on its own and the answer follows from the physiology.
 
 ## The objects
 
 | Marker | Object | What it changes | Range | Reference |
 | --- | --- | --- | --- | --- |
 | 1 | Dose | The tablet that is swallowed, in the strengths there are | 0.5 to 8 mg | The starting dose of this body weight |
-| 2 | Dissolution | How fast the tablet dissolves in the stomach, which is the absorption step | 0.25 to 8 /h | 2 /h |
+| 2 | Dissolution | How fast the tablet dissolves in the stomach | 0.25 to 8 /h | 2 /h |
 | 3 | Tablets, one a day | How many mornings in a row a tablet is taken | 1 to 10 | 1 |
-| 4 | CYP2C9 activity | The activity of the enzyme that makes M1, as a fraction of the wild type | 0.23 to 1.00 | 1.00, which is `*1/*1` |
+| 4 | CYP2C9 activity | The activity of the enzyme that makes M1 | 0.23 to 1.00 | 1.00, which is `*1/*1` |
 | 5 | Cirrhosis | How cirrhotic the liver is | 0 to 0.95 | 0, healthy |
 | 6 | Creatinine clearance | What the kidneys still clear | 10 to 110 ml/min | 110 ml/min |
 
-The dose turns through the tablets which exist rather than through the milligrams between them: 0.5, 1, 2, 3, 4, 6 and 8 mg, and the dial clicks from one to the next. Where it rests is the dose a body of that weight is started on, which is the four milligrams of the label carried down with the weight and rounded to a tablet: a child of twenty kilograms opens at one milligram rather than at four. What a child is actually given is a decision of a doctor, and glimepiride is not a drug children are given at all; the dial says what the arithmetic of the body weight says.
+The dose clicks through the tablets that exist, 0.5, 1, 2, 3, 4, 6 and 8 mg, rather than through the milligrams between them. Where it rests is the dose a body of that weight is started on: the four milligrams of the label carried down with the weight and rounded to a tablet, so a child of twenty kilograms opens at one milligram. What a child is given is a decision of a doctor, and glimepiride is not a drug children are given at all; the dial says what the arithmetic of the body weight says.
 
-Every object of the individual is a dial, and its angle is the value: pointing away from the person is the reference individual, turning it to the right raises the value and to the left lowers it. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half. Lifting an object puts that property back to the reference.
+Three dials say in words what they are set to, because that is how a clinician reads them: the CYP2C9 dial names the genotype it is nearest to (`*1/*1` through `*3/*3`, from the allele activities of the model's marimo application), the cirrhosis dial names the Child-Pugh class, and the kidney dial names the stage of impairment. Where the reference sits at one end of what is possible, as a creatinine clearance that cannot be better than normal does, the dial has half a span and the table draws only that half.
 
-Three of the dials say in words what they are set to, because that is how a clinician reads them: the CYP2C9 dial names the genotype it is nearest to (`*1/*1`, `*1/*2`, `*2/*2`, `*1/*3`, `*2/*3`, `*3/*3`, from the allele activities of the marimo application of the model), the cirrhosis dial names the Child-Pugh class, and the kidney dial names the stage of impairment.
+The tablets object is the course rather than a property of the person: one tablet every 24 hours, and the course runs to the end of the day of the last of them. One tablet is one day, which is the question this table asks. The table solves that course, and the clock then runs along it by itself, over and over, so the drug arrives and leaves without anything to wind.
 
-The body itself is no object of this table any more: it is the person the whole collection is set to, which is asked for on the first screen and switched in the settings in the far corner. The male reference adult weighs 73 kg and is 176 cm tall, the female one 60 kg and 163 cm, which is ICRP 89 as the pkpdsim physiology carries it, and a body of another age carries the weight and the height of that age. The organs, their blood flows, the volume the drug is distributed in and the dose the dial rests at all follow that body.
-
-The tablets object is the course rather than a property of the person: one tablet every 24 hours for as many mornings as it is turned to, and the course runs to the end of the day of the last of them. One tablet is therefore one day, which is the question this table asks: what a single tablet does between this morning and the next. The table solves that course and the clock of the table then runs along it by itself, over and over, so a visitor sees the drug arrive and leave without having to wind anything.
+Who the person is comes from the first screen and the settings in the far corner, not from an object. The organs, their blood flows, the volume the drug is distributed in and the dose the dial rests at all follow that body.
 
 ## What the table shows
 
-The individual, with a bubble on every part of the body the model carries: the gut with the tablet which has not been taken up, the liver, the blood, the lungs, the kidneys, the rest of the body and what has left it. The area of a bubble is what that part holds, counted in millimoles of glimepiride and of the two metabolites together, because one molecule of the drug becomes one of M1 and then one of M2: the bubbles are the dose which was swallowed, wherever it has got to. The names stand in a column at each side of the figure, with a thread to the bubble they belong to, because the chest of a body holds three of them.
-
-The six numbers of the band, with the change against the reference individual under each one. Hovering one, or resting a finger on it, says what it is:
+The individual carries a bubble on every part of the body the model holds: the gut with the tablet that has not been taken up, the liver, the blood, the lungs, the kidneys, the rest of the body and what has left it. The area of a bubble is what that part holds, counted in millimoles of glimepiride and both metabolites together, because one molecule of the drug becomes one of M1 and then one of M2. The bubbles are the dose that was swallowed, wherever it has got to.
 
 | Number | What it is |
 | --- | --- |
-| Plasma now | The plasma concentration of glimepiride at the hour the running clock has reached, in uM |
+| Plasma now | The plasma concentration of glimepiride at the hour the clock has reached, in uM |
 | Peak plasma | The highest plasma concentration of the course |
 | Time of the peak | When it is reached, in hours after the dose |
-| Half life | The half life of the terminal part of the course, from a straight line through its logarithm |
+| Half life | The half life of the terminal part, from a straight line through its logarithm |
 | Exposure | The area under the course that was simulated |
 | M1 and M2 in urine | What has arrived in the urine at the end of the course, in umole |
 
-The plot beside the body is the plasma course of glimepiride, M1 and M2. The three are read in the same unit and therefore share one scale, so their heights can be compared, and the same individual at the reference is drawn behind them as a dashed line. The cursor of the running clock walks along it, and the bubbles on the body are that same moment.
+The plot beside the body is the plasma course of glimepiride, M1 and M2. All three share one scale, so their heights can be compared, and the same individual at the reference is dashed behind them. The cursor walks along it, and the bubbles on the body are that same moment.
 
 ## Things to try
 
-- **The poor metabolizer.** Turn the CYP2C9 dial down to `*3/*3`. Glimepiride is cleared more slowly, the peak and the exposure rise, the half life lengthens and less M1 and M2 reach the urine: the dose that is right for a wild type individual is too much for this one.
+- **The poor metabolizer.** Turn the CYP2C9 dial down to `*3/*3`. Glimepiride is cleared more slowly, the peak and the exposure rise, the half life lengthens and less M1 and M2 reach the urine. The dose that is right for a wild type individual is too much for this one.
 - **The cirrhotic liver.** Turn the cirrhosis dial to CPT C. The liver loses functional mass and perfusion at once, and the parent accumulates.
-- **The failing kidney.** Turn the clearance dial down to severe. Glimepiride itself hardly notices, because it leaves through the liver, but M1 and M2 stay in the plasma and little arrives in the urine.
-- **Two things at once.** Put the poor metabolizer and the cirrhotic liver on the table together and wind the hour dial back through the first hours: this is the patient a label warns about.
+- **The failing kidney.** Turn the clearance dial down to severe. Glimepiride itself hardly notices, because it leaves through the liver, but M1 and M2 stay in the plasma.
+- **Two things at once.** Put the poor metabolizer and the cirrhotic liver on the table together. This is the patient a label warns about.
 
 ## Where the numbers come from
 
-The model is the SBML of its own repository, compiled here by `scripts/export_model.py` with the same release of sbmlsim-core that pkpdsim exports its examples with, so a model exported here and one exported there run on the same runtime:
+The model is the SBML of its own repository, compiled here by `scripts/export_model.py` with the same release of sbmlsim-core that pkpdsim exports its examples with:
 
 ```bash
 npm run export:glimepiride            # expects a glimepiride-model checkout beside this one
 GLIMEPIRIDE_MODEL=/path/to/glimepiride_body_flat.xml npm run export:glimepiride
 ```
 
-The individual becomes five parameters of that model (`PODOSE_gli`, `LI__f_cyp2c9`, `f_cirrhosis`, `KI__f_renal_function`, `BW`), which are set before the initial values are resolved, because that is how an oral dose is given: the tablet is in the intestine when the clock starts. The creatinine clearance is the one control that is not a parameter, the model takes the fraction of the renal function that is left, and a clearance above the reference does not make the kidneys clear more than they can.
+The individual becomes five parameters of that model (`PODOSE_gli`, `LI__f_cyp2c9`, `f_cirrhosis`, `KI__f_renal_function`, `BW`), set before the initial values are resolved, because that is how an oral dose is given: the tablet is in the intestine when the clock starts. The creatinine clearance is the one control that is not a parameter; the model takes the fraction of the renal function that is left, and a clearance above the reference does not make the kidneys clear more than they can.
 
-The pharmacokinetics are arithmetic on the solved course and nothing else: the peak and its time are the largest value of the curve, the exposure is the trapezoid area under the window that was simulated rather than an extrapolation to infinity, and the half life is the slope of a straight line through the logarithm of its last third.
+The pharmacokinetics are arithmetic on the solved course: the peak and its time are the largest value of the curve, the exposure is the trapezoid area under the simulated window rather than an extrapolation to infinity, and the half life is the slope of a straight line through the logarithm of its last third.
 
 ## Run it
 
@@ -79,13 +77,4 @@ npm run export:glimepiride
 npm run dev:glimepiride
 ```
 
-The table is the third card on the body at `http://localhost:5173/`, and `?app=glimepiride` opens it directly.
-
-| Address | What it does |
-| --- | --- |
-| `http://localhost:5173/?app=glimepiride` | On the mouse: keys 1 to 6 place an object, dragging moves it, the wheel turns it, backspace lifts it, escape goes back to the body |
-| `http://localhost:5173/?app=glimepiride&tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
-| `http://localhost:5173/?app=glimepiride&tuio=/tuio` | On the tracker behind the one port of `npm run dev`, which is what `http://localhost:5173/simulator/?table=glimepiride` opens |
-| `http://localhost:5173/?app=glimepiride&tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |
-| `http://localhost:5173/?app=glimepiride&tuio=host:port` | On a tracker somewhere else, which is how a [table](../table.md) is addressed |
-| `http://localhost:5173/?app=glimepiride&sex=female` | The female reference body of 60 kg and 163 cm |
+The table is the green disc on the body at `http://localhost:5173/`, and `?app=glimepiride` opens it directly. `&tuio=/tuio` puts the page on the tracker of the development server, `&tuio=host:port` on a [table](../table.md) somewhere else, and `&sex=female&bw=60` picks who is at it.
