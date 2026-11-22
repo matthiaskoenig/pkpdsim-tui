@@ -162,7 +162,7 @@
 }
 
 .about-sheet {
-  max-width: 64rem;
+  max-width: 86rem;
   margin: 0 auto;
   padding: 1.5rem 1.5rem 2rem;
 }
@@ -186,9 +186,13 @@
   color: var(--ink-dim);
 }
 
+/*
+ * Three columns where the glass is wide enough for them, so the page ends above the lower edge
+ * of a table: there is no scrolling at a table, and what stands below the edge is unreadable.
+ */
 .about-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
   gap: 1rem;
   align-items: start;
 }
@@ -270,11 +274,18 @@
   font-weight: 700;
 }
 
-.about-funding-title {
-  margin-top: 1rem;
+.about-card .about-version {
+  margin: 1rem 0 0;
+  font-size: 0.92rem;
+  color: var(--panel-ink-dim);
+  font-variant-numeric: tabular-nums;
 }
 
-.about-funding {
+.about-card .about-funding-title {
+  margin-top: 1.1rem;
+}
+
+.about-card .about-funding {
   font-size: 0.92rem;
   color: var(--panel-ink-dim);
 }
