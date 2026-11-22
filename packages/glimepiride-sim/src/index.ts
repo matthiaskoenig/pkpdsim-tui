@@ -12,5 +12,5 @@ export type {GlimepirideControl, GlimepirideIndividual, Sex} from "./individual.
 export {finalValue, pharmacokinetics} from "./pk.ts";
 export type {Pharmacokinetics} from "./pk.ts";
 export {
-  GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_SIMULATION, glimepirideRequest, SOLVER_SETTINGS,
+  GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_DOSES, GLIMEPIRIDE_SIMULATION, glimepirideRequest, SOLVER_SETTINGS,
 } from "./request.ts";

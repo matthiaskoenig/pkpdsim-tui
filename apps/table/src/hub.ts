@@ -13,8 +13,8 @@ import type {Body} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
-  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, reportStatus, svg,
-  tokenPoints, words,
+  attributes, chooseQuery, createInfo, createTokenLayer, ICONS, pointerPoints, readStars,
+  reportStatus, svg, tokenPoints, watchStars, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {valuesFromTokens} from "@pkpdsim-tui/tuio-input";
@@ -28,31 +28,30 @@ import {wrapText} from "./wrap.ts";
 
 /** How many lines of motivation stand under the heading, which the layout keeps room for. */
 const MOTIVATION_LINES = 2;
-/** The card of a table, in pixels. */
-const CARD = {height: 158, gap: 22, margin: 28, minWidth: 270, maxWidth: 380} as const;
+/** The icon of a table, in pixels: a big disc of the colour of that table, and its name. */
+const ICON = {radius: 58, margin: 28, label: 34, line: 26, ring: 6} as const;
+/** The room the stars of a table take under its name, in pixels. */
+const STAR_LINE = 30;
 /** The room the heading takes at the top. */
 const HEAD = {top: 78, line: 34, bottom: 78} as const;
-const PADDING: number = 20;
-/** How much of a sentence a card holds: characters on a line, and lines. */
-const COLUMNS = 32;
-const LINES = 2;
-/** The heading of a card, which is the name of a table and may need two lines. */
-const TITLE_COLUMNS = 15;
+const PADDING: number = 26;
+/** The name under an icon, which may need two lines. */
+const TITLE_COLUMNS = 16;
 const TITLE_LINES = 2;
-/** How much of the room inside the ring of cards the figure takes. */
-const BODY_SHARE = 0.62;
-/** What the figure keeps clear of the cards above and below it, in pixels. */
-const BODY_GAP = 54;
-/** The column the box at the right stands in: what the table a visitor is pointing at is. */
-const INFO = {width: 400, margin: 28, top: 168, lines: 7, columns: 42} as const;
+/** What the bodies in the middle keep clear of the icons around them, in pixels. */
+const STRUT = 30;
+/** The sidebar at the right: what the table a visitor is pointing at is, at length. */
+const INFO = {width: 404, margin: 28, top: 168, lines: 13, columns: 40} as const;
+/** The room the laboratory block takes in the bottom corner, which the sidebar stops above. */
+const LAB_HEIGHT = 96;
 /** How long the object of the table switch is held still before that table opens, in ms. */
 const HOLD = 1500;
 /**
- * Where the cards sit on the ring around the figure, in degrees, clockwise from the top. One
- * body in the middle and the tables around it says what the collection is: five ways of looking
- * at the same person.
+ * Where the icons sit on the ring around the disc, in degrees, clockwise from the top. The
+ * bodies in the middle and the tables around them say what the collection is: four ways of
+ * looking at the same person.
  */
-const RING: readonly number[] = [-90, -18, 54, 126, 198];
+const RING: readonly number[] = [-90, 0, 90, 180];
 /**
  * How close to the organ of a table a finger has to be to open it, in pixels. The organs of the
  * body are a few centimetres apart, so a mark never reaches further than halfway to its
@@ -67,18 +66,18 @@ interface CardBox {
   readonly height: number;
 }
 
-/** One card: the elements which move when the surface is resized. */
-interface CardView {
+/** One icon: the elements which move when the surface is resized. */
+interface IconView {
   readonly entry: TableEntry;
   readonly group: SVGGElement;
-  readonly plate: SVGRectElement;
-  readonly badge: SVGCircleElement;
+  readonly disc: SVGCircleElement;
+  readonly ring: SVGCircleElement;
+  readonly arm: SVGCircleElement;
   readonly picture: SVGGElement;
   readonly title: readonly SVGTextElement[];
-  readonly lines: readonly SVGTextElement[];
-  readonly call: SVGTextElement;
-  readonly arm: SVGRectElement;
-  box: CardBox;
+  /** The stars this table has been answered with, which came from its quiz. */
+  readonly stars: SVGTextElement;
+  centre: {x: number; y: number};
 }
 
 /** One of the two figures in the middle: the woman and the man the tables are solved on. */
@@ -86,7 +85,6 @@ interface BodyView {
   readonly sex: "male" | "female";
   readonly body: Body;
   readonly art: SVGGElement;
-  readonly name: SVGTextElement;
   layout: {scale: number; left: number; top: number};
   marks: OrganMark[];
 }
@@ -101,47 +99,68 @@ interface OrganMark {
   reach: number;
 }
 
-/** The room the bodies and the ring of cards share: everything under the heading, left of the
- * box which says what a table is. */
+/** The room the bodies and the ring of icons share: everything under the heading, left of the
+ * sidebar which says what a table is. */
 function stageOf(viewport: Viewport): CardBox {
   const top = HEAD.top + HEAD.line * MOTIVATION_LINES + HEAD.bottom;
-  // The box at the right says what the table under the object is, and the ring keeps clear of it.
-  const column = viewport.width > 1180 ? INFO.width + 2 * INFO.margin : CARD.margin;
+  // The sidebar says what the table under the object is, and the ring keeps clear of it.
+  const column = viewport.width > 1180 ? INFO.width + 2 * INFO.margin : ICON.margin;
   return {
-    x: CARD.margin,
+    x: ICON.margin,
     y: top,
-    width: Math.max(420, viewport.width - column - CARD.margin),
-    height: Math.max(360, viewport.height - CARD.margin - top),
+    width: Math.max(420, viewport.width - column - ICON.margin),
+    height: Math.max(360, viewport.height - ICON.margin - top),
   };
 }
 
-/** Where the cards sit: on a ring around the figure, evenly, starting at the top. */
-function cardBoxes(stage: CardBox, count: number): readonly CardBox[] {
-  const width = Math.min(CARD.maxWidth, Math.max(CARD.minWidth, Math.round(stage.width * 0.25)));
-  const height = CARD.height;
+/** Where the icons sit: on a ring around the figures, evenly, starting at the top. */
+function iconSpots(
+  stage: CardBox, count: number,
+): readonly {x: number; y: number; above: boolean}[] {
   const centre = {x: stage.x + stage.width / 2, y: stage.y + stage.height / 2};
-  const rx = stage.width / 2 - width / 2;
-  const ry = stage.height / 2 - height / 2;
+  const radius = ringRadius(stage);
   return Array.from({length: count}, (_unused, index) => {
-    const angle = (RING[index % RING.length] ?? 0) * Math.PI / 180;
+    const degrees = RING[index % RING.length] ?? 0;
+    const angle = degrees * Math.PI / 180;
     return {
-      x: centre.x + rx * Math.cos(angle) - width / 2,
-      y: centre.y + ry * Math.sin(angle) - height / 2,
-      width, height,
+      x: centre.x + radius * Math.cos(angle),
+      y: centre.y + radius * Math.sin(angle),
+      // The name of the icon over the heads is read above it, where the heading leaves room:
+      // under it is where the bodies stand.
+      above: degrees === -90,
     };
   });
 }
 
-/** The room inside the ring: what is left between the card above and the card below. */
+/** The dark disc the two bodies stand on, in the middle of the ring of icons. */
+function discOf(stage: CardBox): {x: number; y: number; r: number} {
+  const centre = {x: stage.x + stage.width / 2, y: stage.y + stage.height / 2};
+  // What the ring leaves in the middle: the room inside it, less what an icon takes of it.
+  return {...centre, r: Math.max(130, ringRadius(stage) - ICON.radius - STRUT)};
+}
+
+/**
+ * The ring the tables stand on. It is a circle, so every table is the same distance from the
+ * bodies in the middle and none of them looks nearer than the others, and it is as wide as the
+ * narrower side of the stage allows once an icon, its name over two lines and the stars of its
+ * quiz are on it.
+ */
+function ringRadius(stage: CardBox): number {
+  const across = stage.width / 2 - ICON.radius - 92;
+  const down = stage.height / 2 - ICON.radius - ICON.label - ICON.line - STAR_LINE;
+  return Math.min(across, down);
+}
+
+/**
+ * The room the two figures take on the disc: as tall as the disc allows with their names under
+ * their feet, which is what makes them a portrait rather than a diagram.
+ */
 function bodyBox(stage: CardBox): CardBox {
-  const inner = stage.height - 2 * CARD.height - 2 * BODY_GAP;
-  const height = Math.max(220, Math.min(stage.height * BODY_SHARE, inner));
-  return {
-    x: stage.x,
-    y: stage.y + (stage.height - height) / 2,
-    width: stage.width,
-    height,
-  };
+  const disc = discOf(stage);
+  // As tall as the ring leaves room for, which is what makes the two of them the thing in the
+  // middle rather than a pair of marks between the icons.
+  const height = disc.r * 1.9;
+  return {x: disc.x - disc.r, y: disc.y - height / 2, width: 2 * disc.r, height};
 }
 
 function anchorOf(body: Body, id: string): {x: number; y: number} {
@@ -157,67 +176,82 @@ function hintFor(voice: Voice, tracker: TrackerOptions, state: TableStatus["stat
   return words(voice).waitingHint(tracker.version, tracker.address);
 }
 
-function createCard(
-  parent: SVGGElement, entry: TableEntry, call: string, voice: Voice,
+/** How far around the arming ring of an icon goes: its whole circumference. */
+const ARM_LENGTH = 2 * Math.PI * (ICON.radius + ICON.ring);
+
+function createIcon(
+  parent: SVGGElement, entry: TableEntry, voice: Voice,
   open: (entry: TableEntry) => void, point: (entry: TableEntry | undefined) => void,
-): CardView {
+): IconView {
   const copy = entryCopy(voice, entry.id);
   const group = svg("g", {
-    class: "hub-card", role: "button", tabindex: 0,
-    // A finger has no click: it opens the card it rests on, and the card fills while it does.
+    class: "hub-icon", role: "button", tabindex: 0,
+    // A finger has no click: it opens the icon it rests on, and the icon fills while it does.
     "data-dwell": `app:${entry.id}`,
   }, parent);
-  // What the table is, for the visitor who wants more than the card says: it stands in the box
-  // at the right, which is one place to read rather than a note wherever the hand is.
+  // What the table is, for the visitor who wants more than its name: it stands in the sidebar,
+  // which is one place to read rather than a note wherever the hand is.
   group.addEventListener("pointerenter", () => point(entry));
   group.addEventListener("pointerleave", () => point(undefined));
-  const plate = svg("rect", {class: "hub-card-plate", rx: 18}, group);
-  const badge = svg("circle", {class: "hub-card-badge", r: 22}, group);
+  // The ring around the disc, which the object fills while it is held on this table.
+  const ring = svg("circle", {
+    class: "hub-icon-ring", r: ICON.radius + ICON.ring, fill: "none", stroke: entry.color,
+  }, group);
+  const arm = svg("circle", {
+    class: "hub-icon-arm", r: ICON.radius + ICON.ring, fill: "none", stroke: entry.color,
+    "stroke-dasharray": ARM_LENGTH, "stroke-dashoffset": ARM_LENGTH,
+  }, group);
+  const disc = svg("circle", {class: "hub-icon-disc", r: ICON.radius, fill: entry.color}, group);
   // The picture of the table, which is the object a visitor will have in their hand on it.
-  const picture = svg("g", {class: "hub-card-picture"}, group);
+  const picture = svg("g", {class: "hub-icon-picture"}, group);
   svg("path", {
-    class: "hub-card-icon", d: (ICONS[entry.picture as GlyphKind] ?? []).join(" "),
+    class: "hub-icon-glyph", d: (ICONS[entry.picture as GlyphKind] ?? []).join(" "),
   }, picture);
   const title = wrapText(copy.title, TITLE_COLUMNS, TITLE_LINES).map(text => {
-    const element = svg("text", {class: "hub-card-title"}, group);
+    const element = svg("text", {class: "hub-icon-title", "text-anchor": "middle"}, group);
     element.textContent = text;
     return element;
   });
-  const lines = wrapText(voice.say(copy.blurb), COLUMNS, LINES).map(text => {
-    const element = svg("text", {class: "hub-card-line"}, group);
-    element.textContent = text;
-    return element;
-  });
-  const opener = svg("text", {class: "hub-card-call"}, group);
-  opener.textContent = call;
-  const arm = svg("rect", {class: "hub-card-arm", height: 4}, group);
+  // What a visitor took from this table: one star a question, from the quiz on it.
+  const stars = svg("text", {
+    class: "hub-icon-stars", "text-anchor": "middle", fill: entry.color,
+  }, group);
   group.addEventListener("click", () => open(entry));
   group.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     open(entry);
   });
-  return {
-    entry, group, plate, badge, picture, title, lines, call: opener, arm,
-    box: {x: 0, y: 0, width: 0, height: 0},
-  };
+  return {entry, group, disc, ring, arm, picture, title, stars, centre: {x: 0, y: 0}};
 }
 
-function placeCard(card: CardView, box: CardBox): void {
-  card.box = box;
-  attributes(card.plate, {x: box.x, y: box.y, width: box.width, height: box.height});
-  const centre = {x: box.x + PADDING + 22, y: box.y + PADDING + 22};
-  attributes(card.badge, {cx: centre.x, cy: centre.y});
-  card.picture.setAttribute("transform", `translate(${centre.x} ${centre.y}) scale(0.48)`);
-  for (const [index, line] of card.title.entries()) {
-    attributes(line, {x: box.x + PADDING + 58, y: box.y + PADDING + 22 + index * 26});
+function placeIcon(
+  icon: IconView, centre: {x: number; y: number}, above: boolean,
+): void {
+  icon.centre = centre;
+  for (const circle of [icon.disc, icon.ring, icon.arm]) {
+    attributes(circle, {cx: centre.x, cy: centre.y});
   }
-  const under = box.y + PADDING + 22 + Math.max(card.title.length, 2) * 26;
-  for (const [index, line] of card.lines.entries()) {
-    attributes(line, {x: box.x + PADDING, y: under + index * 20});
+  // The ring fills from the top, which is where a hand expects a clock to start.
+  icon.arm.setAttribute("transform", `rotate(-90 ${centre.x} ${centre.y})`);
+  icon.picture.setAttribute(
+    "transform", `translate(${centre.x} ${centre.y}) scale(${(ICON.radius / 46).toFixed(3)})`);
+  for (const [index, line] of icon.title.entries()) {
+    const under = centre.y + ICON.radius + ICON.label + index * ICON.line;
+    const over = centre.y - ICON.radius - ICON.label
+      - (icon.title.length - 1 - index) * ICON.line
+      - (above ? STAR_LINE : 0);
+    attributes(line, {x: centre.x, y: above ? over : under});
   }
-  attributes(card.call, {x: box.x + PADDING, y: box.y + box.height - PADDING + 4});
-  attributes(card.arm, {x: box.x, y: box.y + box.height - 4, width: box.width});
+  // The stars stand on the far side of the name from the icon, which keeps the row of them
+  // out of the middle where the bodies are.
+  const lines = icon.title.length;
+  attributes(icon.stars, {
+    x: centre.x,
+    y: above
+      ? centre.y - ICON.radius - ICON.label - (lines - 1) * ICON.line + STAR_LINE - 4
+      : centre.y + ICON.radius + ICON.label + (lines - 1) * ICON.line + STAR_LINE,
+  });
 }
 
 export const startOverview: TableApp = async (host: TableHost): Promise<void> => {
@@ -252,11 +286,24 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   // note of its own.
   const box = svg("g", {class: "hub-info"}, scene);
   const boxPlate = svg("rect", {class: "hub-info-plate", rx: 18}, box);
+  // The colour of the table runs down the edge of the sidebar and behind its picture.
+  const boxBar = svg("rect", {class: "hub-info-bar"}, box);
+  const boxDisc = svg("circle", {class: "hub-info-disc", r: 42}, box);
   const boxTitle = svg("text", {class: "hub-info-title"}, box);
   const boxPicture = svg("g", {class: "hub-info-picture"}, box);
   const boxIcon = svg("path", {class: "hub-info-icon"}, boxPicture);
   const boxLines = Array.from(
     {length: INFO.lines}, () => svg("text", {class: "hub-info-line"}, box));
+  // While nothing is chosen the sidebar is the key of the five colours, which is what makes an
+  // icon on the ring and an organ on the body the same table.
+  const legend = svg("g", {class: "hub-legend"}, box);
+  const keys = TABLES.map(entry => {
+    const row = svg("g", {class: "hub-legend-row"}, legend);
+    const dot = svg("circle", {class: "hub-legend-dot", r: 11, fill: entry.color}, row);
+    const name = svg("text", {class: "hub-legend-name"}, row);
+    name.textContent = entryCopy(voice, entry.id).title;
+    return {dot, name};
+  });
   const boxCall = svg("text", {class: "hub-info-call"}, box);
   // The foot of the page: whose laboratory this is, and the square a visitor points a phone at.
   const foot = svg("g", {class: "hub-foot"}, scene);
@@ -295,9 +342,20 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const call = !tracker.tracker
     ? copy.clickToOpen
     : tracker.discovered ? copy.bothToOpen : copy.touchToOpen;
-  const cards: CardView[] = TABLES.map(
-    entry => createCard(row, entry, call, voice, open, entry2 => point(entry2)));
-  const leaders = TABLES.map(() => svg("path", {class: "hub-link"}, links));
+  const icons: IconView[] = TABLES.map(
+    entry => createIcon(row, entry, voice, open, entry2 => point(entry2)));
+
+  /** The stars every table has been answered with, which its quiz keeps for it. */
+  const paintStars = (): void => {
+    const stars = readStars();
+    for (const icon of icons) {
+      const won = stars[icon.entry.id] ?? 0;
+      icon.stars.textContent = won > 0 ? "★".repeat(won) : "";
+    }
+  };
+  paintStars();
+  watchStars(paintStars);
+
 
   // The woman and the man, side by side: the two reference bodies every table is solved on. The
   // page shows both of them, and the switch between them belongs to a table, where a body is
@@ -312,10 +370,8 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     // The exported body carries its own fills and is generated by pkpdsim, so it goes in as it
     // comes.
     art.innerHTML = body.svg;
-    const name = svg("text", {class: "hub-body-name", "text-anchor": "middle"}, figure);
-    name.textContent = sex === "male" ? kit.male : kit.female;
     return [{
-      sex, body, art, name, layout: {scale: 1, left: 0, top: 0}, marks: [] as OrganMark[],
+      sex, body, art, layout: {scale: 1, left: 0, top: 0}, marks: [] as OrganMark[],
     }];
   });
   if (views.length === 0) throw new Error("The anatomy holds no body.");
@@ -336,7 +392,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       hit.addEventListener("pointerleave", () => point(undefined));
       return [{
         entry, organ: entry.organ,
-        disc: svg("circle", {class: "hub-organ", r: 15}, organs),
+        disc: svg("circle", {class: "hub-organ", r: 15, stroke: entry.color}, organs),
         hit, centre: {x: 0, y: 0}, reach: ORGAN_HIT.min as number,
       }];
     });
@@ -360,40 +416,54 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   /** The object has to be turned once before it opens anything: it opens what a visitor chose. */
   let moved = false;
 
-  /** How many lines the box is holding, which is what it is as tall as. */
-  let boxUsed = 0;
-
-  /** The box is as tall as what it says, so that it never stands half empty. */
+  /** The sidebar stands from under the settings to over the laboratory, whatever it says. */
   const placeBox = (): void => {
     const left = viewport.width - INFO.margin - INFO.width;
-    const height = 92 + boxUsed * 27 + (boxCall.textContent === "" ? 24 : 58);
+    const height = Math.max(
+      320, viewport.height - INFO.top - ICON.margin - LAB_HEIGHT - 24);
     attributes(boxPlate, {x: left, y: INFO.top, width: INFO.width, height});
-    const inside = left + 26;
-    attributes(boxTitle, {x: inside, y: INFO.top + 50});
+    const inside = left + PADDING + 4;
+    attributes(boxBar, {x: left, y: INFO.top, width: 6, height});
+    attributes(boxDisc, {cx: inside + 34, cy: INFO.top + 62});
     boxPicture.setAttribute(
-      "transform", `translate(${left + INFO.width - 46} ${INFO.top + 40}) scale(0.46)`);
+      "transform", `translate(${inside + 34} ${INFO.top + 62}) scale(0.72)`);
+    attributes(boxTitle, {x: inside, y: INFO.top + 142});
     for (const [index, line] of boxLines.entries()) {
-      attributes(line, {x: inside, y: INFO.top + 90 + index * 27});
+      attributes(line, {x: inside, y: INFO.top + 190 + index * 27});
     }
-    attributes(boxCall, {x: inside, y: INFO.top + height - 26});
+    // The key stands under what the sidebar says, which is three lines while nothing is chosen.
+    const under = INFO.top + 190 + 3 * 27 + 26;
+    for (const [index, key] of keys.entries()) {
+      attributes(key.dot, {cx: inside + 11, cy: under + index * 44});
+      attributes(key.name, {x: inside + 36, y: under + index * 44 + 7});
+    }
+    attributes(boxCall, {x: inside, y: INFO.top + height - 28});
   };
 
-  /** What the box at the right says: a table, or what this page is while nothing is chosen. */
+  /** What the sidebar says: a table, or what this page is while nothing is chosen. */
   const showBox = (entry: TableEntry | undefined): void => {
     const title = entry === undefined ? copy.pickTitle : entryCopy(voice, entry.id).title;
     const text = entry === undefined
-      ? voice.say(copy.pickText) : voice.say(entryCopy(voice, entry.id).about);
+      ? voice.say(copy.pickText)
+      : `${voice.say(entryCopy(voice, entry.id).blurb)} `
+        + `${voice.say(entryCopy(voice, entry.id).about)}`;
     boxTitle.textContent = title;
     boxIcon.setAttribute(
       "d", entry === undefined ? "" : (ICONS[entry.picture as GlyphKind] ?? []).join(" "));
     boxPicture.setAttribute("opacity", entry === undefined ? "0" : "1");
+    // The sidebar wears the colour of the table it is about, so the icon, the organ on the
+    // body and the words are read as one thing.
+    const colour = entry?.color ?? "var(--accent)";
+    boxBar.setAttribute("fill", colour);
+    boxDisc.setAttribute("fill", colour);
+    boxDisc.setAttribute("opacity", entry === undefined ? "0" : "1");
     const lines = wrapText(text, INFO.columns, INFO.lines);
-    boxUsed = lines.length;
     for (const [index, line] of boxLines.entries()) line.textContent = lines[index] ?? "";
+    legend.setAttribute("opacity", entry === undefined ? "1" : "0");
     boxCall.textContent = entry === undefined
       ? "" : turned?.id === entry.id ? copy.holdToOpen : call;
-    for (const card of cards) {
-      card.group.setAttribute("data-selected", String(card.entry.id === entry?.id));
+    for (const icon of icons) {
+      icon.group.setAttribute("data-selected", String(icon.entry.id === entry?.id));
     }
     placeBox();
   };
@@ -407,18 +477,20 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
 
   const draw = (): void => {
     const stage = stageOf(viewport);
-    const boxes = cardBoxes(stage, TABLES.length);
-    for (const [index, card] of cards.entries()) {
-      const box = boxes[index];
-      if (box !== undefined) placeCard(card, box);
+    const spots = iconSpots(stage, TABLES.length);
+    for (const [index, icon] of icons.entries()) {
+      const spot = spots[index];
+      if (spot !== undefined) placeIcon(icon, spot, spot.above);
     }
     // The woman and the man stand side by side in the middle of the ring, both at the scale of
-    // the taller of them, so that the two bodies can be compared rather than only looked at.
+    // the taller of them, so that the two can be compared rather than only looked at.
+    const disc = discOf(stage);
     const room = bodyBox(stage);
     const tallest = Math.max(...views.map(one => one.body.height));
     const scale = room.height / tallest;
     const widths = views.map(one => one.art.getBBox().width * scale);
-    const gap = 44;
+    // The two bodies stand close together, as one thing in the middle of the ring.
+    const gap = Math.round(disc.r * 0.02);
     const total = widths.reduce((sum, width) => sum + width, 0) + gap * (views.length - 1);
     let cursor = stage.x + (stage.width - total) / 2;
     for (const [index, one] of views.entries()) {
@@ -427,12 +499,10 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
       const top = room.y + (room.height - one.body.height * scale);
       one.layout = {scale, left, top};
       one.art.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
-      // The word stands over the body, where the ring of cards leaves room for it.
-      attributes(one.name, {x: cursor + (widths[index] ?? 0) / 2, y: room.y - 14});
       cursor += (widths[index] ?? 0) + gap;
     }
 
-    const marks = views.flatMap(one => one.marks);
+
     for (const one of views) {
       for (const mark of one.marks) {
         const anchor = anchorOf(one.body, mark.organ);
@@ -451,49 +521,21 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
         mark.hit.setAttribute("r", String(mark.reach));
       }
     }
-    // Every card points at the organ its table is about, which is what the ring is around.
-    for (const [index, card] of cards.entries()) {
-      const leader = leaders[index];
-      if (leader === undefined) continue;
-      const from = {
-        x: card.box.x + card.box.width / 2, y: card.box.y + card.box.height / 2,
-      };
-      // Both bodies carry the organ, so a card points at the nearer of the two.
-      const target = marks
-        .filter(mark => mark.organ === card.entry.organ)
-        .sort((left, right) =>
-          Math.hypot(left.centre.x - from.x, left.centre.y - from.y)
-          - Math.hypot(right.centre.x - from.x, right.centre.y - from.y))[0];
-      if (target === undefined) {
-        leader.removeAttribute("d");
-        continue;
-      }
-      const sideways = Math.abs(target.centre.x - from.x) > Math.abs(target.centre.y - from.y);
-      const start = sideways
-        ? {
-          x: target.centre.x < from.x ? card.box.x : card.box.x + card.box.width,
-          y: card.box.y + card.box.height / 2,
-        }
-        : {
-          x: card.box.x + card.box.width / 2,
-          y: target.centre.y < from.y ? card.box.y : card.box.y + card.box.height,
-        };
-      leader.setAttribute("d", `M ${start.x} ${start.y} L ${target.centre.x} ${target.centre.y}`);
-    }
 
-    // The heading stands over the ring, which is the room left of the box.
+
+    // The heading stands over the ring, which is the room left of the sidebar.
     const middle = stage.x + stage.width / 2;
     attributes(heading, {x: middle, y: HEAD.top});
     for (const [index, line] of motivation.entries()) {
       attributes(line, {x: middle, y: HEAD.top + 44 + index * HEAD.line});
     }
-    // The box at the right, under the settings along the top.
+    // The sidebar at the right, under the settings along the top.
     placeBox();
     // The laboratory in the bottom right corner: the square a phone is pointed at, and the
     // three lines beside it, which open the page about all of this.
     const square = 84;
-    const base = viewport.height - CARD.margin - square;
-    const right = viewport.width - CARD.margin;
+    const base = viewport.height - ICON.margin - square;
+    const right = viewport.width - ICON.margin;
     qr.setAttribute(
       "transform", `translate(${right - square} ${base}) scale(${square / LAB_QR_SIZE})`);
     const text = right - square - 14;
@@ -550,15 +592,15 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const holding = (now: number): void => {
     window.requestAnimationFrame(holding);
     const entry = turned;
-    const card = cards.find(one => one.entry.id === entry?.id);
-    for (const one of cards) {
-      if (one !== card) one.arm.style.transform = "";
+    const icon = icons.find(one => one.entry.id === entry?.id);
+    for (const one of icons) {
+      if (one !== icon) one.arm.setAttribute("stroke-dashoffset", String(ARM_LENGTH));
     }
-    if (entry === undefined || card === undefined || !moved) return;
+    if (entry === undefined || icon === undefined || !moved) return;
     const held = Math.min(1, (now - turnedAt) / HOLD);
-    card.arm.style.transform = `scaleX(${held.toFixed(3)})`;
+    icon.arm.setAttribute("stroke-dashoffset", (ARM_LENGTH * (1 - held)).toFixed(1));
     if (held >= 1) {
-      card.arm.style.transform = "";
+      icon.arm.setAttribute("stroke-dashoffset", String(ARM_LENGTH));
       open(entry);
     }
   };

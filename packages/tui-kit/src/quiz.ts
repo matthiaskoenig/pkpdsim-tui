@@ -12,6 +12,7 @@
  */
 
 import type {Voice} from "./voice.ts";
+import {keepStars, starMarks, starsOf} from "./stars.ts";
 import {words} from "./words.ts";
 
 export interface QuizChoice {
@@ -41,6 +42,8 @@ export interface Quiz {
 export interface QuizOptions {
   readonly voice: Voice;
   readonly questions: readonly QuizQuestion[];
+  /** The table the stars of a run belong to, which the landing page shows them on. */
+  readonly table?: string;
 }
 
 function escapeHtml(value: string): string {
@@ -68,6 +71,7 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
     <div class="quiz-card" hidden>
       <div class="quiz-head">
         <span class="quiz-step"></span>
+        <span class="quiz-stars" aria-hidden="true"></span>
         <div class="quiz-head-buttons">
           <button class="quiz-close" type="button" data-dwell="quiz-close"
             aria-label="${escapeHtml(copy.close)}">${escapeHtml(copy.close)}</button>
@@ -93,6 +97,9 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
   const because = root.querySelector(".quiz-because") as HTMLElement;
   const tried = root.querySelector(".quiz-try") as HTMLElement;
   const next = root.querySelector(".quiz-next") as HTMLElement;
+  const stars = root.querySelector(".quiz-stars") as HTMLElement;
+  const label = root.querySelector(".quiz-button-label") as HTMLElement;
+  const table = options.table ?? "";
 
   let at = 0;
   let right = 0;
@@ -108,6 +115,11 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
   const draw = (): void => {
     const question = questions[at];
     root.dataset["open"] = String(card.hidden === false);
+    // What this run has won so far, and what the table has won on its best run: the stars are
+    // the same marks in both places, so a visitor sees on the landing page what they did here.
+    stars.textContent = starMarks(right, questions.length);
+    const best = table === "" ? 0 : starsOf(table);
+    label.textContent = best > 0 ? `${copy.title} ${"★".repeat(best)}` : copy.title;
     if (done || question === undefined) {
       step.innerHTML = marks();
       ask.textContent = copy.score(right, questions.length);
@@ -144,7 +156,11 @@ export function createQuiz(container: HTMLElement, options: QuizOptions): Quiz {
     if (question === undefined || answered) return;
     answered = true;
     const correct = choice === question.answer;
-    if (correct) right += 1;
+    if (correct) {
+      right += 1;
+      // A star is won the moment it is answered, so a visitor who walks away keeps it.
+      if (table !== "") keepStars(table, right);
+    }
     for (const element of choices.querySelectorAll(".quiz-choice")) {
       const id = element.getAttribute("data-choice");
       element.setAttribute("data-right", String(id === question.answer));

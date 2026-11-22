@@ -13,7 +13,6 @@
 | `packages/perfusion-sim` | The machine perfusion: the settings of the machine, the parameters they are, and the request that solves six hours of it |
 | `packages/tuio-simulator` | The TUIO simulator: a control page and the tracker that serves it, on plain `node`, in either version of the protocol and over either transport |
 | `packages/cardiovascular-table` | The cardiovascular table: its scene, its objects, its cards and what it says about itself |
-| `packages/liver-table` | The liver table: the two supplies, one lobule, and the way into the tables which follow it |
 | `packages/lobes-table` | The lobed liver table |
 | `packages/glimepiride-table` | The glimepiride table |
 | `packages/perfusion-table` | The machine perfusion table |

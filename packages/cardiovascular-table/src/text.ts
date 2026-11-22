@@ -15,13 +15,10 @@ export interface CardioFacts {
   /** What the objects have done, as keys, in the order they were found. */
   readonly done: readonly CardioDone[];
   readonly rate: string;
-  /** The portal pressure, when the blood is backing up in front of the liver. */
-  readonly portal: string | undefined;
 }
 
 export type CardioDone =
-  | "hepaticUp" | "hepaticDown" | "portalUp" | "systemicUp" | "systemicDown" | "renalUp"
-  | "rate" | "weak" | "strong";
+  | "systemicUp" | "systemicDown" | "renalUp" | "rate" | "weak" | "strong";
 
 export interface CardioCopy {
   readonly about: Phrase;
@@ -31,16 +28,32 @@ export interface CardioCopy {
   readonly stats: Readonly<Record<
     "systolic" | "diastolic" | "co" | "stroke" | "ppo" | "gradient", Named>>;
   readonly roles: Readonly<Record<
-    "hepatic" | "systemic" | "portal" | "renal" | "heartRate" | "contractility", Named>>;
+    "systemic" | "renal" | "heartRate" | "contractility", Named>>;
   readonly notes: Readonly<Record<
-    "hepatic" | "systemic" | "portal" | "renal" | "heartRate" | "contractility",
-    (value: string) => string>>;
+    "systemic" | "renal" | "heartRate" | "contractility", (value: string) => string>>;
   readonly pulse: {
     readonly title: string;
     readonly aorta: string;
     readonly ventricle: string;
     /** What the dashed curve behind the beats is: the heart before anything was turned. */
     readonly baseline: string;
+  };
+  /** The beats of the last minute, which is how a faster heart is counted. */
+  readonly beats: {
+    readonly title: string;
+    readonly count: (beats: string) => string;
+  };
+  /** The monitor of the liver: the blood through it and the pressures around it, over a minute. */
+  readonly hepatic: {
+    readonly title: string;
+    readonly flowTitle: string;
+    readonly gradient: string;
+    readonly total: string;
+    readonly portal: string;
+    readonly artery: string;
+    readonly portalPressure: string;
+    readonly liverPressure: string;
+    readonly window: (seconds: number) => string;
   };
   readonly organNote: (name: string, flow: string, share: string, portal: boolean) => string;
   readonly lungNote: (flow: string) => string;
@@ -88,7 +101,7 @@ const EN: CardioCopy = {
       answer: "gut",
       because: "The portal vein carries the blood of the gut to the liver, so everything that was"
         + " eaten passes the liver before it reaches the rest of the body.",
-      tryIt: "Try it: turn the portal resistance and watch what the liver still gets.",
+      tryIt: "Try it: watch the portal vein on the monitor of the liver while the heart changes.",
     },
   ],
   about: {
@@ -103,9 +116,9 @@ const EN: CardioCopy = {
       expert: "Turn 1 up: the rate rises, the filling time falls, and the stroke volume follows the compiled heart.",
     },
     {
-      child: "Turn object 4: the blood cannot get out of the liver, and it piles up in front of it.",
-      adult: "Turn 4 up: the blood cannot leave the liver, and the pressure in front of it rises.",
-      expert: "Turn 4 up: hepatic outflow obstruction raises the portal pressure and the gradient over the liver.",
+      child: "Turn object 3: the vessels of the body get narrow, and the heart has to push harder.",
+      adult: "Turn 3 up: the vessels of the body narrow, the pressure rises and the heart moves less blood.",
+      expert: "Turn 3 up: the systemic resistance rises, the afterload with it, and the cardiac output falls.",
     },
   ],
   stats: {
@@ -159,28 +172,12 @@ const EN: CardioCopy = {
     },
   },
   roles: {
-    hepatic: {
-      label: {child: "The way out of the liver", adult: "Hepatic outflow"},
-      info: {
-        child: "How easily the blood gets out of the liver again. Close it, and the blood piles up.",
-        adult: "Resistance of the hepatic veins. Obstruction raises the portal pressure, which is portal hypertension.",
-        expert: "The resistance of the hepatic venous outflow. Raising it is the haemodynamics of a post sinusoidal block.",
-      },
-    },
     systemic: {
       label: {child: "All the vessels", adult: "Systemic resistance"},
       info: {
         child: "How narrow all the vessels of the body are at once.",
         adult: "Resistance of every systemic organ at once, the afterload of the heart.",
         expert: "The total systemic vascular resistance, the afterload against which the ventricle ejects.",
-      },
-    },
-    portal: {
-      label: {child: "The pipe from the gut", adult: "Portal vein"},
-      info: {
-        child: "The pipe which brings blood from your gut to your liver.",
-        adult: "Resistance of the portal vein between the splanchnic organs and the liver.",
-        expert: "The resistance of the portal vein between the splanchnic bed and the liver, a pre hepatic block when it is raised.",
       },
     },
     renal: {
@@ -209,8 +206,6 @@ const EN: CardioCopy = {
     },
   },
   notes: {
-    hepatic: value => `portal gradient ${value} mmHg`,
-    portal: value => `portal flow ${value} l/min`,
     systemic: value => `blood pressure ${value}`,
     renal: value => `renal flow ${value} l/min`,
     heartRate: value => `cardiac output ${value} l/min`,
@@ -218,6 +213,18 @@ const EN: CardioCopy = {
   },
   pulse: {title: "The beat of the heart", aorta: "aorta", ventricle: "ventricle",
     baseline: "at rest"},
+  beats: {
+    title: "The beats of the last minute",
+    count: beats => `${beats} beats`,
+  },
+  hepatic: {
+    title: "The liver, over the last minute",
+    flowTitle: "blood through the liver",
+    gradient: "pressure across it",
+    total: "liver", portal: "portal vein", artery: "artery",
+    portalPressure: "in front of the liver", liverPressure: "inside it",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} litres a minute, ${share} out of `
     + `every 100 the heart moves`
     + (portal ? ". Its blood goes on through the portal vein to the liver before it returns." : "."),
@@ -225,9 +232,6 @@ const EN: CardioCopy = {
   reading: facts => {
     const body = facts.sex === "female" ? "A woman of 60 kg" : "A man of 73 kg";
     const said: Record<CardioDone, string> = {
-      hepaticUp: "the liver cannot let the blood out",
-      hepaticDown: "the liver lets the blood out more easily",
-      portalUp: "the portal vein is narrowed",
       systemicUp: "the vessels of the body are narrowed",
       systemicDown: "the vessels of the body are wide open",
       renalUp: "the kidneys get less blood",
@@ -239,11 +243,7 @@ const EN: CardioCopy = {
     if (facts.done.length === 0) return `${body} at rest: ${pressure}`;
     const first = facts.done.slice(0, 2).map(key => said[key]);
     const sentence = first.length === 1 ? first[0] : `${first[0]} and ${first[1]}`;
-    const liver = facts.portal === undefined
-      ? ""
-      : ` The blood backs up in front of the liver: ${facts.portal} mmHg in the portal vein, `
-        + "which is portal hypertension.";
-    return `${body} in whom ${sentence}: ${pressure}${liver}`;
+    return `${body} in whom ${sentence}: ${pressure}`;
   },
   loadingCirculation: "Loading the circulation...",
   startingHeart: "Starting the heart...",
@@ -288,7 +288,7 @@ const DE: CardioCopy = {
       answer: "gut",
       because: "Die Pfortader bringt das Blut des Darms zur Leber. Alles, was gegessen wurde,"
         + " kommt also an der Leber vorbei, bevor es in den Rest des Körpers geht.",
-      tryIt: "Probier es: Dreh den Pfortader-Widerstand und sieh, was die Leber noch bekommt.",
+      tryIt: "Probier es: Sieh die Pfortader auf dem Monitor der Leber, während sich das Herz ändert.",
     },
   ],
   about: {
@@ -303,9 +303,9 @@ const DE: CardioCopy = {
       expert: "Drehen Sie 1 hoch: die Frequenz steigt, die Füllungszeit sinkt, und das Schlagvolumen folgt dem kompilierten Herzen.",
     },
     {
-      child: "Dreh Objekt 4: das Blut kommt nicht aus der Leber heraus und staut sich davor.",
-      adult: "Drehen Sie 4 hoch: das Blut kann die Leber nicht verlassen, und der Druck davor steigt.",
-      expert: "Drehen Sie 4 hoch: eine Abflussbehinderung der Lebervenen hebt Pfortaderdruck und Gradienten über die Leber.",
+      child: "Dreh Objekt 3: die Gefäße des Körpers werden eng, und das Herz muss stärker drücken.",
+      adult: "Drehen Sie 3 hoch: die Gefäße des Körpers werden enger, der Druck steigt und das Herz bewegt weniger Blut.",
+      expert: "Drehen Sie 3 hoch: der systemische Widerstand steigt, mit ihm die Nachlast, und das Herzzeitvolumen fällt.",
     },
   ],
   stats: {
@@ -359,28 +359,12 @@ const DE: CardioCopy = {
     },
   },
   roles: {
-    hepatic: {
-      label: {child: "Der Ausgang der Leber", adult: "Leberabfluss"},
-      info: {
-        child: "Wie leicht das Blut wieder aus der Leber herauskommt. Mach zu, und es staut sich.",
-        adult: "Widerstand der Lebervenen. Eine Behinderung hebt den Pfortaderdruck, und das ist portale Hypertension.",
-        expert: "Der Widerstand des lebervenösen Abflusses. Ihn zu erhöhen ist die Hämodynamik eines postsinusoidalen Blocks.",
-      },
-    },
     systemic: {
       label: {child: "Alle Gefäße", adult: "Systemischer Widerstand"},
       info: {
         child: "Wie eng alle Gefäße des Körpers auf einmal sind.",
         adult: "Widerstand aller systemischen Organe auf einmal, die Nachlast des Herzens.",
         expert: "Der totale periphere Widerstand, die Nachlast, gegen die die Kammer auswirft.",
-      },
-    },
-    portal: {
-      label: {child: "Das Rohr vom Darm", adult: "Pfortader"},
-      info: {
-        child: "Das Rohr, das Blut von deinem Darm zur Leber bringt.",
-        adult: "Widerstand der Pfortader zwischen den Bauchorganen und der Leber.",
-        expert: "Der Widerstand der Pfortader zwischen Splanchnikusgebiet und Leber, erhöht ein prähepatischer Block.",
       },
     },
     renal: {
@@ -409,8 +393,6 @@ const DE: CardioCopy = {
     },
   },
   notes: {
-    hepatic: value => `Pfortadergradient ${value} mmHg`,
-    portal: value => `Pfortaderfluss ${value} l/min`,
     systemic: value => `Blutdruck ${value}`,
     renal: value => `Nierenfluss ${value} l/min`,
     heartRate: value => `Herzzeitvolumen ${value} l/min`,
@@ -418,6 +400,18 @@ const DE: CardioCopy = {
   },
   pulse: {title: "Der Herzschlag", aorta: "Aorta", ventricle: "Kammer",
     baseline: "in Ruhe"},
+  beats: {
+    title: "Die Schläge der letzten Minute",
+    count: beats => `${beats} Schläge`,
+  },
+  hepatic: {
+    title: "Die Leber, letzte Minute",
+    flowTitle: "Blut durch die Leber",
+    gradient: "Druckunterschied",
+    total: "Leber", portal: "Pfortader", artery: "Arterie",
+    portalPressure: "vor der Leber", liverPressure: "in der Leber",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} Liter pro Minute, ${share} von je `
     + "100, die das Herz bewegt"
     + (portal ? ". Sein Blut fließt durch die Pfortader weiter zur Leber, bevor es zurückkommt." : "."),
@@ -425,9 +419,6 @@ const DE: CardioCopy = {
   reading: facts => {
     const body = facts.sex === "female" ? "Eine Frau von 60 kg" : "Ein Mann von 73 kg";
     const said: Record<CardioDone, string> = {
-      hepaticUp: "die Leber das Blut nicht herauslässt",
-      hepaticDown: "die Leber das Blut leichter herauslässt",
-      portalUp: "die Pfortader verengt ist",
       systemicUp: "die Gefäße des Körpers verengt sind",
       systemicDown: "die Gefäße des Körpers weit offen sind",
       renalUp: "die Nieren weniger Blut bekommen",
@@ -439,11 +430,7 @@ const DE: CardioCopy = {
     if (facts.done.length === 0) return `${body} in Ruhe: ${pressure}`;
     const first = facts.done.slice(0, 2).map(key => said[key]);
     const sentence = first.length === 1 ? first[0] : `${first[0]} und ${first[1]}`;
-    const liver = facts.portal === undefined
-      ? ""
-      : ` Das Blut staut sich vor der Leber: ${facts.portal} mmHg in der Pfortader, das ist `
-        + "portale Hypertension.";
-    return `${body}, bei dem ${sentence}: ${pressure}${liver}`;
+    return `${body}, bei dem ${sentence}: ${pressure}`;
   },
   loadingCirculation: "Der Kreislauf wird geladen...",
   startingHeart: "Das Herz wird gestartet...",
@@ -488,7 +475,7 @@ const ES: CardioCopy = {
       answer: "gut",
       because: "La vena porta lleva la sangre del intestino al hígado, así que todo lo que se come"
         + " pasa por el hígado antes de llegar al resto del cuerpo.",
-      tryIt: "Pruébalo: gira la resistencia portal y mira qué le queda al hígado.",
+      tryIt: "Pruébalo: mira la vena porta en el monitor del hígado mientras cambia el corazón.",
     },
   ],
   about: {
@@ -503,9 +490,9 @@ const ES: CardioCopy = {
       expert: "Gire el 1 hacia arriba: la frecuencia sube, el tiempo de llenado baja, y el volumen sistólico sigue al corazón compilado.",
     },
     {
-      child: "Gira el objeto 4: la sangre no puede salir del hígado y se acumula delante.",
-      adult: "Gire el 4 hacia arriba: la sangre no puede salir del hígado y la presión delante de él sube.",
-      expert: "Gire el 4 hacia arriba: la obstrucción del flujo de salida hepático eleva la presión portal y el gradiente.",
+      child: "Gira el objeto 3: los vasos del cuerpo se estrechan y el corazón tiene que empujar más.",
+      adult: "Gire el 3 hacia arriba: los vasos del cuerpo se estrechan, la presión sube y el corazón mueve menos sangre.",
+      expert: "Gire el 3 hacia arriba: la resistencia sistémica sube, con ella la poscarga, y el gasto cardíaco cae.",
     },
   ],
   stats: {
@@ -559,28 +546,12 @@ const ES: CardioCopy = {
     },
   },
   roles: {
-    hepatic: {
-      label: {child: "La salida del hígado", adult: "Salida hepática"},
-      info: {
-        child: "Cómo de fácil sale la sangre del hígado. Ciérrala y la sangre se acumula.",
-        adult: "Resistencia de las venas hepáticas. La obstrucción eleva la presión portal, que es la hipertensión portal.",
-        expert: "La resistencia del flujo de salida venoso hepático. Subirla es la hemodinámica de un bloqueo postsinusoidal.",
-      },
-    },
     systemic: {
       label: {child: "Todos los vasos", adult: "Resistencia sistémica"},
       info: {
         child: "Cómo de estrechos están todos los vasos del cuerpo a la vez.",
         adult: "Resistencia de todos los órganos sistémicos a la vez, la poscarga del corazón.",
         expert: "La resistencia vascular sistémica total, la poscarga contra la que eyecta el ventrículo.",
-      },
-    },
-    portal: {
-      label: {child: "El tubo del intestino", adult: "Vena porta"},
-      info: {
-        child: "El tubo que lleva la sangre de tu intestino al hígado.",
-        adult: "Resistencia de la vena porta entre los órganos del abdomen y el hígado.",
-        expert: "La resistencia de la vena porta entre el territorio esplácnico y el hígado; elevada, un bloqueo prehepático.",
       },
     },
     renal: {
@@ -609,8 +580,6 @@ const ES: CardioCopy = {
     },
   },
   notes: {
-    hepatic: value => `gradiente portal ${value} mmHg`,
-    portal: value => `flujo portal ${value} l/min`,
     systemic: value => `tensión arterial ${value}`,
     renal: value => `flujo renal ${value} l/min`,
     heartRate: value => `gasto cardíaco ${value} l/min`,
@@ -618,6 +587,18 @@ const ES: CardioCopy = {
   },
   pulse: {title: "El latido del corazón", aorta: "aorta", ventricle: "ventrículo",
     baseline: "en reposo"},
+  beats: {
+    title: "Los latidos del último minuto",
+    count: beats => `${beats} latidos`,
+  },
+  hepatic: {
+    title: "El hígado, último minuto",
+    flowTitle: "sangre por el hígado",
+    gradient: "diferencia de presión",
+    total: "hígado", portal: "vena porta", artery: "arteria",
+    portalPressure: "antes del hígado", liverPressure: "dentro de él",
+    window: seconds => `${seconds} s`,
+  },
   organNote: (name, flow, share, portal) => `${name}: ${flow} litros por minuto, ${share} de `
     + "cada 100 que mueve el corazón"
     + (portal ? ". Su sangre sigue por la vena porta hasta el hígado antes de volver." : "."),
@@ -625,9 +606,6 @@ const ES: CardioCopy = {
   reading: facts => {
     const body = facts.sex === "female" ? "Una mujer de 60 kg" : "Un hombre de 73 kg";
     const said: Record<CardioDone, string> = {
-      hepaticUp: "el hígado no deja salir la sangre",
-      hepaticDown: "el hígado deja salir la sangre más fácilmente",
-      portalUp: "la vena porta está estrechada",
       systemicUp: "los vasos del cuerpo están estrechados",
       systemicDown: "los vasos del cuerpo están bien abiertos",
       renalUp: "los riñones reciben menos sangre",
@@ -639,11 +617,7 @@ const ES: CardioCopy = {
     if (facts.done.length === 0) return `${body} en reposo: ${pressure}`;
     const first = facts.done.slice(0, 2).map(key => said[key]);
     const sentence = first.length === 1 ? first[0] : `${first[0]} y ${first[1]}`;
-    const liver = facts.portal === undefined
-      ? ""
-      : ` La sangre se acumula delante del hígado: ${facts.portal} mmHg en la vena porta, que es `
-        + "hipertensión portal.";
-    return `${body} en quien ${sentence}: ${pressure}${liver}`;
+    return `${body} en quien ${sentence}: ${pressure}`;
   },
   loadingCirculation: "Cargando la circulación...",
   startingHeart: "Arrancando el corazón...",

@@ -4,14 +4,12 @@ import {LOCALES} from "@pkpdsim-tui/tui-kit";
 import type {QuizQuestion} from "@pkpdsim-tui/tui-kit";
 
 import {CARDIO_TEXT} from "@pkpdsim-tui/cardiovascular-table/text";
-import {LIVER_TEXT} from "@pkpdsim-tui/liver-table/text";
 import {LOBE_TEXT} from "@pkpdsim-tui/lobes-table/text";
 import {PERFUSION_TEXT} from "@pkpdsim-tui/perfusion-table/text";
 import {GLIMEPIRIDE_TEXT} from "@pkpdsim-tui/glimepiride-table/text";
 
 const TABLES = {
   cardiovascular: CARDIO_TEXT,
-  liver: LIVER_TEXT,
   lobes: LOBE_TEXT,
   glimepiride: GLIMEPIRIDE_TEXT,
   perfusion: PERFUSION_TEXT,

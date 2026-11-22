@@ -41,9 +41,9 @@ describe("what the glimepiride table reads", () => {
     for (const locale of LOCALES) {
       for (const level of LEVELS) {
         const voice = createVoice(locale, level);
-        const roles = glimepirideRoles(24, voice);
+        const roles = glimepirideRoles(voice);
         expect(roles.map(role => role.id)).toEqual(
-          ["dose", "cyp2c9", "cirrhosis", "renal", "weight", "hour"]);
+          ["dose", "weight", "doses", "cyp2c9", "cirrhosis", "renal"]);
         for (const role of roles) {
           expect(role.label.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(3);
           expect(role.description.length, `${locale} ${level} ${role.id}`).toBeGreaterThan(20);
@@ -66,14 +66,14 @@ describe("what the glimepiride table says", () => {
 
   it("says that nothing was changed about the person on the table", () => {
     const sentence = glimepirideReading(
-      english, reference, "male", readout(600, 300), readout(600, 300), reference);
+      english, reference, "male", readout(600, 300), readout(600, 300), reference, 1);
     expect(sentence).toContain("takes 4 mg of glimepiride");
   });
 
   it("names the slow liver and what it does to the exposure", () => {
     const slow = {...reference, cyp2c9: 0.2};
     const sentence = glimepirideReading(
-      english, slow, "male", readout(1500, 900), readout(600, 300), reference);
+      english, slow, "male", readout(1500, 900), readout(600, 300), reference, 1);
     expect(sentence).toContain("breaks glimepiride down slowly");
     expect(sentence).toContain("2.5 times as much");
     expect(sentence).toContain("half of it is gone after 15 hours");
@@ -82,12 +82,18 @@ describe("what the glimepiride table says", () => {
   it("says the same state in German and in Spanish", () => {
     const slow = {...reference, cyp2c9: 0.2};
     const german = glimepirideReading(
-      createVoice("de", "adult"), slow, "female", readout(1500, 900), readout(600, 300), reference);
+      createVoice("de", "adult"), slow, "female", readout(1500, 900), readout(600, 300), reference, 1);
     expect(german).toContain("Glimepirid langsam abbaut");
     expect(german).toContain("Eine Frau");
     const spanish = glimepirideReading(
-      createVoice("es", "child"), slow, "male", readout(1500, 900), readout(600, 300), reference);
+      createVoice("es", "child"), slow, "male", readout(1500, 900), readout(600, 300), reference, 1);
     expect(spanish).toContain("metaboliza la glimepirida despacio");
     expect(spanish).toContain("Un hombre");
+  });
+
+  it("says how long the person is on the tablet when it is more than one morning", () => {
+    const sentence = glimepirideReading(
+      english, reference, "male", readout(600, 300), readout(600, 300), reference, 7);
+    expect(sentence).toContain("7 mornings in a row");
   });
 });

@@ -39,7 +39,6 @@ describe("the table of a query", () => {
     expect(new Set(ids).size).toBe(TABLES.length);
     expect(ids).not.toContain(OVERVIEW);
     for (const entry of TABLES) {
-      // Two tables may read the same export, as the liver and the circulation do.
       expect(entry.assets.endsWith("/")).toBe(true);
       // The card points at an organ the body is marked at, which is one the table is about.
       expect(entry.organs).toContain(entry.organ);
@@ -100,7 +99,7 @@ describe("the sentence of a card", () => {
   });
 
   it("fits the words it is given", () => {
-    for (const line of wrapText(HUB_TEXT.en.entries["liver"]?.title ?? "", 34)) {
+    for (const line of wrapText(HUB_TEXT.en.entries["lobes"]?.title ?? "", 34)) {
       expect(line.length).toBeLessThanOrEqual(34);
     }
   });

@@ -17,8 +17,8 @@ import type {LobeBlock} from "./layout.ts";
 
 /** The bands of numbers at the two edges. */
 const BAND = 132;
-/** The course of the days below the liver. */
-const PLOT_HEIGHT = 164;
+/** The curves of the regeneration below the liver, which are what this table is about. */
+const PLOT_HEIGHT = 250;
 const GAP = 26;
 /** The room the inflow and the outflow of the whole liver take below the blocks. */
 const HILUM = 92;

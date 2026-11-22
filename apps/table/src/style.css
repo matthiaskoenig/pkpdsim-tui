@@ -21,97 +21,87 @@
   cursor: help;
 }
 
-/* The card of a table, around the bodies. */
-/* A card on the landing page is the dark card the table speaks from, over its white. */
-.hub-card {
-  --ink: var(--panel-ink);
-  --ink-dim: var(--panel-ink-dim);
+/* The icon of a table, on the ring around the bodies: a big disc of the colour of that table,
+   which is the colour its organ on the body and its sidebar carry too. */
+.hub-icon {
   cursor: pointer;
 }
 
-.hub-card-plate {
-  fill: var(--panel);
-  stroke: var(--panel);
-  stroke-width: 1.5;
-  transition: fill 120ms linear, stroke 120ms linear;
-}
-
-/* A card is a dark card at rest and under a hand: the fill which was pale here left white
-   lettering on the white canvas, which could not be read. */
-.hub-card:hover .hub-card-plate,
-.hub-card:focus-visible .hub-card-plate,
-.hub-card[data-arming="true"] .hub-card-plate {
-  fill: #16303d;
-  stroke: var(--accent-bright);
-  stroke-width: 2.5;
-}
-
-.hub-card:focus {
+.hub-icon:focus {
   outline: none;
 }
 
-.hub-card-badge {
-  fill: var(--accent);
+.hub-icon-disc {
+  stroke: #ffffff;
+  stroke-width: 3;
+  transition: transform 120ms ease-out;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-.hub-card-icon {
+/* The ring around the disc stands away from it, and closes once the table is the chosen one. */
+.hub-icon-ring {
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+
+.hub-icon:hover .hub-icon-ring,
+.hub-icon:focus-visible .hub-icon-ring,
+.hub-icon[data-selected="true"] .hub-icon-ring,
+.hub-icon[data-arming="true"] .hub-icon-ring {
+  opacity: 0.45;
+}
+
+.hub-icon:hover .hub-icon-disc,
+.hub-icon:focus-visible .hub-icon-disc,
+.hub-icon[data-selected="true"] .hub-icon-disc {
+  transform: scale(1.06);
+}
+
+/* The ring which closes while a finger rests on an icon or an object is held on it, so that
+   waiting is visibly doing something. */
+.hub-icon-arm {
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.hub-icon[data-arming="true"] .hub-icon-arm {
+  animation: hub-icon-sweep 620ms linear forwards;
+}
+
+@keyframes hub-icon-sweep {
+  from { stroke-dashoffset: 408; }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-icon[data-arming="true"] .hub-icon-arm {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.hub-icon-glyph {
   fill: #ffffff;
   /* An icon of several paths is one shape: the inner ones cut the outer one open. */
   fill-rule: evenodd;
 }
 
-.hub-card-title {
-  font-size: 24px;
+.hub-icon-title {
+  font-size: 23px;
   font-weight: 700;
   fill: var(--ink);
-}
-
-.hub-card-line {
-  font-size: 15px;
-  fill: var(--ink-dim);
-}
-
-.hub-card-call {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  fill: var(--accent);
-  opacity: 0.75;
-}
-
-/* The bar which fills while a finger rests on a card, so that holding is visibly doing something. */
-.hub-card-arm {
-  fill: var(--accent);
-  transform: scaleX(0);
-  transform-box: fill-box;
-  transform-origin: left center;
-}
-
-.hub-card[data-arming="true"] .hub-card-arm {
-  animation: dwell-sweep 620ms linear forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hub-card[data-arming="true"] .hub-card-arm {
-    animation: none;
-    transform: scaleX(1);
-  }
-}
-
-/* The line from a card to the organ its table is about. */
-.hub-link {
-  fill: none;
-  stroke: var(--panel-line);
-  stroke-width: 1.5;
-  stroke-dasharray: 5 7;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 4;
 }
 
 .hub-organ {
-  fill: rgba(39, 179, 172, 0.22);
-  stroke: var(--accent);
-  stroke-width: 2;
-  transition: fill 120ms linear;
+  fill: #ffffff;
+  fill-opacity: 0.35;
+  stroke-width: 2.5;
+  transition: fill-opacity 120ms linear;
   pointer-events: none;
 }
 
@@ -123,7 +113,7 @@
 
 .hub-organ-hit[data-arming="true"] + .hub-organ,
 .hub-organ-hit:hover {
-  fill: rgba(39, 179, 172, 0.5);
+  fill-opacity: 0.85;
 }
 
 /* What drives the table and whom the anatomy is from: small, at the foot, out of the way. */
@@ -170,12 +160,8 @@
     font-size: 18px;
   }
 
-  .hub-card-title {
+  .hub-icon-title {
     font-size: 18px;
-  }
-
-  .hub-card-line {
-    font-size: 14px;
   }
 }
 
@@ -335,28 +321,36 @@
 }
 
 /* The two bodies, and the word under each one. */
-.hub-body-name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  fill: var(--ink-dim);
-  letter-spacing: 0.02em;
-}
-
-/* The box at the right: what the table under the hand, or under the object, is about. */
+/* The sidebar: what the table under the hand, or under the object, is about, at length. */
 .hub-info-plate {
   fill: var(--panel);
-  stroke: var(--panel);
+  stroke: var(--panel-line);
   stroke-width: 1.5;
 }
 
+/* What a visitor took from a table: one star a question of its quiz, in its own colour. */
+.hub-icon-stars {
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+}
+
+/* The colour of the table down the edge of the sidebar, and behind its picture. */
+.hub-info-bar {
+  transition: fill 120ms linear;
+}
+
+.hub-info-disc {
+  transition: fill 120ms linear, opacity 120ms linear;
+}
+
 .hub-info-title {
-  font-size: 1.45rem;
+  font-size: 1.7rem;
   font-weight: 700;
   fill: var(--panel-ink);
 }
 
 .hub-info-icon {
-  fill: var(--accent-bright);
+  fill: #ffffff;
   fill-rule: evenodd;
 }
 
@@ -373,9 +367,20 @@
   fill: var(--accent-bright);
 }
 
-/* The card the object is pointing at: the same card a hand is on, so that both read alike. */
-.hub-card[data-selected="true"] .hub-card-plate {
-  fill: #16303d;
-  stroke: var(--accent-bright);
-  stroke-width: 2.5;
+
+
+/* The key of the five colours, which the sidebar carries while no table is chosen. */
+.hub-legend {
+  transition: opacity 120ms linear;
+}
+
+.hub-legend-dot {
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.hub-legend-name {
+  font-size: 1.12rem;
+  font-weight: 600;
+  fill: var(--panel-ink);
 }

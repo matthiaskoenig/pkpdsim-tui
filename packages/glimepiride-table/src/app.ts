@@ -1,7 +1,9 @@
 /**
- * The glimepiride table: the dose, the genotype, the liver, the kidneys and the body weight of
- * one individual are objects on the surface, and the plasma course of glimepiride and of its
- * metabolites answers while a hand is still on them.
+ * How a drug is broken down: the dose, the body weight, how many daily tablets, the genotype,
+ * the liver and the kidneys of one individual are objects on the surface. The body of that
+ * individual stands on the table with a bubble on every part of it which holds the drug, and
+ * the course runs by itself: the bubbles fill and empty while the curve of the plasma is drawn
+ * under them.
  *
  * The application starts this table for `?app=glimepiride`, with the body of `?sex`; the tracker
  * and the surface are the ones of the application, see `apps/table`.
@@ -12,10 +14,11 @@ import {
 } from "@pkpdsim-tui/core-runtime";
 import type {Series, Solver} from "@pkpdsim-tui/core-runtime";
 import {
-  finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_SIMULATION, glimepirideRequest, pharmacokinetics,
+  finalValue, GLIMEPIRIDE_COLUMNS, GLIMEPIRIDE_DOSES, glimepirideRequest, pharmacokinetics,
   referenceIndividual,
 } from "@pkpdsim-tui/glimepiride-sim";
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
+import {loadAnatomy} from "@pkpdsim-tui/cardio-sim";
 import {
   chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, pointerPoints, visibleStats, words,
@@ -27,7 +30,7 @@ import {
   cardFor, categoryOf, formatValue, glimepirideStats, glimepirideTraces, MICROMOLAR,
 } from "./cards.ts";
 import type {GlimepirideReadout} from "./cards.ts";
-import {createPathway, PATHWAY_HEIGHT, stationNumber} from "./pathway.ts";
+import {createBodyFigure} from "./body.ts";
 import {glimepirideRoles, GLIMEPIRIDE_MARKERS} from "./roles.ts";
 import {GLIMEPIRIDE_TEXT} from "./text.ts";
 import {
@@ -39,20 +42,27 @@ import "./style.css";
 const SETTLE = 140;
 const BAND = 132;
 const GAP = 26;
+/** How long the course takes to run once on the table, and how long it then rests, in ms. */
+const CYCLE = 18000;
+const HOLD = 3000;
+/** What the panel at the near edge takes, which the figure keeps clear of. */
+const PANEL = 430;
 
-
-function pathwayBox(viewport: {width: number; height: number}): Box {
-  const width = Math.min(viewport.width - 2 * 420, 1180);
-  return {x: (viewport.width - width) / 2, y: BAND + GAP, width, height: PATHWAY_HEIGHT};
+/** The individual stands in the left half of what is left, the curve in the right half. */
+function bodyBox(viewport: {width: number; height: number}): Box {
+  const left = PANEL;
+  const width = Math.max(340, (viewport.width - left - GAP * 2) * 0.48);
+  const top = BAND + GAP;
+  return {x: left, y: top, width, height: Math.max(260, viewport.height - top - BAND - GAP)};
 }
 
 function plotBox(viewport: {width: number; height: number}): Box {
-  const pathway = pathwayBox(viewport);
-  const top = pathway.y + pathway.height + GAP * 2;
+  const body = bodyBox(viewport);
+  const x = body.x + body.width + GAP;
   return {
-    x: pathway.x, y: top,
-    width: pathway.width,
-    height: Math.max(200, viewport.height - top - BAND - GAP * 2),
+    x, y: body.y + 40,
+    width: Math.max(320, viewport.width - x - GAP * 2),
+    height: Math.max(220, viewport.height - body.y - BAND - GAP * 2),
   };
 }
 
@@ -70,23 +80,28 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     host: core, key: "glimepiride", assets: await fetchSolverAssets(solverBase),
   });
 
-  const hours = GLIMEPIRIDE_SIMULATION.end / 60;
   const sex: Sex = parameters.get("sex") === "female" ? "female" : "male";
-  const roles = glimepirideRoles(hours, voice, sex);
+  const roles = glimepirideRoles(voice, sex);
   const reference = referenceIndividual(sex);
   const bodies: readonly ChoiceGroup[] = [{...bodyChoices(voice), selected: sex}];
-  const axis = {max: GLIMEPIRIDE_SIMULATION.end, tick: 600, scale: 1 / 60, unit: "h"};
+  // The figure is the one every table of the application is solved on: the reference body of
+  // the pkpdsim physiology, which the circulation exports with its anatomy.
+  // The assets of this table are its own folder, and the bodies belong to the circulation.
+  const anatomy = await loadAnatomy(
+    new URL("../cardiovascular/cardiovascular-anatomy.json", host.assets));
+  const body = anatomy.bodies[sex] ?? anatomy.bodies["male"];
+  if (body === undefined) throw new Error("The anatomy holds no body.");
 
   const surface = host.surface;
   const root = host.scene;
-  const pathway = createPathway(root, voice);
+  const figure = createBodyFigure(root, body, voice);
   const plot = createPlot(root, glimepirideTraces(voice));
   const readout = createReadout<GlimepirideReadout>(
     root, visibleStats(glimepirideStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a station is: the note opens where a visitor asks for it.
   // Three questions about this table, behind the button in the near corner.
-  createQuiz(host.chrome, {voice, questions: copy.quiz});
+  createQuiz(host.chrome, {voice, questions: copy.quiz, table: "glimepiride"});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -119,6 +134,10 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   let settle = 0;
   let frame = 0;
   let pending: AbortController | null = null;
+  // The course runs by itself and starts over whenever the individual changes, which is the
+  // drug moving through the body rather than a dial a visitor has to find first.
+  let started = performance.now();
+  let span = 2 * 24 * 60;
 
   const readoutOf = (course: Series, hour: number): GlimepirideReadout => ({
     pk: pharmacokinetics(course, "[Cve_gli]", {factor: MICROMOLAR}),
@@ -126,15 +145,18 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     urine: finalValue(course, "Aurine_m1_m2", 1000),
   });
 
-  const solve = async (individual: GlimepirideIndividual, isReference: boolean): Promise<void> => {
+  const solve = async (
+    individual: GlimepirideIndividual, doses: number, isReference: boolean,
+  ): Promise<void> => {
     pending?.abort();
     const controller = new AbortController();
     pending = controller;
     solving = true;
     schedule();
     try {
-      const result = await solver.simulate(
-        glimepirideRequest(individual, sex, GLIMEPIRIDE_COLUMNS), {signal: controller.signal});
+      const request = glimepirideRequest(individual, sex, GLIMEPIRIDE_COLUMNS, doses);
+      span = request.end;
+      const result = await solver.simulate(request, {signal: controller.signal});
       series = toSeries(result);
       if (isReference) baseline = series;
       notice = "";
@@ -167,62 +189,56 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
       renal: values.get("renal") ?? reference.renal,
       weight: values.get("weight") ?? reference.weight,
     };
-    const hour = values.get("hour") ?? hours;
+    const doses = Math.round(values.get("doses") ?? GLIMEPIRIDE_DOSES.value);
 
-    const next = JSON.stringify(individual);
+    const next = JSON.stringify({individual, doses});
     if (next !== solved) {
       solved = next;
+      // A new individual is a new course, which runs from the first tablet again.
+      started = performance.now();
       window.clearTimeout(settle);
       settle = window.setTimeout(
-        () => void solve(individual, next === JSON.stringify(reference)), SETTLE);
+        () => void solve(
+          individual, doses,
+          next === JSON.stringify({individual: reference, doses: GLIMEPIRIDE_DOSES.value})),
+        SETTLE);
     }
+
+    // Where the running course has got to. A course of ten days runs in the same time as one
+    // of two, because what a visitor watches is the shape of it.
+    const phase = (performance.now() - started) % (CYCLE + HOLD);
+    const minutes = Math.min(phase / CYCLE, 1) * span;
+    const hour = minutes / 60;
+    const axis = {
+      max: span, tick: span > 3 * 24 * 60 ? 24 * 60 : 600, scale: 1 / 60, unit: "h",
+    };
 
     const current = readoutOf(series, hour);
     const reference_readout = readoutOf(baseline, hour);
     root.setAttribute("data-solving", String(solving));
-    plot.update({series, baseline, cursor: hour * 60, axis});
+    plot.update({series, baseline, cursor: minutes, axis});
     readout.update(current, reference_readout);
-    pathway.update({
-      tablet: {
-        value: stationNumber(individual.dose, "mg", 1), note: copy.oral,
-        changed: individual.dose !== reference.dose,
-      },
-      liver: {
-        value: `CYP2C9 ${formatNumber(individual.cyp2c9, 2)}x`,
-        note: categoryOf(voice, "cirrhosis", individual.cirrhosis),
-        changed: individual.cyp2c9 !== reference.cyp2c9 || individual.cirrhosis !== reference.cirrhosis,
-      },
-      plasma: {
-        value: stationNumber(current.now, "uM", 3),
-        note: copy.peak(formatNumber(current.pk.cmax, 3)),
-        changed: false,
-      },
-      kidney: {
-        value: stationNumber(individual.renal, "ml/min", 0),
-        note: categoryOf(voice, "renal", individual.renal),
-        changed: individual.renal !== reference.renal,
-      },
-      urine: {
-        value: stationNumber(current.urine, "umole", 1),
-        note: copy.endOfCourse,
-        changed: false,
-      },
-    });
+    // Every bubble is a share of what has been swallowed by now, so the gut is full right
+    // after a tablet and the body fills from it.
+    const sample = sampleAt(series, minutes);
+    const molar = sample["Mr_gli"] ?? 490.62;
+    const taken = Math.min(doses, Math.floor(minutes / (24 * 60)) + 1);
+    figure.update({sample, dose: molar > 0 ? (taken * individual.dose) / molar : 0});
     tokenLayer.update({
       snapshot, roles, viewport,
       card: (token, role) => cardFor(
-        voice, token, role, {values, origins, hours, readout: current}),
+        voice, token, role, {values, origins, doses, readout: current}),
     });
     chrome.update({
       title: host.title, about: voice.say(copy.about),
       tries: copy.tries.map(entry => voice.say(entry)),
       reading: glimepirideReading(
-        voice, individual, sex, current, reference_readout, reference),
+        voice, individual, sex, current, reference_readout, reference, doses),
       back: true,
       choices: bodies,
       status, roles, notice,
       value: role => {
-        if (role.id === "hour") return `${formatNumber(hour, 1)} h`;
+        if (role.id === "doses") return copy.doseCount(doses);
         const value = values.get(role.id) ?? role.reference;
         const category = categoryOf(voice, role.id, value);
         return category === "" ? formatValue(role, value) : `${formatValue(role, value)}, ${category}`;
@@ -240,10 +256,17 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
     frame = window.requestAnimationFrame(render);
   };
 
+  // The clock of the course: the table draws every frame, because the drug moves whether a
+  // hand is on the table or not.
+  const tick = (): void => {
+    schedule();
+    window.requestAnimationFrame(tick);
+  };
+
   const resize = (): void => {
     viewport = {width: window.innerWidth, height: window.innerHeight};
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
-    pathway.resize(pathwayBox(viewport));
+    figure.resize(bodyBox(viewport));
     plot.resize(plotBox(viewport));
     readout.resize(viewport);
     schedule();
@@ -259,5 +282,6 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   input.connect();
 
   host.progress(copy.solvingReference);
-  await solve(reference, true);
+  await solve(reference, GLIMEPIRIDE_DOSES.value, true);
+  tick();
 }

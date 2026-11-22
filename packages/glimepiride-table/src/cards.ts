@@ -85,7 +85,8 @@ export function formatValue(role: TokenRole, value: number): string {
 export interface CardContext {
   readonly values: ReadonlyMap<string, number>;
   readonly origins: ReadonlyMap<number, number>;
-  readonly hours: number;
+  /** How many daily tablets the person takes. */
+  readonly doses: number;
   readonly readout: GlimepirideReadout;
 }
 
@@ -94,7 +95,7 @@ function glyphFor(role: TokenRole, value: number): TokenGlyph {
   const span = role.max - role.min;
   const level = clamp(span <= 0 ? 1 : (value - role.min) / span, 0, 1);
   switch (role.id) {
-    case "hour":
+    case "doses":
       return {kind: "clock", level};
     case "dose":
       return {kind: "tablet", level};
@@ -122,10 +123,11 @@ export function cardFor(
   }
   const angle = role.mode === "absolute" ? token.angle : token.turn;
   const value = valueFromAngle(role, angle, context.origins.get(token.sessionId) ?? 0);
-  if (role.id === "hour") {
+  if (role.id === "doses") {
+    const copy = voice.pick(GLIMEPIRIDE_TEXT);
     return {
-      kind: "dial", title: role.label, value: `${formatNumber(value, 1)} h`,
-      note: `${formatNumber(context.readout.now, 3)} uM`,
+      kind: "dial", title: role.label, value: copy.doseCount(context.doses),
+      note: copy.everyMorning,
       glyph: glyphFor(role, value), info: role.description,
     };
   }

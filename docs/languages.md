@@ -48,7 +48,7 @@ node scripts/speech.mjs            # every sentence of every language and level
 uv run python scripts/speak.py     # one clip per sentence
 ```
 
-`scripts/speech.mjs` walks the copy of the five tables, the landing page and the kit, resolves every phrase at every level, and writes `apps/table/public/audio/texts.json`: the sentence and the name its clip will have, which is a hash of the sentence itself. `scripts/speak.py` records them into `apps/table/public/audio/<locale>/` with a manifest the application looks a sentence up in. Both are idempotent: a clip which is there is kept unless `--force` says otherwise, so a changed sentence costs one clip and not an afternoon.
+`scripts/speech.mjs` walks the copy of the four tables, the landing page and the kit, resolves every phrase at every level, and writes `apps/table/public/audio/texts.json`: the sentence and the name its clip will have, which is a hash of the sentence itself. `scripts/speak.py` records them into `apps/table/public/audio/<locale>/` with a manifest the application looks a sentence up in. Both are idempotent: a clip which is there is kept unless `--force` says otherwise, so a changed sentence costs one clip and not an afternoon.
 
 | Engine | What it needs | What it sounds like |
 | --- | --- | --- |
@@ -68,7 +68,7 @@ One module per package holds all three languages side by side, so a sentence and
 | File | What it says |
 | --- | --- |
 | `packages/tui-kit/src/words.ts` | what every table says: the way back, the switches, the hints, the names of the organs |
-| `apps/table/src/text.ts` | the landing page, and what each of the five tables is called on it |
+| `apps/table/src/text.ts` | the landing page, and what each of the four tables is called on it |
 | `packages/<table>-table/src/text.ts` | one table: its about, its things to try, its numbers, its objects, the labels of its scene and the sentence under its title |
 
 A `Phrase` is either one string, which is the same at every level, or the three variants:
@@ -90,7 +90,7 @@ const copy = {
 
 1. Add the locale to `LOCALES` in `packages/tui-kit/src/voice.ts` and the language it is spoken in to `SPOKEN` in `speech.ts`.
 2. Add its name to `languageOptions()` in `words.ts`.
-3. Add the new key to every `Record<Locale, …>`: the kit, the landing page and the five tables. The type checker lists them for you, and a missing one is an error and not a silent English fallback.
+3. Add the new key to every `Record<Locale, …>`: the kit, the landing page and the four tables. The type checker lists them for you, and a missing one is an error and not a silent English fallback.
 4. Record its clips, and give the language a voice in `PIPER_VOICES` of `scripts/speak.py`.
 
 The tests of each table walk every locale and every level and insist that every number and every object has a name and a sentence, so a half translated table fails before it is opened.

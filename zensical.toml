@@ -18,9 +18,8 @@ nav = [
   { "Languages and the voice" = "languages.md" },
   { "Applications" = [
     { "Cardiovascular circulation" = "apps/cardiovascular.md" },
-    { "The liver" = "apps/liver.md" },
-    { "Lobed liver" = "apps/lobes.md" },
-    { "Glimepiride" = "apps/glimepiride.md" },
+    { "Liver surgery" = "apps/lobes.md" },
+    { "How a drug is broken down" = "apps/glimepiride.md" },
     { "Machine perfusion" = "apps/perfusion.md" },
   ] },
   { "Development" = "development.md" },

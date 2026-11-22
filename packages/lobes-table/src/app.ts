@@ -1,7 +1,8 @@
 /**
- * The lobed liver table: clamps and a scalpel on the Couinaud segments, and the days after the
- * operation on a dial. Every number comes from the compiled liver of pkpdsim, solved in a Web
- * Worker while the objects stay on the table.
+ * Liver surgery: the operations a surgeon does on one dial, how fast the liver grows back on
+ * another, and the curve of every one of those operations under the liver, which the days run
+ * along by themselves. Every number comes from the compiled liver of pkpdsim, solved in a Web
+ * Worker while the objects are moved.
  *
  * The application starts this table for `?app=lobes`, with the body of `?sex` and the liver of
  * `?species` (`rat` or `mouse` instead of the human one); the tracker and the surface are the
@@ -16,7 +17,7 @@ import {
 } from "@pkpdsim-tui/lobes-sim";
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
+  chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer, driveHint,
   formatNumber, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
@@ -24,18 +25,26 @@ import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
   TableSnapshot, TableStatus, TokenRole,
 } from "@pkpdsim-tui/tuio-input";
-import {cardFor, lobeStats, lobeTraces} from "./cards.ts";
+import {cardFor, lobeStats} from "./cards.ts";
 import type {Sample} from "./cards.ts";
-import {blockAt} from "./layout.ts";
 import {createLiverScene, plotBox} from "./scene.ts";
-import {instrumentsOn, statesFrom} from "./plan.ts";
-import {DAY_MARKER, lobeRoles, LOBE_MARKERS} from "./roles.ts";
+import {createRegeneration} from "./regeneration.ts";
+import {
+  GROWTH_MARKER, LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
+} from "./operations.ts";
+import type {Operation} from "./operations.ts";
+import {courseOf} from "./course.ts";
 import {lobeReading} from "./audience.ts";
 import {LOBE_TEXT} from "./text.ts";
 import "./style.css";
 
 /** How long the table waits for the objects to come to rest before it solves. */
 const SETTLE = 140;
+/** How long the course takes to run once on the table, and how long it then rests, in ms. */
+const CYCLE = 20000;
+const HOLD = 4000;
+/** How many points a run of the table has, which is the smoothness of its curves. */
+const POINTS = 181;
 
 /** The lobed liver table, on the surface of the application. */
 export async function startLobesTable(host: TableHost): Promise<void> {
@@ -75,11 +84,17 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     },
   ];
 
+  // The operations of this species, which the export carries a run for: the intact liver, one
+  // segment, and the hemihepatectomies, in the order of the mass they take.
+  const operations = operationsOf(liver);
   const solverBase = new URL(`solver_lobes/${species}/`, base);
-  const config: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
-  const days = config.end / (24 * 60);
-  const roles = lobeRoles(days, voice);
-  const DAY_AXIS = {max: config.end, tick: 24 * 60, scale: 1 / (24 * 60), unit: copy.days};
+  const exported: LobeConfig = await loadLobeConfig(new URL("config.json", solverBase));
+  // The export runs five days of every species, which is the course of a rat. A liver grows
+  // back over its own time, so the table runs the course of this species over its own span.
+  const course = courseOf(species);
+  const days = course.days;
+  const config: LobeConfig = {...exported, end: days * 24 * 60, points: POINTS};
+  const roles = lobeRoles(voice, operations.length);
 
   host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
@@ -91,12 +106,12 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const surface = host.surface;
   const root = host.scene;
   const scene = createLiverScene(root, lobes, voice);
-  const plot = createPlot(root, lobeTraces(voice));
+  const plot = createRegeneration(root, voice, operations);
   const readout = createReadout<Sample>(root, visibleStats(lobeStats(voice), voice));
   const tokenLayer = createTokenLayer(root, host);
   // What a number, an object or a segment is: the note opens where a visitor asks for it.
   // Three questions about this table, behind the button in the near corner.
-  createQuiz(host.chrome, {voice, questions: copy.quiz});
+  createQuiz(host.chrome, {voice, questions: copy.quiz, table: "lobes"});
   const chrome = createChrome(host.chrome, {
     voice,
     onBack: () => host.back(),
@@ -112,6 +127,17 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     parameters, element: surface, markers: [...LOBE_MARKERS],
   });
 
+  /** The operation the knife is pointing at, which is nothing while it is off the table. */
+  const operationOnTable = (): Operation => {
+    const dial = roles.find(role => role.id === "resection");
+    if (dial === undefined) return operationAtDial(operations, 0);
+    for (const token of snapshot.tokens.values()) {
+      if (!dial.markers.includes(token.marker)) continue;
+      return operationAtDial(operations, valueFromAngle(dial, token.turn));
+    }
+    return operationAtDial(operations, 0);
+  };
+
   const origins = new Map<number, number>();
   let viewport = {width: window.innerWidth, height: window.innerHeight};
   let snapshot: TableSnapshot = input.snapshot;
@@ -123,38 +149,59 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   // exist yet, and the layer died with it.
   createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
   let states: Record<string, LobeState> = intactStates(lobes);
+  /** The run of every operation at the rate on the table, which the curves are drawn from. */
+  const runs = new Map<string, Series>();
   let series: Series = {};
   let baseline: Series = {};
   let solving = true;
   let notice = "";
   let plan = "";
-  let settle = 0;
   let frame = 0;
+  let settle = 0;
   let pending: AbortController | null = null;
+  // The day the course has reached. It runs by itself and starts over at the operation, which
+  // is the regeneration happening rather than a dial a visitor has to find.
+  let started = performance.now();
+  let day = 0;
 
-  /** The day the dial shows, which is the end of the course while no dial is on the table. */
-  const dayOnTable = (): number => {
-    const dial = roles.find(role => role.markers.includes(DAY_MARKER));
-    if (dial === undefined) return days;
+  /** What the rate dial is at, which is one while it is off the table. */
+  const growthOnTable = (): number => {
+    const dial = roles.find(role => role.id === "growth");
+    if (dial === undefined) return 1;
     for (const token of snapshot.tokens.values()) {
-      if (token.marker !== DAY_MARKER) continue;
-      return valueFromAngle(dial, token.turn, origins.get(token.sessionId) ?? 0);
+      if (token.marker !== GROWTH_MARKER) continue;
+      return valueFromAngle(dial, token.turn);
     }
-    return days;
+    return 1;
   };
 
-  const solve = async (next: Record<string, LobeState>, intact: boolean): Promise<void> => {
-    const changes = caseChanges(next);
+  /**
+   * Every operation at this rate, the one on the table first: the curves are only comparable
+   * when all of them grow at the same speed, so a turn of the rate dial solves all of them.
+   */
+  const solveAll = async (chosen: Operation, factor: number): Promise<void> => {
     pending?.abort();
     const controller = new AbortController();
     pending = controller;
     solving = true;
     schedule();
+    const growth = course.growth * factor;
+    const order = [chosen, ...operations.filter(one => one.id !== chosen.id)];
     try {
-      const result = await solver.simulate(lobeRequest({}, changes, config), {signal: controller.signal});
-      series = toSeries(result);
-      if (intact) baseline = series;
-      notice = "";
+      for (const operation of order) {
+        const changes = caseChanges(statesOf(lobes, operation));
+        const result = await solver.simulate(
+          lobeRequest({growth}, changes, config), {signal: controller.signal});
+        const run = toSeries(result);
+        runs.set(operation.id, run);
+        if (operation.id === chosen.id) series = run;
+        if (operation.lobes.length === 0) baseline = run;
+        notice = "";
+        // The first run is the one a visitor is looking at, so the table shows it at once and
+        // fills the other curves in behind it.
+        if (operation.id === chosen.id) solving = false;
+        schedule();
+      }
     } catch (error) {
       if (controller.signal.aborted) return;
       notice = kit.solveFailed(error instanceof Error ? error.message : String(error));
@@ -176,51 +223,49 @@ export async function startLobesTable(host: TableHost): Promise<void> {
       if (!snapshot.tokens.has(sessionId)) origins.delete(sessionId);
     }
 
-    const instruments = instrumentsOn(roles, snapshot.tokens, scene.blocks, viewport);
-    states = statesFrom(lobes, instruments);
-    const next = JSON.stringify(caseChanges(states));
+    const operation = operationOnTable();
+    const factor = growthOnTable();
+    states = statesOf(lobes, operation);
+    // The rate is read to two digits, so a hand resting on the dial does not solve all day.
+    const next = `${operation.id} ${factor.toFixed(2)}`;
     if (next !== plan) {
       plan = next;
+      // A new operation or a new rate is a new course, which starts at the operation again.
+      started = performance.now();
       window.clearTimeout(settle);
-      settle = window.setTimeout(() => void solve(states, next === "{}"), SETTLE);
+      settle = window.setTimeout(() => void solveAll(operation, factor), SETTLE);
     }
 
-    const day = dayOnTable();
+    // The course runs by itself and rests at the end before it starts over.
+    const phase = (performance.now() - started) % (CYCLE + HOLD);
+    const step = days > 30 ? 1 : 0.1;
+    day = Math.round(Math.min(phase / CYCLE, 1) * days / step) * step;
     const sample = sampleAt(series, day * 24 * 60);
     const reference = sampleAt(baseline, day * 24 * 60);
     root.setAttribute("data-solving", String(solving));
     scene.update({states, sample, baseline: reference});
-    plot.update({series, baseline, cursor: day * 24 * 60, axis: DAY_AXIS});
+    plot.update({day, days, selected: operation, runs});
     readout.update(sample, reference);
     tokenLayer.update({
       snapshot, roles, viewport,
       card: (token, role) => cardFor(voice, token, role, {
-        block: role?.mode === "position"
-          ? blockAt(scene.blocks, token.x * viewport.width, token.y * viewport.height)
-          : undefined,
-        sample, baseline: reference, days, origins,
+        operation, sample, baseline: reference, factor,
       }),
     });
     chrome.update({
       title: host.title, about: voice.say(copy.about),
       tries: copy.tries.map(entry => voice.say(entry)),
-      reading: lobeReading(voice, lobes, states, day, sample, reference),
+      reading: lobeReading(voice, lobes, states, operation, day, sample, reference),
       back: true,
       choices: bodies,
       status, roles, notice,
-      value: role => {
-        if (role.mode === "position") {
-          const found = instruments.filter(instrument => instrument.role.id === role.id);
-          if (found.length === 0) return "-";
-          return found.map(instrument => instrument.token ?? "beside").join(", ");
-        }
-        return copy.dayValue(formatNumber(day, 1));
-      },
-      live: new Set([
-        ...instruments.filter(instrument => instrument.token !== undefined)
-          .map(instrument => instrument.role.id),
-        ...([...snapshot.tokens.values()].some(token => token.marker === DAY_MARKER) ? ["day"] : []),
-      ]),
+      value: role => (role.id === "resection"
+        ? operationName(voice, operation)
+        : copy.growthValue(formatNumber(factor, 1))),
+      live: new Set([...snapshot.tokens.values()]
+        .flatMap(token => roles
+          .filter(role => role.markers.includes(token.marker))
+          .map(role => role.id))),
       unassigned: [...new Set([...snapshot.tokens.values()]
         .filter(token => !roles.some(role => role.markers.includes(token.marker)))
         .map(token => token.marker))],
@@ -236,6 +281,13 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   const schedule = (): void => {
     if (frame !== 0) return;
     frame = window.requestAnimationFrame(render);
+  };
+
+  // The clock of the course: the table draws every frame, because the days run whether a hand
+  // is on it or not.
+  const tick = (): void => {
+    schedule();
+    window.requestAnimationFrame(tick);
   };
 
   const resize = (): void => {
@@ -257,5 +309,6 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   input.connect();
 
   host.progress(copy.solvingIntact);
-  await solve(intactStates(lobes), true);
+  await solveAll(operationAtDial(operations, 0), 1);
+  tick();
 }

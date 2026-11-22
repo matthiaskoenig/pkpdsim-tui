@@ -1,8 +1,8 @@
-# Lobed liver
+# Liver surgery
 
-The liver divided into its segments, and three instruments that act on whatever segment they lie on.
+The liver divided into its segments, the operations a surgeon does on one object, and what grows back after each of them.
 
-The model is the lobed liver of the pkpdsim PBPK library: each segment has its own portal branch, its own hepatic artery, its own volume and its own share of the drug that passes through. Closing a branch is a portal vein ligation, taking a segment away is a resection, and the days that follow are the regeneration of what is left. The table solves five days of that with SUNDIALS IDA on the compiled SBML, in a Web Worker, every time the instruments on it change.
+The model is the lobed liver of the pkpdsim PBPK library: each segment has its own portal branch, its own hepatic artery, its own volume and its own share of the drug that passes through. Taking a segment away is a resection, and the days that follow are the regeneration of what is left. The table solves that course with SUNDIALS IDA on the compiled SBML, in a Web Worker, every time the operation on it changes.
 
 ## Background
 
@@ -16,10 +16,8 @@ Why a pharmacokinetic model cares: the liver is where most drugs are broken down
 
 | Marker | Object | What it does |
 | --- | --- | --- |
-| 5 | Portal clamp | Closes the portal branch of the segment under it, which is a portal vein ligation |
-| 6 | Arterial clamp | Closes the hepatic artery of the segment under it |
-| 7 | Scalpel | Takes the segment under it away, which is a resection |
-| 8 | Day after the operation | Winds the days of the course, from the end back to the operation |
+| 1 | The operation | Turns through the resections a surgeon does, from one segment to the whole right side of the liver |
+| 2 | Regeneration rate | How fast what is left grows back, between a third of the rate of a healthy liver of this species and three times it |
 
 The panel also carries two switches a finger touches rather than an object: the body of the individual, male or female, and the species. The female export is the human liver only, so the female body cannot be chosen for the rat or the mouse.
 
@@ -53,10 +51,10 @@ The small number under each one is the change against the same liver without the
 
 ## Things to try
 
-- **Portal vein ligation of the right lobe.** Put the portal clamp on V, VI, VII and VIII. The portal pressure rises, the four ligated segments atrophy over the days and the left lobe grows: this is the operation that is done before a large resection, to let the future remnant grow first.
-- **Right hepatectomy.** Put the scalpel on the same four segments. A third of the liver is left on the first day, and over the five days it regenerates towards the volume the whole liver had.
-- **The remnant too small.** Add segment IV to the resection. The remnant starts far below what the body needs, the portal pressure in it is higher, and the regeneration starts from further away.
-- **One segment at a time.** Clamp VIII alone, then wind the day dial back to the operation and forward again, and watch that one block shrink while its neighbours take over.
+- **Right hepatectomy.** Turn the knife to the right half. A third of the liver is left on the first day, the blood of the whole body now passes through that third, and the portal pressure in front of it rises. Over the weeks that follow it grows back towards the volume the whole liver had.
+- **The remnant too small.** Turn one further, to the extended right hepatectomy. The remnant starts far below what the body needs, the pressure in front of it is higher again, and the curve starts from further down.
+- **A liver which is slow.** Turn the second object down. The same operation takes far longer to come back, which is what an ill liver does: the curve of a healthy one is still drawn behind it.
+- **A rat is not a person.** Switch the species to the rat. The whole course is ten days rather than sixty, because a rat is most of the way back within a week.
 
 ## Where the numbers come from
 
@@ -75,7 +73,7 @@ The table is the second card on the body at `http://localhost:5173/`, and `?app=
 
 | Address | What it does |
 | --- | --- |
-| `http://localhost:5173/?app=lobes` | On the mouse: keys 1 to 4 place an object, dragging moves it, the wheel turns the dial, backspace lifts it, escape goes back to the body |
+| `http://localhost:5173/?app=lobes` | On the mouse: keys 1 and 2 place an object, dragging moves it, the wheel turns the dial, backspace lifts it, escape goes back to the body |
 | `http://localhost:5173/?app=lobes&tuio` | On a tracker at `ws://localhost:3333`, which is the [simulator](../simulator.md) |
 | `http://localhost:5173/?app=lobes&tuio=/tuio` | On the tracker behind the one port of `npm run dev`, which is what `http://localhost:5173/simulator/?table=lobes` opens |
 | `http://localhost:5173/?app=lobes&tuio&tuio-version=1.1` | On a tracker that speaks TUIO 1.1 rather than TUIO 2.0 |

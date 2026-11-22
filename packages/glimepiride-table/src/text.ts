@@ -20,6 +20,8 @@ export interface GlimepirideFacts {
   readonly factor: string;
   /** The half life, when it is longer than the reference one. */
   readonly half: {readonly now: string; readonly reference: string} | undefined;
+  /** How many daily tablets, when it is more than the one. */
+  readonly doses: number;
 }
 
 export interface GlimepirideCopy {
@@ -30,22 +32,21 @@ export interface GlimepirideCopy {
   readonly stats: Readonly<Record<
     "now" | "cmax" | "tmax" | "halflife" | "auc" | "urine", Named>>;
   readonly roles: Readonly<Record<
-    "dose" | "cyp2c9" | "cirrhosis" | "renal" | "weight" | "hour", Named>>;
+    "dose" | "cyp2c9" | "cirrhosis" | "renal" | "weight" | "doses", Named>>;
   /** The clinical classes, by the label of the export. */
   readonly categories: Readonly<Record<string, string>>;
   readonly traces: Readonly<Record<"gli" | "m1" | "m2", string>>;
-  /** The stations a tablet passes, drawn across the table. */
-  readonly stations: Readonly<Record<
-    "tablet" | "liver" | "plasma" | "kidney" | "urine", string>>;
-  readonly oral: string;
-  readonly peak: (value: string) => string;
-  readonly endOfCourse: string;
+  /** The parts of the body a bubble stands on, in the words of the visitor. */
+  readonly regions: Readonly<Record<string, string>>;
   readonly slowly: (category: string) => string;
   readonly cirrhotic: (category: string) => string;
   readonly kidneys: (value: string, category: string) => string;
   readonly weighs: (value: string) => string;
   readonly takesInstead: (dose: string, reference: string) => string;
   readonly hourValue: (hour: string) => string;
+  /** How many tablets the person takes, as the panel and the card write it. */
+  readonly doseCount: (count: number) => string;
+  readonly everyMorning: string;
   readonly windBack: string;
   readonly reading: (facts: GlimepirideFacts) => string;
   readonly loading: string;
@@ -107,9 +108,9 @@ const EN: GlimepirideCopy = {
       expert: "Turn 2 down to a poor metabolizer: the exposure rises and the half life with it.",
     },
     {
-      child: "Turn dial 8 back to see the first hours after the tablet.",
-      adult: "Wind dial 8 back through the first hours after the tablet.",
-      expert: "Wind dial 8 back over the absorption phase and read the peak against the exposure.",
+      child: "Turn 3 up: a tablet every morning, and watch what is left when the next one comes.",
+      adult: "Turn 3 up for a tablet a day and watch the drug build up from one day to the next.",
+      expert: "Turn 3 up to a daily dose and read the accumulation against the single dose.",
     },
   ],
   stats: {
@@ -203,12 +204,12 @@ const EN: GlimepirideCopy = {
         expert: "The body weight, which scales the organ volumes and the blood flows of the physiology, and with them the volume of distribution.",
       },
     },
-    hour: {
-      label: {child: "Hours after", adult: "Hours after the dose"},
+    doses: {
+      label: {child: "How many tablets", adult: "Tablets, one a day"},
       info: {
-        child: "Turn it to travel through the hours after the tablet.",
-        adult: "Turn it back to walk from the end of the course to the moment of the dose.",
-        expert: "The hour of the solved course, from the end back to the dose. The dial is relative and reads the hour it was put down at.",
+        child: "Turn it for a tablet every morning, up to ten mornings.",
+        adult: "How many days in a row the person takes a tablet, one every morning.",
+        expert: "A dose of the tablet put back into the stomach every 24 hours, for up to ten days, with one further day after the last of them.",
       },
     },
   },
@@ -216,24 +217,27 @@ const EN: GlimepirideCopy = {
     healthy: "healthy", normal: "normal", mild: "mild", moderate: "moderate", severe: "severe",
   },
   traces: {gli: "glimepiride", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Tablet", liver: "Liver", plasma: "Plasma", kidney: "Kidneys", urine: "Urine",
+  regions: {
+    gut: "Gut", liver: "Liver", blood: "Blood", lung: "Lungs", kidney: "Kidneys",
+    rest: "The rest of the body", gone: "Out of the body",
   },
-  oral: "swallowed",
-  peak: value => `peak ${value} uM`,
-  endOfCourse: "M1 and M2 at the end",
   slowly: category => `breaks glimepiride down slowly (${category})`,
   cirrhotic: category => `has a cirrhotic liver (${category})`,
   kidneys: (value, category) => `has kidneys that clear ${value} ml/min (${category})`,
   weighs: value => `weighs ${value} kg`,
   takesInstead: (dose, reference) => `takes ${dose} mg instead of ${reference} mg`,
   hourValue: hour => `hour ${hour}`,
+  doseCount: count => (count === 1 ? "one tablet" : `${count} tablets`),
+  everyMorning: "one every morning",
   windBack: "turn back to the dose",
   reading: facts => {
     const body = `A ${facts.sex === "female" ? "woman" : "man"} of ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
+    const course = facts.doses > 1
+      ? ` One every morning, ${facts.doses} mornings in a row.`
+      : "";
     if (parts.length === 0) {
-      return `${body} takes ${facts.referenceDose} mg of glimepiride.`;
+      return `${body} takes ${facts.referenceDose} mg of glimepiride.${course}`;
     }
     const sentence = parts.length === 1 ? parts[0] : `${parts[0]} and ${parts[1]}`;
     const exposure = {
@@ -245,7 +249,7 @@ const EN: GlimepirideCopy = {
       : ` It also stays in the blood longer: half of it is gone after ${facts.half.now} hours `
         + `instead of ${facts.half.reference}.`;
     return `${body} who ${sentence}: ${exposure} of the drug in the blood as the person nobody `
-      + `changed.${half}`;
+      + `changed.${half}${course}`;
   },
   loading: "Loading glimepiride...",
   startingSolver: "Starting the solver...",
@@ -306,9 +310,9 @@ const DE: GlimepirideCopy = {
       expert: "Drehen Sie 2 auf einen Poor Metabolizer herunter: die Exposition steigt und die Halbwertszeit mit ihr.",
     },
     {
-      child: "Dreh Rad 8 zurück, um die ersten Stunden nach der Tablette zu sehen.",
-      adult: "Drehen Sie Rad 8 zurück durch die ersten Stunden nach der Tablette.",
-      expert: "Drehen Sie Rad 8 über die Resorptionsphase zurück und lesen Sie den Peak gegen die Exposition.",
+      child: "Dreh 3 hoch: jeden Morgen eine Tablette, und schau, was noch da ist, wenn die nächste kommt.",
+      adult: "Drehen Sie 3 hoch auf eine Tablette am Tag und sehen Sie, wie sich das Medikament von Tag zu Tag ansammelt.",
+      expert: "Drehen Sie 3 auf eine tägliche Dosis hoch und lesen Sie die Akkumulation gegen die Einzeldosis.",
     },
   ],
   stats: {
@@ -402,12 +406,12 @@ const DE: GlimepirideCopy = {
         expert: "Das Körpergewicht, das Organvolumina und Blutflüsse der Physiologie skaliert und damit das Verteilungsvolumen.",
       },
     },
-    hour: {
-      label: {child: "Stunden danach", adult: "Stunden nach der Dosis"},
+    doses: {
+      label: {child: "Wie viele Tabletten", adult: "Tabletten, eine am Tag"},
       info: {
-        child: "Dreh daran, um durch die Stunden nach der Tablette zu reisen.",
-        adult: "Drehen Sie zurück, um vom Ende des Verlaufs zum Moment der Einnahme zu gehen.",
-        expert: "Die Stunde des gelösten Verlaufs, vom Ende zurück zur Dosis. Das Rad ist relativ und liest die Stunde, an der es abgelegt wurde.",
+        child: "Dreh daran: jeden Morgen eine Tablette, bis zu zehn Morgen lang.",
+        adult: "Wie viele Tage hintereinander die Person eine Tablette nimmt, jeden Morgen eine.",
+        expert: "Eine Dosis der Tablette alle 24 Stunden zurück in den Magen, bis zu zehn Tage lang, mit einem weiteren Tag nach der letzten.",
       },
     },
   },
@@ -415,24 +419,27 @@ const DE: GlimepirideCopy = {
     healthy: "gesund", normal: "normal", mild: "leicht", moderate: "mittel", severe: "schwer",
   },
   traces: {gli: "Glimepirid", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Tablette", liver: "Leber", plasma: "Plasma", kidney: "Nieren", urine: "Urin",
+  regions: {
+    gut: "Darm", liver: "Leber", blood: "Blut", lung: "Lunge", kidney: "Nieren",
+    rest: "Der übrige Körper", gone: "Aus dem Körper",
   },
-  oral: "geschluckt",
-  peak: value => `Spitze ${value} uM`,
-  endOfCourse: "M1 und M2 am Ende",
   slowly: category => `Glimepirid langsam abbaut (${category})`,
   cirrhotic: category => `eine zirrhotische Leber hat (${category})`,
   kidneys: (value, category) => `Nieren hat, die ${value} ml/min klären (${category})`,
   weighs: value => `${value} kg wiegt`,
   takesInstead: (dose, reference) => `${dose} mg statt ${reference} mg nimmt`,
   hourValue: hour => `Stunde ${hour}`,
+  doseCount: count => (count === 1 ? "eine Tablette" : `${count} Tabletten`),
+  everyMorning: "jeden Morgen eine",
   windBack: "zurück zur Dosis drehen",
   reading: facts => {
     const body = `${facts.sex === "female" ? "Eine Frau" : "Ein Mann"} von ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
+    const course = facts.doses > 1
+      ? ` Jeden Morgen eine, ${facts.doses} Morgen hintereinander.`
+      : "";
     if (parts.length === 0) {
-      return `${body} nimmt ${facts.referenceDose} mg Glimepirid.`;
+      return `${body} nimmt ${facts.referenceDose} mg Glimepirid.${course}`;
     }
     const sentence = parts.length === 1 ? parts[0] : `${parts[0]} und ${parts[1]}`;
     const exposure = {
@@ -444,7 +451,7 @@ const DE: GlimepirideCopy = {
       : ` Es bleibt auch länger im Blut: die Hälfte ist nach ${facts.half.now} Stunden weg `
         + `statt nach ${facts.half.reference}.`;
     return `${body}, ${facts.sex === "female" ? "die" : "der"} ${sentence}: ${exposure} vom `
-      + `Medikament im Blut wie die Person, an der nichts geändert wurde.${half}`;
+      + `Medikament im Blut wie die Person, an der nichts geändert wurde.${half}${course}`;
   },
   loading: "Glimepirid wird geladen...",
   startingSolver: "Der Solver wird gestartet...",
@@ -505,9 +512,9 @@ const ES: GlimepirideCopy = {
       expert: "Gire el 2 a metabolizador lento: la exposición sube y con ella la semivida.",
     },
     {
-      child: "Gira el dial 8 hacia atrás para ver las primeras horas tras la pastilla.",
-      adult: "Gire el dial 8 hacia atrás por las primeras horas tras la pastilla.",
-      expert: "Gire el dial 8 sobre la fase de absorción y lea el pico frente a la exposición.",
+      child: "Sube el 3: una pastilla cada mañana, y mira qué queda cuando llega la siguiente.",
+      adult: "Suba el 3 a una pastilla al día y vea cómo se acumula el fármaco de un día al siguiente.",
+      expert: "Suba el 3 a una dosis diaria y lea la acumulación frente a la dosis única.",
     },
   ],
   stats: {
@@ -601,12 +608,12 @@ const ES: GlimepirideCopy = {
         expert: "El peso corporal, que escala los volúmenes de órgano y los flujos de la fisiología, y con ellos el volumen de distribución.",
       },
     },
-    hour: {
-      label: {child: "Horas después", adult: "Horas tras la dosis"},
+    doses: {
+      label: {child: "Cuántas pastillas", adult: "Pastillas, una al día"},
       info: {
-        child: "Gíralo para viajar por las horas después de la pastilla.",
-        adult: "Gírelo hacia atrás para ir del final del curso al momento de la toma.",
-        expert: "La hora del curso resuelto, del final hacia la dosis. El dial es relativo y lee la hora en que se colocó.",
+        child: "Gíralo: una pastilla cada mañana, hasta diez mañanas.",
+        adult: "Cuántos días seguidos toma la persona una pastilla, una cada mañana.",
+        expert: "Una dosis de la pastilla de vuelta al estómago cada 24 horas, hasta diez días, con un día más tras la última.",
       },
     },
   },
@@ -614,24 +621,27 @@ const ES: GlimepirideCopy = {
     healthy: "sano", normal: "normal", mild: "leve", moderate: "moderada", severe: "grave",
   },
   traces: {gli: "glimepirida", m1: "M1", m2: "M2"},
-  stations: {
-    tablet: "Pastilla", liver: "Hígado", plasma: "Plasma", kidney: "Riñones", urine: "Orina",
+  regions: {
+    gut: "Intestino", liver: "Hígado", blood: "Sangre", lung: "Pulmones", kidney: "Riñones",
+    rest: "El resto del cuerpo", gone: "Fuera del cuerpo",
   },
-  oral: "tragada",
-  peak: value => `pico ${value} uM`,
-  endOfCourse: "M1 y M2 al final",
   slowly: category => `metaboliza la glimepirida despacio (${category})`,
   cirrhotic: category => `tiene un hígado cirrótico (${category})`,
   kidneys: (value, category) => `tiene riñones que aclaran ${value} ml/min (${category})`,
   weighs: value => `pesa ${value} kg`,
   takesInstead: (dose, reference) => `toma ${dose} mg en lugar de ${reference} mg`,
   hourValue: hour => `hora ${hour}`,
+  doseCount: count => (count === 1 ? "una pastilla" : `${count} pastillas`),
+  everyMorning: "una cada mañana",
   windBack: "gírelo hacia la dosis",
   reading: facts => {
     const body = `${facts.sex === "female" ? "Una mujer" : "Un hombre"} de ${facts.weight} kg`;
     const parts = [...(facts.dose === undefined ? [] : [facts.dose]), ...facts.who].slice(0, 2);
+    const course = facts.doses > 1
+      ? ` Una cada mañana, ${facts.doses} mañanas seguidas.`
+      : "";
     if (parts.length === 0) {
-      return `${body} toma ${facts.referenceDose} mg de glimepirida.`;
+      return `${body} toma ${facts.referenceDose} mg de glimepirida.${course}`;
     }
     const sentence = parts.length === 1 ? parts[0] : `${parts[0]} y ${parts[1]}`;
     const exposure = {
@@ -643,7 +653,7 @@ const ES: GlimepirideCopy = {
       : ` Además se queda más tiempo en la sangre: la mitad se ha ido a las ${facts.half.now} `
         + `horas en lugar de a las ${facts.half.reference}.`;
     return `${body} que ${sentence}: ${exposure} de fármaco en la sangre que la persona a la `
-      + `que no se le cambió nada.${half}`;
+      + `que no se le cambió nada.${half}${course}`;
   },
   loading: "Cargando la glimepirida...",
   startingSolver: "Arrancando el solucionador...",

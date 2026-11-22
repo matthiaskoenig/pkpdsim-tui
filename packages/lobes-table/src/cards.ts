@@ -3,14 +3,11 @@
  */
 
 import {clamp, formatNumber, words} from "@pkpdsim-tui/tui-kit";
-import type {
-  PlotTrace, StatDefinition, TokenCard, TokenGlyph, Voice,
-} from "@pkpdsim-tui/tui-kit";
+import type {StatDefinition, TokenCard, TokenGlyph, Voice} from "@pkpdsim-tui/tui-kit";
 import {LOBE_TEXT} from "./text.ts";
-import {valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {TableToken, TokenRole} from "@pkpdsim-tui/tuio-input";
-import type {LobeBlock} from "./layout.ts";
-import {shortName} from "./scene.ts";
+import {operationName} from "./operations.ts";
+import type {Operation} from "./operations.ts";
 
 /** A row of a solved course, every column of it by name. */
 export type Sample = Readonly<Record<string, number>>;
@@ -41,51 +38,19 @@ export function lobeStats(voice: Voice): readonly StatDefinition<Sample>[] {
   ];
 }
 
-/** What the course below the liver draws. */
-export function lobeTraces(voice: Voice): readonly PlotTrace[] {
-  const copy = voice.pick(LOBE_TEXT).traces;
-  return [
-    {id: "volume", label: copy.volume, column: "Vli_lobes", unit: "l", colour: "#4fd1c5"},
-    {id: "portal", label: copy.portal, column: "CV_P_po", unit: "mmHg", colour: "#e8a33d"},
-  ];
-}
-
 export interface CardContext {
-  readonly block: LobeBlock | undefined;
+  /** The operation the knife is pointing at. */
+  readonly operation: Operation;
   readonly sample: Sample;
   /** The same liver without the operation, which a segment is measured against. */
   readonly baseline: Sample;
-  readonly days: number;
-  readonly origins: ReadonlyMap<number, number>;
+  /** What the rate dial is at, as a factor on the growth of this species. */
+  readonly factor: number;
 }
 
-/** What an instrument did to the segment it lies on, for the card beside it. */
-function instrumentNote(
-  voice: Voice, roleId: string, block: LobeBlock, context: CardContext,
-): string {
-  const copy = voice.pick(LOBE_TEXT);
-  const share = `${formatNumber(block.share * 100, 0)} %`;
-  const reference = context.baseline[`Vli_${block.token}`];
-  const volume = reference === undefined || reference <= 0
-    ? undefined
-    : (context.sample[`Vli_${block.token}`] ?? reference) / reference;
-  switch (roleId) {
-    case "resect":
-      return copy.takenAway(share);
-    case "portal":
-    case "arterial":
-      return volume === undefined
-        ? share
-        : copy.nowAt(share, `${formatNumber(volume * 100, 0)} %`);
-    default:
-      return share;
-  }
-}
-
-/** The picture inside the object: the instrument it is, or the clock of the days. */
+/** The picture inside the object: the knife of the operation, or the clock of the rate. */
 function glyphFor(role: TokenRole, level: number): TokenGlyph {
-  if (role.id === "resect") return {kind: "scalpel", level: 1};
-  if (role.mode === "position") return {kind: "clamp", level: 1};
+  if (role.id === "resection") return {kind: "scalpel", level: 1};
   return {kind: "clock", level: clamp(level, 0, 1)};
 }
 
@@ -100,21 +65,26 @@ export function cardFor(
       note: voice.say(kit.noRoleNote),
     };
   }
-  if (role.mode === "position") {
-    const {block} = context;
+  if (role.id === "resection") {
+    // The card of the knife names the operation and what it takes, which is the number a
+    // visitor is choosing by.
     return {
-      kind: "plain", title: role.label,
-      value: block === undefined ? copy.noSegment : shortName(voice, block),
-      note: block === undefined
-        ? copy.putOnSegment
-        : instrumentNote(voice, role.id, block, context),
+      kind: "dial", title: role.label,
+      value: operationName(voice, context.operation),
+      note: context.operation.lobes.length === 0
+        ? copy.whole
+        : copy.takenAway(`${formatNumber(context.operation.removed * 100, 0)} %`),
       glyph: glyphFor(role, 1), info: role.description,
     };
   }
-  const day = valueFromAngle(role, token.turn, context.origins.get(token.sessionId) ?? 0);
+  // A rate of one is the liver of a healthy individual of this species, which is the detent
+  // the dial sits in.
   return {
-    kind: "dial", title: role.label, value: copy.dayValue(formatNumber(day, 1)),
-    note: copy.windBack,
-    glyph: glyphFor(role, context.days > 0 ? day / context.days : 0), info: role.description,
+    kind: "dial", title: role.label, value: copy.growthValue(formatNumber(context.factor, 1)),
+    note: voice.say(context.factor > 1.05
+      ? copy.growsFaster
+      : context.factor < 0.95 ? copy.growsSlower : copy.growsNormally),
+    glyph: glyphFor(role, clamp(Math.log(context.factor) / Math.log(3) / 2 + 0.5, 0, 1)),
+    info: role.description,
   };
 }

@@ -21,6 +21,8 @@ export type {Quiz, QuizChoice, QuizOptions, QuizQuestion} from "./quiz.ts";
 export type {Box, Plot, PlotAxis, PlotSeries, PlotTrace, PlotView} from "./plot.ts";
 export {createReadout, visibleStats} from "./readout.ts";
 export {createSettings, pictogram, reportStatus} from "./settings.ts";
+export {clearStars, keepStars, readStars, starMarks, starsOf, watchStars} from "./stars.ts";
+export type {Stars} from "./stars.ts";
 export type {Pictogram, Settings, SettingsOptions} from "./settings.ts";
 export {normalizeSpeech, speechFor, speechKey} from "./speech.ts";
 export type {Speech} from "./speech.ts";

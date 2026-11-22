@@ -19,17 +19,17 @@ import {
 } from "@pkpdsim-tui/tui-kit";
 
 /**
- * How wide a vessel of this figure is. The scale is gentler than the one of a schematic, because
- * these vessels are drawn over a body rather than on a diagram: at the scale of the organs, the
- * cardiac output would be a bar across the chest.
+ * How wide a vessel of this figure is. A vessel is as wide as the square root of its flow, so
+ * that the area of the pipe is the flow: the scale is as generous as the body allows, because
+ * the width is what a visitor reads a change off from across the table.
  */
 function width(flow: number): number {
-  return vesselWidth(flow, 0.5, 0.18, 2.1);
+  return vesselWidth(flow, 0.95, 0.3, 3.6);
 }
 
 /** The disc of an organ, which is as large as the flow it gets. */
 function radius(flow: number): number {
-  return organRadius(flow, 0.7, 1.05, 2.8);
+  return organRadius(flow, 0.8, 1.25, 3.2);
 }
 import type {Voice} from "@pkpdsim-tui/tui-kit";
 import {CARDIO_TEXT} from "./text.ts";
@@ -46,8 +46,10 @@ const TRUNK = {arterial: -16, venous: 16, top: 34, bottom: 148} as const;
 const PORTAL_NODE = {x: 10.5, y: 66} as const;
 /** The columns the names are read in, clear of the body. */
 const NAME = {left: -31, right: 31} as const;
-/** The share of the height of the surface the body takes. */
-const BODY_SHARE = 0.82;
+/** The share of the room under the band of numbers the body takes. */
+const BODY_SHARE = 0.96;
+/** What the figure keeps clear of: the panel, the plots, and the band of numbers above it. */
+const EDGES = {panel: 404, plots: 468, band: 118, foot: 16} as const;
 /** The ventricle on the anatomy, which empties and fills with the solved beat. */
 const VENTRICLE_RADIUS = 3.1;
 
@@ -287,11 +289,17 @@ export function createScene(
 
   return {
     resize(viewport: Viewport): void {
-      const scale = (viewport.height * BODY_SHARE) / body.height;
-      // The circuit is as wide as the two name columns, and stands between the panel and the
-      // beats, rather than in the middle of a surface whose edges are taken.
-      const left = viewport.width / 2;
-      const top = (viewport.height - body.height * scale) / 2;
+      // The body is as tall as the room under the band of numbers allows: the band is read
+      // over it and not through it. On a narrow surface the two columns of names are what the
+      // figure has to fit into, so the width has the last word.
+      const room = viewport.height - EDGES.band - EDGES.foot;
+      const between = viewport.width - EDGES.panel - EDGES.plots;
+      const scale = Math.min(
+        (room * BODY_SHARE) / body.height, between / (2 * Math.abs(NAME.left) + 24));
+      // The circuit is as wide as its two name columns, and stands in the middle of what is
+      // left between the panel and the plots rather than in the middle of the surface.
+      const left = (EDGES.panel + (viewport.width - EDGES.plots)) / 2;
+      const top = EDGES.band + (room - body.height * scale) / 2;
       root.setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
     },
 
