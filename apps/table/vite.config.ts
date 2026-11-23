@@ -7,7 +7,7 @@ import {dataNotFound} from "./data-404.ts";
  * The one application: the body and every table of pkpdsim behind it, from one page.
  *
  * This is the app of the table and nothing else. The server carries the tracker of the table at
- * `/tuio`, which `npm run table -- --tuio <host:port>` names, so the application, its models and
+ * `/tuio`, which `node scripts/table.mjs --tuio <host:port>` names, so the application, its models and
  * the tracker are one address and one forwarded port:
  *
  *   ssh -L 5173:localhost:5173 <host>
@@ -18,7 +18,7 @@ import {dataNotFound} from "./data-404.ts";
  */
 /**
  * Which interface the server listens on. It stays on this machine unless it is sent out with
- * `npm run table -- --host`: the proxy below carries the tracker of the table with it, and that
+ * `node scripts/table.mjs --host`: the proxy below carries the tracker of the table with it, and that
  * asks for no password, so a table on the network of an exhibition would hand it to everybody
  * on it.
  */
@@ -34,7 +34,7 @@ const VERSION = (JSON.parse(
 ) as {version: string}).version;
 
 /**
- * The tracker this server carries at `/tuio`, which `npm run table -- --tuio 10.0.0.20:3343`
+ * The tracker this server carries at `/tuio`, which `node scripts/table.mjs --tuio 10.0.0.20:3343`
  * names: the real table at an exhibition, and the tracker of the simulator where `npm run dev`
  * started one beside this server. It is `host:port`, or a whole `ws://host:port/path` for a
  * tracker which listens under a path of its own.
@@ -55,7 +55,7 @@ const TRACKER_URL = TUIO_TRACKER === "" ? null : new URL(
  * every page this server serves is given them: the page a visitor is handed, the page a table
  * opens again, and a page somebody typed. An address of a table then carries nothing.
  *
- * `npm run dev -- --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21` writes both, and a build for a
+ * `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21` writes both, and a build for a
  * booth of its own takes them from the environment:
  *
  *   TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=1,3,5,6,11,12,21 npm run build

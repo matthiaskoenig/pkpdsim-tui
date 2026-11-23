@@ -17,7 +17,7 @@
  * including through a single forwarded port over ssh. A page which finds nothing runs on the
  * mouse, which is what a published build does.
  *
- * A server which was started on a real table, `npm run dev -- --tuio 10.0.0.20:3343`, says so
+ * A server which was started on a real table, `node scripts/table.mjs --tuio 10.0.0.20:3343`, says so
  * to the pages it serves, and `carryTracker` is where they are told. That tracker is then the
  * one which drives them: it is waited for rather than looked for once, because a table which is
  * slow to answer is still the table and nothing else is going to drive it, and it is named by

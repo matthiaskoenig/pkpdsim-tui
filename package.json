@@ -27,6 +27,7 @@
     "dev:perfusion": "node scripts/dev.mjs --app perfusion",
     "build": "npm run build --workspaces --if-present",
     "preview": "node scripts/table.mjs --preview",
+    "table:preview": "npm run table -- --preview",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

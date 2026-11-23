@@ -64,6 +64,16 @@ describe("every command of the repository", () => {
     expect(scripts["dev"] ?? "").toContain("scripts/dev.mjs");
   });
 
+  // Nobody types `--`: npm keeps the flags before it for itself, so a command of a booth which
+  // needs a flag is a command of its own. It reuses `npm run table` rather than writing the
+  // tracker and the ids of the exhibition a second time, which would be two places to change.
+  it("says the table of the exhibition once, and reuses it", () => {
+    const preview = scripts["table:preview"] ?? "";
+    expect(preview).toContain("npm run table");
+    expect(preview).toContain("--preview");
+    expect(preview).not.toMatch(/--tuio|--ids/u);
+  });
+
   it("quotes nothing the way only a POSIX shell reads it", () => {
     for (const [name, command] of Object.entries(scripts)) {
       expect(command, name).not.toContain("'");

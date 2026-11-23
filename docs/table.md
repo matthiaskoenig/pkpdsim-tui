@@ -42,11 +42,13 @@ node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
 | The objects of the table | `--ids <list>` | `5,6,11,12,21,22`, the ids printed on the six pucks |
 | The port of the table | `--port <port>` | `5173`, which carries the tracker with it |
 
-Another table is the same command with its own two, either in `package.json` or after `--`:
+Another table is the same command with its own two, either written into `package.json` or said to the script itself:
 
 ```bash
-npm run table -- --tuio 10.0.0.21:3343 --ids 2,4,8,9,14,15,22
+node scripts/table.mjs --tuio 10.0.0.21:3343 --ids 2,4,8,9,14,15,22
 ```
+
+`npm run table` is that line with the two of this exhibition in it. An option is said to `scripts/table.mjs` rather than to `npm run table`, because npm keeps the flags of a command for itself: the booth types no `--`.
 
 The address a visitor is handed is the body, from which they open a table; `?app=cardiovascular` opens one at once, which is what a booth with one subject uses. Because the table is said to the server and not to the address, there is one place to change it and nothing to keep in step: the page a visitor is handed, the page a table opens again after a visit, and a page somebody typed are all the same table. A page may still name a tracker or a list of ids of its own, with `?tuio=` and `?ids=` below, which is how a second table on the same server or another set of pucks is tried without stopping the booth.
 
@@ -135,10 +137,10 @@ The address carries nothing of the table itself: the tracker and the ids are of 
 
 ```bash
 npm run build
-npm run table -- --preview
+npm run table:preview
 ```
 
-The build under `apps/table/dist` is self contained, every table with its models and its runtime, so it can be copied to the machine that drives the table and served by anything. Nothing it needs is on the network. `--preview` serves that build on the one port of the table, 5173, with the tracker and the ids of the booth as before, and `npx vite preview --port 5173 apps/table` is the build alone.
+The build under `apps/table/dist` is self contained, every table with its models and its runtime, so it can be copied to the machine that drives the table and served by anything. Nothing it needs is on the network. `npm run table:preview` is `npm run table` with `--preview`, so it serves that build on the one port of the table, 5173, with the tracker and the ids of the booth as before; `npm run preview` is the same without them, and `npx vite preview --port 5173 apps/table` is the build alone.
 
 Also worth doing on the machine at a booth: turn off screen blanking and the screen saver, turn off automatic updates, and disable the system gestures a stray palm on the glass would trigger.
 
