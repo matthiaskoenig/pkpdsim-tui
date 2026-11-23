@@ -26,13 +26,10 @@ Who the person is, their sex, their age from three to a hundred and twenty years
 git clone https://github.com/matthiaskoenig/pkpdsim-tui.git
 cd pkpdsim-tui
 npm install
-npm run sync                 # the models and reference data of a pkpdsim checkout
-npm run export:glimepiride   # the glimepiride model, from its own checkout
-npm run export:perfusion     # the machine perfusion model, built with pkpdsim
 npm run dev
 ```
 
-The exports are not in the repository, and each of the three commands writes the folder of its own tables, see [Development](development.md#commands). A table which finds no model says which command writes it, and `npm run sync` says what a pkpdsim checkout is missing when it is behind the export the tables ask for.
+The install takes the resources of the table with it: the compiled models of the four tables, their reference data and the clips they read aloud, about 50 MB, from the release this checkout is. They are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips, so a clone which carried them would grow by all of it again at every release; `npm run assets` takes them again, for a machine which was not on the network at install, and a table which finds no model of its own says that one command. A checkout which writes the models itself, from a pkpdsim beside it, is what `npm run sync` and the export commands are for, see [Development](development.md#the-resources-of-a-release).
 
 `npm run dev` starts the application and the [TUIO simulator](simulator.md) on one port. The application finds the tracker of that server by itself, so there is nothing to add to the address:
 

@@ -15,6 +15,10 @@ apps/*/public/assets/
 # the clips the table reads aloud, recorded with scripts/speak.py
 apps/*/public/audio/
 
+# the archives of a release, packed with scripts/assets.mjs
+pkpdsim-tui-*.tar.gz
+pkpdsim-tui-*.tar.gz.sha256
+
 # editors
 .idea/
 .vscode/

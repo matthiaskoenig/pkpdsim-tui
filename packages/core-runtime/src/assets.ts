@@ -2,22 +2,22 @@
  * Fetching the files of an export: the bytes of a compiled model, the runtime it needs, and what
  * a table says when one of them is not where the page expects it.
  *
- * Every table keeps its compiled models and its reference data in a folder of its own, and each
- * folder is written by a command of its own, so a sentence about a file which is not there names
- * the command of the table which asked rather than the one of the collection. Whoever looks
- * after the table reads it under the one sentence the visitor is given, and it is the whole of
- * what they need: which file, why, and what to run.
+ * The models of the tables and their reference data are not in the repository: they are written
+ * by pkpdsim and travel with a release, and `npm run assets` is what puts them where a page
+ * looks for them. A sentence about a file which is not there says that one command, because it
+ * is the one which puts all of them there, whichever table asked and whether the checkout was
+ * cloned an hour ago or is a booth whose disk was replaced. Whoever looks after the table reads
+ * it under the one sentence the visitor is given, and it is the whole of what they need: which
+ * file, why, and what to run.
  */
 
 import type {SolverAssets} from "./types.ts";
 
-/** The command which writes the folder a file belongs to. */
-export function assetCommand(url: string | URL): string {
-  const path = String(url);
-  if (path.includes("/glimepiride/")) return "npm run export:glimepiride";
-  if (path.includes("/perfusion/")) return "npm run export:perfusion";
-  return "npm run sync";
-}
+/**
+ * The command which puts the resources of the table where a page looks for them: the models of
+ * every table and the clips it reads aloud, taken from the release this checkout is.
+ */
+export const ASSET_COMMAND = "npm run assets";
 
 /** The file, as short as it can be said: the path of it, without the host it came from. */
 function where(url: string | URL): string {
@@ -31,7 +31,7 @@ function where(url: string | URL): string {
 
 /** Which file could not be loaded, why, and the command which writes it. */
 export function missingAsset(url: string | URL, why: string): Error {
-  return new Error(`Could not load ${where(url)}: ${why}. Run "${assetCommand(url)}".`);
+  return new Error(`Could not load ${where(url)}: ${why}. Run "${ASSET_COMMAND}".`);
 }
 
 /**

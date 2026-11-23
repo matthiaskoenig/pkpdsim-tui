@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it} from "vitest";
-import {assetCommand, fetchAsset} from "../src/assets.ts";
+import {ASSET_COMMAND, fetchAsset} from "../src/assets.ts";
 
 const real = globalThis.fetch;
 
@@ -15,14 +15,11 @@ function answers(response: Response): void {
 const CARDIOVASCULAR = new URL("http://localhost:5173/assets/cardiovascular/solver/config.json");
 const PERFUSION = new URL("http://localhost:5173/assets/perfusion/solver/model.json");
 
-describe("the command which writes an asset", () => {
-  it("is the one of the table the file belongs to", () => {
-    expect(assetCommand(CARDIOVASCULAR)).toBe("npm run sync");
-    expect(assetCommand(new URL("http://localhost/assets/lobes/runtime/engine.wasm")))
-      .toBe("npm run sync");
-    expect(assetCommand(new URL("http://localhost/assets/glimepiride/solver/model.wasm")))
-      .toBe("npm run export:glimepiride");
-    expect(assetCommand(PERFUSION)).toBe("npm run export:perfusion");
+describe("the command which puts the assets there", () => {
+  // One command puts all of them there, whichever table asked: they travel with a release, and
+  // a checkout takes them from the release it is.
+  it("is the one command of the resources", () => {
+    expect(ASSET_COMMAND).toBe("npm run assets");
   });
 });
 
@@ -35,7 +32,7 @@ describe("fetching an asset", () => {
   it("names the file and the command when it is not there", async () => {
     answers(new Response("Not found", {status: 404}));
     await expect(fetchAsset(PERFUSION)).rejects.toThrow(
-      /assets\/perfusion\/solver\/model\.json.*404.*npm run export:perfusion/s);
+      /assets\/perfusion\/solver\/model\.json.*404.*npm run assets/s);
   });
 
   // A development server answers a path it does not know with the page of the application, so
@@ -50,7 +47,7 @@ describe("fetching an asset", () => {
     expect(failed).toBeInstanceOf(Error);
     const message = (failed as Error).message;
     expect(message).toContain("/assets/cardiovascular/solver/config.json");
-    expect(message).toContain("npm run sync");
+    expect(message).toContain("npm run assets");
     expect(message).not.toContain("<!doctype");
   });
 });

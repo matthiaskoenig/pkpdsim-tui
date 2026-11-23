@@ -33,6 +33,16 @@ describe("every command of the repository", () => {
     }
   });
 
+  // The resources of a release are taken by the install itself, so a clone of a release is a
+  // table: an install, and `npm run table`. `--if-missing` is what makes that install one which
+  // can be run twice and one which a machine off the network still finishes.
+  it("takes the resources of the release with the install", () => {
+    expect(scripts["postinstall"] ?? "").toContain("scripts/assets.mjs");
+    expect(scripts["postinstall"] ?? "").toContain("--if-missing");
+    expect(scripts["assets"] ?? "").toBe("node scripts/assets.mjs");
+    expect(scripts["assets:pack"] ?? "").toContain("pack");
+  });
+
   // The command a booth is started with. It is the one place the table of this exhibition is
   // written down: the tracker it reports its objects over and the ids printed on its pucks, so
   // `npm run table` is the whole of it and no address of that table carries either.
