@@ -293,6 +293,17 @@ npm run build
 
 The site is built with [Zensical](https://zensical.org/) from the markdown in `docs/`, configured in `zensical.toml`. The build is gitignored.
 
+The pages go from what a visitor sees to how it is made, and a new page belongs in that order:
+
+| Page | What belongs on it |
+| --- | --- |
+| `index.md` | The overview, and nothing which has to be kept in step with a command |
+| `apps/index.md` and `apps/<table>.md` | The four tables, the settings and the levels a visitor chooses, how a table behaves under a hand, and the model behind each one |
+| `table.md` | A booth: installing it, the one command, the tracker, the pucks, the glass |
+| `simulator.md` | The same on a laptop, and how a table is driven against the simulator |
+| `development.md` | The repository itself: the layout, the commands, the two apps, the releases |
+| `languages.md` | Where the words are and how the clips are recorded |
+
 ```bash
 uv sync --extra dev
 uv run zensical serve

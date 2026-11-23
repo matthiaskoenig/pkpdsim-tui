@@ -5,98 +5,22 @@ Four tables you can touch, built on the PBPK/PD models of [pkpdsim](https://gith
 
 ![The body, with the four tables around it](images/body.png)
 
-## One application, four tables
-
-Everything is one application. It opens on the body of the person at the table, with the four tables on a ring around it. Each table is a disc in its own colour, which its organ on the body carries too. Touching a disc, or the organ it points at, opens that table; **Back** in the panel returns to the body.
-
-| Table | Opened by | What the objects do |
-| --- | --- | --- |
-| [Follow the blood](apps/cardiovascular.md) | `?app=cardiovascular` | The heart rate, how hard the heart squeezes, and how open the vessels are. The heart beats on the table while they are moved. |
-| [The liver grows back](apps/lobes.md) | `?app=lobes` | One object turns through the resections a surgeon does, another says how fast the liver grows back. The days after the operation run by themselves. |
-| [One tablet, one day](apps/glimepiride.md) | `?app=glimepiride` | The dose, the dissolution, the tablets a day, the CYP2C9 genotype, the liver and the kidneys of one person. |
-| [A liver without a body](apps/perfusion.md) | `?app=perfusion` | The pump, the oxygen and the temperature of a liver kept alive on a machine, and a dial through the hours. |
-
-The three liver tables are one story: a liver that takes drugs apart, a liver that can be cut and grows back, and a liver that stays alive outside the body.
-
-Who the person is, their sex, their age from three to a hundred and twenty years, their weight and their height, is asked on the first screen, and every model is solved for them. The body holds when the visitor moves to the next table.
-
-## Quick start
-
-```bash
-git clone https://github.com/matthiaskoenig/pkpdsim-tui.git
-cd pkpdsim-tui
-npm install
-npm run dev
-```
-
-The install takes the resources of the table with it: the compiled models of the four tables, their reference data and the clips they read aloud, about 50 MB, from the release this checkout is. They are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips, so a clone which carried them would grow by all of it again at every release; `npm run assets` takes them again, for a machine which was not on the network at install, and a table which finds no model of its own says that one command. How the resources of a release are written, for whoever cuts the next one, is in [Development](development.md#the-resources-of-a-release).
-
-`npm run dev` starts the two apps of this repository, each on a port of its own: the table, and the [TUIO simulator](simulator.md) which drives it. The table finds the tracker by itself, so there is nothing to add to the address:
-
-| Address | What it is |
+| Table | What a visitor does |
 | --- | --- |
-| `http://localhost:5173/` | The body, from which every table is opened |
-| `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes`, `glimepiride` and `perfusion` are the others |
-| `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
-| `http://localhost:3344/` | The simulator, with the table under its own surface |
-| `http://localhost:5173/?ids=1,3,5,6,11,12` | The ids the markers of a table carry, for a page which is not of a booth, see [Run on a table](table.md#the-ids-of-the-markers) |
-| `http://localhost:5173/?tuio=10.0.0.20:3343` | The tracker of a real table, which the page then listens to alone |
+| [Follow the blood](apps/cardiovascular.md) | Turns the heart and the vessels of the whole circulation, with the heart beating while they move |
+| [The liver grows back](apps/lobes.md) | Cuts a liver the way a surgeon does and watches the days after the operation |
+| [One tablet, one day](apps/glimepiride.md) | Gives one person a drug: the dose, the tablets a day, their genotype, their liver and kidneys |
+| [A liver without a body](apps/perfusion.md) | Keeps a liver alive on a machine and runs the hours |
 
-Both the mouse and the objects work while `npm run dev` is running. The digit keys put an object down under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body. `?tuio=off` keeps a page on the mouse alone, `?tuio=<host>:<port>` points it at a tracker somewhere else.
+Everything is one application: it opens on the body of the person at the table, with the four tables on a ring around it, and each table is reached from there. An object says what it is by its marker, which value it carries by its angle, and what it acts on by where it lies; lifting it undoes it. Every table speaks English, German and Spanish, at three levels, and reads itself aloud.
 
-### Another port
+## Where to go
 
-`--port` moves the application, and the simulator has two ports of its own. A second copy beside a running one needs all three:
-
-```bash
-npm run dev -- --port 8080
-npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335
-npm run dev -- --help
-```
-
-`npm run table` is the table on its own, which is what a booth runs, and `npm run simulator` is the simulator on its own; each takes its own flags, and `--preview` serves the build instead of the development server. [Development](development.md) has the whole list.
-
-### On a real table
-
-The table is the tracker, and its markers carry their own ids. Both are said once, in the command of the table, and every page it serves is given them, so the address to open carries nothing:
-
-```bash
-npm run table
-# then open http://localhost:5173/
-```
-
-It stands for `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22`, which is where the table of this exhibition is written down: the tracker it listens to, and the ids printed on its six pucks. A booth starts no simulator. See [Run on a table](table.md#quickstart).
-
-Because the table is one port, a table on another machine is one forwarded port:
-
-```bash
-ssh -L 5173:localhost:5173 <machine>
-```
-
-## How a table works
-
-The vocabulary is the same everywhere, so a visitor who learned one table has learned the others.
-
-- The marker of an object says **what it is**: a heart rate, a dose, a knife.
-- Its angle says **which value it carries**. Pointing away from the visitor is the reference physiology, to the right is more, to the left is less. A coloured band grows around the object as it moves away from the reference, red upwards and blue downwards.
-- Its position says **what it acts on**, where that matters: the vessel, organ or lobe under it.
-- Lifting the object **undoes** it. Nothing here is permanent.
-
-A table has no click, so a touch chooses in the two ways a person tries: a tap, which presses when the finger goes, and a rest, which presses after a moment and fills the element while the finger is there. Touches do what touches are good at, such as scrubbing a time course or switching the table or the body.
-
-Each table says in words what it is. The panel in the corner carries the title and a sentence on the state the objects have put the body in, which changes as they move. The numbers at the edge are for whoever wants them, the sentence is for everybody else. Everything else waits behind the thing it belongs to: hovering a number, an object or an organ with the mouse, or resting a finger on it, opens a note that says what it is.
-
-Every word comes in three languages and at three levels: English, German and Spanish, for a child, for an adult who knows nothing about the subject, and for somebody who wants the mechanism. The level changes the numbers too, three at the edge for a child where an expert reads six. See [Languages and the voice](languages.md).
-
-A table opens on a page that introduces its objects: what the table is about in a sentence or two, then every object with what turning it changes. A light bulb beside an object opens the physiology behind it for whoever wants more.
-
-![The page the circulation table opens with](images/briefing.png)
-
-## What runs the model
-
-Nothing here solves a PBPK model of its own. The models, their compiled form, their runtime and their reference solutions are exported by pkpdsim and travel with the release, so what the table shows is what the SBML says. A model that lives in its own repository, like glimepiride, is compiled here by `scripts/export_model.py` with the same release of sbmlsim-core.
-
-Two kinds of model meet on these tables. The steady pressure network of the circulation has an exact algebraic reduction, so the anatomy answers within a frame. The lobed liver and glimepiride are integrated with SUNDIALS IDA in a Web Worker on the compiled SBML: the objects stay where they are, the table says it is solving, and the answer replaces the one before it.
+- **[The applications](apps/index.md)** - the four tables, what a visitor chooses, and how a table behaves under a hand
+- **[Run on a table](table.md)** - install it, and run it at a booth with a real table and real objects
+- **[Run the simulator](simulator.md)** - the same on a laptop, where the objects are placed with a mouse
+- **[Development](development.md)** - the layout of the repository, the two apps, the tests and the releases
+- **[Languages and the voice](languages.md)** - where the words are and how the clips are recorded
 
 ## License
 

@@ -14,16 +14,17 @@ extra_css = ["stylesheets/extra.css"]
 
 nav = [
   { "Home" = "index.md" },
-  { "Run the simulator" = "simulator.md" },
-  { "Run on a table" = "table.md" },
-  { "Languages and the voice" = "languages.md" },
   { "Applications" = [
+    { "The applications" = "apps/index.md" },
     { "Follow the blood" = "apps/cardiovascular.md" },
     { "The liver grows back" = "apps/lobes.md" },
     { "One tablet, one day" = "apps/glimepiride.md" },
     { "A liver without a body" = "apps/perfusion.md" },
   ] },
+  { "Run on a table" = "table.md" },
+  { "Run the simulator" = "simulator.md" },
   { "Development" = "development.md" },
+  { "Languages and the voice" = "languages.md" },
 ]
 
 [project.theme]
