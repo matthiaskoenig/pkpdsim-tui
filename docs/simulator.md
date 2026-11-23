@@ -24,6 +24,7 @@ Open the control page and an application beside it at `http://localhost:5173/?tu
 | `--transport` | `websocket` or `udp` | `websocket` |
 | `--page-port` | The HTTP port of the control page | `3344` |
 | `--rate` | Frames per second of a surface nobody is touching | `60` |
+| `--table <url>` | The table this simulator drives, which its page opens under the surface | `http://localhost:5173/` |
 | `--allow-origin` | One more page which may drive the simulator, repeatable, `"*"` for any | pages of this machine |
 
 The flags come after `--`, because npm takes the ones before it for itself: `npm run simulator -- --host 0.0.0.0 --rate 30`.
@@ -32,22 +33,24 @@ The flags come after `--`, because npm takes the ones before it for itself: `npm
 
 The control socket takes the objects of the surface and the settings of the tracker, so a page which reaches it decides what the table reads and where the tracker sends it. Only a page of this machine may, which is what a browser says about itself when it opens the socket. A page served from somewhere else is turned away, the simulator writes a line about it, and `--allow-origin http://table.local:5173` lets that one in; `npm run dev -- --host` passes `--allow-origin "*"` by itself, because a table which was opened to the network is reached under the address of the network. The simulator asks for no password: `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
 
-### Both on one port
+### Two apps, two ports
 
-`npm run dev` starts the application and the simulator together and serves both on the port of the application, so a whole table is one address:
+The simulator and the table are two apps. Neither is served by the other, because a table at an exhibition carries no simulator, and a simulator is just as good at driving an application of somebody else. `npm run dev` starts one of each, on a port each, and points the table at the tracker of the simulator:
 
-| Address | What it is |
-| --- | --- |
-| `http://localhost:5173/` | The application: the body, and a table with `?app=` |
-| `http://localhost:5173/simulator/` | The control page, with the application under its own surface |
-| `http://localhost:5173/simulator/?table=cardiovascular` | The same, opened on one table |
-| `ws://localhost:5173/tuio` | The tracker, which an application reaches with `?tuio=/tuio` |
+| Address | What it is | Which app |
+| --- | --- | --- |
+| `http://localhost:5173/` | The table: the body, and a table with `?app=` | the table |
+| `http://localhost:3344/` | The control page, with the table under its own surface | the simulator |
+| `http://localhost:3344/?table=cardiovascular` | The same, opened on one table | the simulator |
+| `ws://localhost:3333` | The tracker, which the table carries at `http://localhost:5173/tuio` | the simulator |
 
-A page that was not told about a tracker asks the server it came from whether it has one at `/tuio`, and takes it when it does. A page from a build without a tracker, the deployed one for instance, finds nothing there and runs on the mouse. `?tuio=off` keeps a page on the mouse even where a tracker answers.
+The page opens the table of `--table` under its surface by itself, `?table=<id>` opens one table of it, and the **Application** field takes any address, which is how the simulator drives an application somewhere else.
+
+A page that was not told about a tracker asks the server it came from whether it has one at `/tuio`, and takes it when it does, which is what `npm run dev` arranges. A page from a build without a tracker, the deployed one for instance, finds nothing there and runs on the mouse. `?tuio=off` keeps a page on the mouse even where a tracker answers.
 
 A tracker found this way does not take the mouse away: the objects of the simulator and the keys of the laptop go on the same surface, so a table can be tried with one hand on the mouse while the simulator stands beside it. A tracker the address names is a real table, and there the page listens to the table alone.
 
-One port is one forwarded port, which is how a table is driven from another machine: `ssh -L 5173:localhost:5173 <machine>`. The **Port** field of the page still moves the tracker, but the one port carries the tracker it was started with, so change that field only when an application is pointed at the tracker directly. `npm run dev -- --tuio-port 3343` moves both ends at once.
+Two apps are two forwarded ports, which is how a table is driven from another machine: `ssh -L 5173:localhost:5173 -L 3344:localhost:3344 <machine>`. The **Port** field of the page moves the tracker while it runs, and `npm run dev -- --tuio-port 3343` moves both ends at once.
 
 ### What it speaks
 

@@ -31,14 +31,14 @@ npm run dev
 
 The install takes the resources of the table with it: the compiled models of the four tables, their reference data and the clips they read aloud, about 50 MB, from the release this checkout is. They are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips, so a clone which carried them would grow by all of it again at every release; `npm run assets` takes them again, for a machine which was not on the network at install, and a table which finds no model of its own says that one command. How the resources of a release are written, for whoever cuts the next one, is in [Development](development.md#the-resources-of-a-release).
 
-`npm run dev` starts the application and the [TUIO simulator](simulator.md) on one port. The application finds the tracker of that server by itself, so there is nothing to add to the address:
+`npm run dev` starts the two apps of this repository, each on a port of its own: the table, and the [TUIO simulator](simulator.md) which drives it. The table finds the tracker by itself, so there is nothing to add to the address:
 
 | Address | What it is |
 | --- | --- |
 | `http://localhost:5173/` | The body, from which every table is opened |
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
-| `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
+| `http://localhost:3344/` | The simulator, with the table under its own surface |
 | `http://localhost:5173/?ids=1,3,5,6,11,12` | The ids the markers of a table carry, for a page which is not of a booth, see [Run on a table](table.md#the-ids-of-the-markers) |
 | `http://localhost:5173/?tuio=10.0.0.20:3343` | The tracker of a real table, which the page then listens to alone |
 
@@ -54,7 +54,7 @@ npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335
 npm run dev -- --help
 ```
 
-`--no-simulator` leaves the simulator out, for a real table or another tracker, and `--preview` serves the build instead of the development server. [Development](development.md) has the whole list.
+`npm run table` is the table on its own, which is what a booth runs, and `npm run simulator` is the simulator on its own; each takes its own flags, and `--preview` serves the build instead of the development server. [Development](development.md) has the whole list.
 
 ### On a real table
 
@@ -65,9 +65,9 @@ npm run table
 # then open http://localhost:5173/
 ```
 
-It stands for `node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22`, which is where the table of this exhibition is written down. See [Run on a table](table.md#start-it-on-a-table).
+It stands for `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22`, which is where the table of this exhibition is written down: the tracker it listens to, and the ids printed on its six pucks. A booth starts no simulator. See [Run on a table](table.md#quickstart).
 
-Because everything is on one port, a table on another machine is one forwarded port:
+Because the table is one port, a table on another machine is one forwarded port:
 
 ```bash
 ssh -L 5173:localhost:5173 <machine>

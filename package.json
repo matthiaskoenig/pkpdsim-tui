@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tangible table applications of the PBPK/PD models of pkpdsim, driven by TUIO",
   "license": "MIT",
-  "author": "Matthias König",
+  "author": "Matthias K\u00f6nig",
   "repository": {
     "type": "git",
     "url": "https://github.com/matthiaskoenig/pkpdsim-tui.git"
@@ -19,14 +19,14 @@
   ],
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "table": "node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22",
-    "dev:app": "node scripts/dev.mjs --no-simulator",
+    "table": "node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22",
+    "dev:app": "node scripts/table.mjs",
     "dev:cardiovascular": "node scripts/dev.mjs --app cardiovascular",
     "dev:lobes": "node scripts/dev.mjs --app lobes",
     "dev:glimepiride": "node scripts/dev.mjs --app glimepiride",
     "dev:perfusion": "node scripts/dev.mjs --app perfusion",
     "build": "npm run build --workspaces --if-present",
-    "preview": "node scripts/dev.mjs --preview",
+    "preview": "node scripts/table.mjs --preview",
     "simulator": "node packages/tuio-simulator/src/server.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

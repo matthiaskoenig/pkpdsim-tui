@@ -103,6 +103,12 @@ let socket = null;
 let retry = null;
 let lastContext = {at: 0, x: 0, y: 0};
 let appUrl = "";
+/**
+ * Where the table is. The table and the simulator are two apps on two ports, so this page is
+ * told the address of the one it drives rather than serving it: `--table` of the simulator says
+ * it, and it arrives with the status of the tracker. Until it does, this page is all there is.
+ */
+let tableBase = "";
 
 function element(name, attributes = {}) {
   const node = document.createElementNS(SVG_NS, name);
@@ -337,11 +343,13 @@ frame.addEventListener("load", () => {
  * application drives itself with the mouse instead.
  */
 function appAddress(raw) {
-  const url = new URL(raw, window.location.href);
+  // A relative address is of the table this simulator drives, not of this page: the two are
+  // apps of their own, and what is under the surface is the table.
+  const url = new URL(raw, tableBase === "" ? window.location.href : tableBase);
   if (settings.transport === "websocket") {
-    // An application on the origin of this page came through the same server as the page, which
-    // carries the tracker at `TRACKER_PATH`: one port serves the table and the surface that
-    // drives it. An application somewhere else is given the host and the port of the tracker.
+    // An application which came through this page's own server reaches the tracker at
+    // `TRACKER_PATH`. The table is a server of its own and is given the host and the port of
+    // the tracker, which is what it then listens to and names in its panel.
     const sameServer = url.origin === window.location.origin;
     url.searchParams.set(
       "tuio", sameServer ? TRACKER_PATH : `${window.location.hostname}:${settings.port}`);
@@ -839,6 +847,16 @@ function connect() {
       frameId: message.frameId, rate: message.rate, trouble: message.trouble ?? "",
     };
     settings = normalizeSettings(message.settings, settings);
+    // The table of this simulator, which only the simulator knows. The page opens one under the
+    // surface as soon as it is told where the table is: the one the address of this page asks
+    // for, then the one somebody put there last, then the table itself.
+    if (typeof message.table === "string" && message.table !== "" && message.table !== tableBase) {
+      tableBase = message.table;
+      const wanted = wantedApp();
+      if (wanted !== "") showApp(wanted);
+      else if (appUrl !== "") showApp(appUrl);
+      else showApp(tableBase);
+    }
     versionField.value = settings.version;
     transportField.value = settings.transport;
     if (document.activeElement !== portField) portField.value = String(settings.port);
@@ -882,15 +900,16 @@ function wantedApp() {
   const wanted = new URL(window.location.href).searchParams.get("table");
   if (wanted === null || wanted.trim() === "") return "";
   const value = wanted.trim();
-  // A table of this server, by its id or by its path. An address of somewhere else is not taken
-  // from the address bar, because a link somebody was sent would then open a page of its
-  // choosing inside this one; the field above the surface still takes any address, which is a
-  // table somebody typed in rather than one that was handed to them.
+  // A table of the application this simulator was started for, by its id or by its path. An
+  // address of somewhere else is not taken from the address bar, because a link somebody was
+  // sent would then open a page of its choosing inside this one; the field above the surface
+  // still takes any address, which is a table somebody typed in rather than one handed to them.
   if (value.startsWith("/")) return withIds(value);
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       const url = new URL(value);
-      return url.origin === window.location.origin ? withIds(`${url.pathname}${url.search}`) : "";
+      const table = tableBase === "" ? window.location.href : tableBase;
+      return url.origin === new URL(table).origin ? withIds(`${url.pathname}${url.search}`) : "";
     } catch {
       return "";
     }
@@ -902,12 +921,11 @@ recall();
 versionField.value = settings.version;
 transportField.value = settings.transport;
 portField.value = String(settings.port);
-const asked = wantedApp();
-if (asked !== "") appUrl = asked;
 appField.value = appUrl;
 setMarker(1);
 resize();
-if (appUrl !== "") showApp(appUrl);
+// What goes under the surface waits for the status of the simulator, which is what says where
+// the table is: a page which opened one before that would open itself.
 connect();
 
 // The page is a tool, so what it knows is reachable from the console.

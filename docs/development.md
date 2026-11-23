@@ -17,7 +17,8 @@
 | `packages/glimepiride-table` | The glimepiride table |
 | `packages/perfusion-table` | The machine perfusion table |
 | `apps/table` | The one application: the body, the tables behind it, the assets of each of them, and the development server that carries the simulator |
-| `scripts/dev.mjs` | Starts the application and the simulator on one port |
+| `scripts/table.mjs` | The table: serves the application and carries the tracker it listens to at `/tuio` |
+| `scripts/dev.mjs` | Starts one of each app, the table pointed at the tracker of the simulator |
 | `scripts/assets.mjs` | Takes the resources of a release, the compiled models and the clips the table reads aloud, and packs them for the next one |
 | `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into `apps/table/public/assets/<table>` |
 | `scripts/export_model.py` | Compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
@@ -35,11 +36,12 @@ npm install           # and the resources of the release: the models and the voi
 npm run assets        # the same, for a checkout which was not on the network at install
 npm run assets:check  # whether every one of them is where a page looks for it
 npm run assets:pack   # packs the ones of this checkout into the archives of a release
-npm run dev           # the application and the simulator, both on http://localhost:5173
-npm run dev:app       # the application alone, for a real table or another tracker
-npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
-npm run preview       # the built application, served the same way
+npm run table         # the table alone, with the tracker and the pucks of this exhibition
 npm run simulator     # the simulator alone: a tracker on 3333, its control page on 3344
+npm run dev           # one of each: the table on 5173, the simulator on 3344
+npm run dev:app       # the table alone and on no tracker, which is the mouse
+npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
+npm run preview       # the built table, served the same way
 npm run speech:texts  # every sentence the table can say, for the clips
 npm run speech        # the same, and records the clips with scripts/speak.py
 npm test              # vitest
@@ -120,24 +122,37 @@ npm run export:perfusion -- --sbml ../pkpdsim/models/rat_liver_nmp_flat.xml
 
 `npm run speech` writes the clips a table reads aloud. `scripts/speech.mjs` imports the copy modules straight into `node`, which reads TypeScript of its own, so there is one copy of the text and no build step between it and the clips. [Languages and the voice](languages.md) covers the engines and what is recorded.
 
-A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts both, and the development server carries the simulator as well, so one port is the whole table: the application on `/`, the surface that drives it on `/simulator/`, and the tracker on `/tuio`, which an application is pointed at with `?tuio=/tuio`. That is also what makes a machine somewhere else one forwarded port, `ssh -L 5173:localhost:5173 <machine>`.
+A table is developed against the [simulator](simulator.md) of `packages/tuio-simulator`, which is a tracker like the table is. `npm run dev` starts one of each app: the simulator, which is the tracker on 3333 and the surface which drives it on 3344, and the table on 5173, pointed at that tracker and carrying it at `/tuio` so that no address of a page names a machine. A table on another machine is then the port of the table, `ssh -L 5173:localhost:5173 <machine>`, and the surface beside it is the port of the simulator.
 
-### The ports and the other flags of `npm run dev`
+### The two apps and their flags
+
+The table and the simulator are two apps, started by two commands, and neither carries the other: a table at an exhibition has no simulator in it, and a simulator drives the table of this repository as readily as an application of somebody else. `npm run dev` starts one of each for a laptop and points the table at the tracker of the simulator.
+
+**`npm run table`**, the application and the tracker it listens to:
 
 | Flag | What it does | Default |
 | --- | --- | --- |
-| `--port <port>` | The one port of the table: the application, the simulator page and the tracker behind it | `5173` |
-| `--page-port <port>` | The port the simulator serves its own control page on | `3344` |
-| `--tuio-port <port>` | The port of the tracker of the simulator | `3333` |
-| `--tuio <host:port>` | The tracker of a real table, `10.0.0.20:3343`. The server carries it at `/tuio`, where every page it serves finds it | the simulator |
-| `--ids <list>` | The ids the markers of a real table carry, `1,3,5,6,11,12,21`, which every page the server serves reads, see [Run on a table](table.md#the-ids-of-the-markers) | the markers from 1 |
-
-The last two are of the booth and not of a visitor, so they are said once and no address of that table carries either. For the table of this exhibition they are written down in `package.json`, as `npm run table`, which is `node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21` and takes the same flags after `--`. A built page takes them from the environment instead, `TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=1,3,5,6,11,12,21 npm run build`, and a page may still name its own with `?tuio=` and `?ids=`.
-| `--host <host>` | Opens the table to the network. Without it the three ports are only reachable from this machine | this machine |
+| `--port <port>` | The port of the table, which carries its tracker at `/tuio` as well | `5173` |
+| `--tuio <host:port>` | The tracker of the table, `10.0.0.20:3343`. Without one a page finds no tracker and the tables are driven by the mouse | none |
+| `--ids <list>` | The ids the markers of the table carry, `5,6,11,12,21,22`, which every page the server serves reads, see [Run on a table](table.md#the-ids-of-the-markers) | the markers from 1 |
+| `--host <host>` | Opens the table to the network. Without it the port is only reachable from this machine | this machine |
 | `--app <id>` | Also prints the address of that one table | |
-| `--no-simulator` | The application alone, for a real table or another tracker | |
 | `--preview` | The built application instead of the development server | |
+| `--quiet` | No banner, for a command which prints one of its own | |
 | `--help` | The list above | |
+
+The tracker and the ids are of the booth and not of a visitor, so they are said once and no address of that table carries either. For the table of this exhibition they are written down in `package.json`, as `npm run table`, which is `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22` and takes the same flags after `--`. A built page takes them from the environment instead, `TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=5,6,11,12,21,22 npm run build`, and a page may still name its own with `?tuio=` and `?ids=`.
+
+**`npm run simulator`**, a tracker and the surface which drives it:
+
+| Flag | What it does | Default |
+| --- | --- | --- |
+| `--port <port>` | The TUIO port of the tracker | `3333` |
+| `--page-port <port>` | The port the control page is served on | `3344` |
+| `--table <url>` | The table this simulator drives, which its page opens under the surface | `http://localhost:5173/` |
+| `--host`, `--tuio`, `--transport`, `--rate`, `--allow-origin` | What it speaks and who may drive it, see [Run the simulator](simulator.md) | |
+
+**`npm run dev`**, one of each: `--port` for the table, `--page-port` and `--tuio-port` for the simulator, and `--host`, `--app` and `--preview`, which it hands on.
 
 The flags come after `--`, because npm takes the ones before it for itself:
 
@@ -146,11 +161,11 @@ npm run dev -- --port 8080
 npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335   # a second copy beside the first
 ```
 
-`--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken. `npm run preview` takes the same flags.
+`--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken. `npm run preview` takes the flags of the table.
 
 ### The table on the network
 
-The development server listens on this machine only. That is on purpose: it carries the control socket of the simulator and the tracker with it, and neither of them asks for a password, so a table on the network of an exhibition would hand the objects on the glass to everybody on that network. A machine somewhere else reaches the table over a forwarded port instead:
+The server of the table listens on this machine only. That is on purpose: it carries the tracker of the table with it, and the tracker asks for no password, so a table on the network of an exhibition would hand the objects on the glass to everybody on that network. A machine somewhere else reaches the table over a forwarded port instead:
 
 ```bash
 ssh -L 5173:localhost:5173 <machine>
