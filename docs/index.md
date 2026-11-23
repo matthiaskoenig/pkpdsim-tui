@@ -65,7 +65,7 @@ npm run table
 # then open http://localhost:5173/
 ```
 
-It stands for `node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21`, which is where the table of this exhibition is written down. See [Run on a table](table.md#start-it-on-a-table).
+It stands for `node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21`, which is where the table of this exhibition is written down. See [Run on a table](table.md#start-it-on-a-table).
 
 Because everything is on one port, a table on another machine is one forwarded port:
 

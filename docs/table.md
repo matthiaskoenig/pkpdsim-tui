@@ -25,7 +25,7 @@ A real table brings two things of its own: the tracker it reports its objects ov
 That command is the table of this exhibition written down once, in `package.json`:
 
 ```bash
-node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21
 ```
 
 `--no-simulator` leaves the simulator out, because the table is the tracker. `--tuio` is where that tracker listens, the host and the port of the table itself: the server carries it at `/tuio`, where every page it serves finds it. `--ids` are the ids of the markers of the table, in the order the objects of a table are picked up, and every page it serves reads them. Another table is the same command with its own two, either in `package.json` or after `--`:
@@ -41,7 +41,7 @@ Because the table is said to the server and not to the address, there is one pla
 A built page for a booth of its own takes the same two over the environment, where the launcher is not what starts it:
 
 ```bash
-TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=1,3,5,6,11,12,21 npm run build
+TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=5,6,11,12,21 npm run build
 ```
 
 ## Point the browser at the tracker
@@ -66,7 +66,7 @@ The circulation then reads 1, 3 and 5, liver surgery reads 1 and 3, and the drug
 http://localhost:5173/?ids=1,3,5,6,11,12,21
 ```
 
-Give at least as many ids as the table with the most objects needs, which is six, for the drug through the body. A list which is not a list of whole numbers, which names one puck twice, or which does not reach as far as the objects of a table is refused at the start, with the reason, rather than left to a visitor who turns an object nothing answers to.
+Give at least as many ids as the table with the most objects needs, which is six, for the drug through the body. The `--ids 5,6,11,12,21` of this exhibition is five pucks, which carries the circulation, liver surgery and the machine; the drug through the body reads a sixth object, the kidneys, and refuses to start without the id of a sixth puck. A list which is not a list of whole numbers, which names one puck twice, or which does not reach as far as the objects of a table is refused at the start, with the reason, rather than left to a visitor who turns an object nothing answers to.
 
 The [simulator](simulator.md) places an object of any id between 1 and 999, so the mapping of a table can be tried before the table is there: `http://localhost:5173/simulator/?table=cardiovascular&ids=1,3,5` drives the application under the surface with the same list. On the mouse of a laptop the digit keys follow the order of the list instead of the ids themselves, because 11 and 12 are no keys: the first key is the first object.
 
