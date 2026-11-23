@@ -26,6 +26,19 @@ describe("the file a request asks for", () => {
     expect(dataFile("/assets/../../etc/passwd")).toBeUndefined();
     expect(dataFile("/assets/%2e%2e/%2e%2e/etc/passwd")).toBeUndefined();
   });
+
+  // The path of a URL is the same on every platform, and the folders are named in it with
+  // forward slashes: normalising it as a path of Windows left none of them recognisable, so
+  // every file of an export was answered with the page there.
+  it("is the path of the URL and never a path of this platform", () => {
+    expect(dataFile("/assets/lobes/runtime/engine.wasm")).not.toContain("\\");
+    expect(dataFile("/assets/./lobes/../lobes/x.json")).toBe("/assets/lobes/x.json");
+  });
+
+  it("is nothing for a path which carries a separator of Windows", () => {
+    expect(dataFile("/assets/..\\..\\etc/passwd")).toBeUndefined();
+    expect(dataFile("/assets\\lobes\\x.json")).toBeUndefined();
+  });
 });
 
 /** A request and the answer it is given, as the middleware of a server sees them. */

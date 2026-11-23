@@ -43,6 +43,7 @@ describe("the version of the repository", () => {
 
   it("has release notes, which are written before the version is tagged", () => {
     const notes = readFileSync(new URL(`release-notes/${VERSION}.md`, root), "utf8");
-    expect(notes.split("\n")[0]).toBe(`# Release notes for pkpdsim-tui ${VERSION}`);
+    // Whatever a checkout did to the line endings of the file, see `.gitattributes`.
+    expect(notes.split(/\r?\n/u)[0]).toBe(`# Release notes for pkpdsim-tui ${VERSION}`);
   });
 });

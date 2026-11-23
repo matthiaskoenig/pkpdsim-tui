@@ -48,9 +48,11 @@ npm run docs          # this site, served
 npm run docs:build    # this site, strict
 ```
 
+Every one of them runs on Linux, on macOS and on Windows: a command of a package is started as the script it is, with the `node` which is running, and never through a shim of `node_modules/.bin`, which is no program under its plain name on Windows and was issue #21. The same holds for what is written in `package.json`, where nothing asks a shell to expand it, and `test/scripts.test.ts` and `test/bin.test.ts` keep both of those true.
+
 `npm run sync` reads the checkout named by `--pkpdsim`, then by the environment variable `PKPDSIM_DIR`, then the sibling directory `../pkpdsim`. What it copies is gitignored, so a clone stays small, and `--list` prints what each application needs.
 
-A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one or at the path in `GLIMEPIRIDE_MODEL`. The script knows nothing about a model, so the next one is another line in `package.json`.
+A model that is not exported by pkpdsim is compiled here instead. `scripts/export_model.py` takes an SBML file and writes the compiled model, its description and the browser runtime beside it, with the release of sbmlsim-core of the `dev` extra; `npm run export:glimepiride` is that command for the glimepiride model, which it expects in a `glimepiride-model` checkout beside this one; a model somewhere else is given as `npm run export:glimepiride -- --sbml <path>`, which every shell reads the same way. The script knows nothing about a model, so the next one is another line in `package.json`.
 
 The model of the [machine perfusion table](apps/perfusion.md) is built from the perfusion library of pkpdsim, in a pkpdsim checkout, and then compiled here. The definition is the one of its documentation, a rat liver with four zones in a normothermic circuit:
 
@@ -80,7 +82,7 @@ flat = build(definition, Path("models"))  # models/rat_liver_nmp_flat.xml
 ```
 
 ```bash
-PERFUSION_MODEL=../pkpdsim/models/rat_liver_nmp_flat.xml npm run export:perfusion
+npm run export:perfusion -- --sbml ../pkpdsim/models/rat_liver_nmp_flat.xml
 ```
 
 `node scripts/qr.mjs` regenerates the QR code of the landing page footer. It is generated once and committed as a module of paths, so the page carries no QR library and works with no network; `node scripts/qr.mjs --print` draws it in the terminal to check it, and the address it encodes is `LAB_URL` at the top of the script.

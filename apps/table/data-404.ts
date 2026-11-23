@@ -10,7 +10,7 @@
  */
 
 import {existsSync} from "node:fs";
-import {join, normalize, resolve} from "node:path";
+import {join, posix, resolve} from "node:path";
 import type {Connect, Plugin} from "vite";
 
 /** The folders of `public` which hold files and never a page. */
@@ -21,20 +21,27 @@ export function dataFile(url: string): string | undefined {
   const asked = (url.split("?")[0] ?? "").split("#")[0] ?? "";
   let path: string;
   try {
-    path = normalize(decodeURIComponent(asked));
+    path = decodeURIComponent(asked);
   } catch {
     return undefined;
   }
-  // The path is normalised first, so that one which climbs out of the folders is not one of them.
-  if (!FOLDERS.some(folder => path.startsWith(folder))) return undefined;
-  return path;
+  // A backslash is no separator of a URL, and a path which carries one is not followed.
+  if (path.includes("\\")) return undefined;
+  // The path of a request is the path of a URL, with forward slashes on every platform, so it
+  // is normalised as one: the `normalize` of this platform would make a path of Windows out of
+  // it, and none of the folders of data would be recognised there. It is normalised first, so
+  // that a path which climbs out of the folders is not one of them.
+  const file = posix.normalize(path);
+  if (!FOLDERS.some(folder => file.startsWith(folder))) return undefined;
+  return file;
 }
 
 /** The answer to a request for a file of the data folders, under the directory which holds them. */
 export function missingData(directory: string): Connect.NextHandleFunction {
   return (request, response, next) => {
     const file = dataFile(request.url ?? "");
-    if (file === undefined || existsSync(join(directory, file))) {
+    // The path of the URL becomes a path of this platform, segment by segment.
+    if (file === undefined || existsSync(join(directory, ...file.split("/")))) {
       next();
       return;
     }
