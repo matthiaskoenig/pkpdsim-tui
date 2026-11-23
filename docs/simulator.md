@@ -1,78 +1,31 @@
-# Run the TUIO simulator
+# Run the simulator
 
 The simulator puts objects and touches on a surface you do not have to own. It is how these applications are built, and the first thing to reach for when a table misbehaves, because it says whether the table or the application is at fault.
 
 ![The simulator, with the circulation table under its surface](images/simulator.png)
 
-There are two: the one in this repository, which needs nothing but the checkout, and the Unity simulator a table comes with.
-
-## The simulator of this repository
-
-A browser cannot listen on a socket, so this simulator is two halves. The tracker is a small Node process that sends a bundle per frame, and the surface is a page that process serves, where the objects are placed and turned.
+## Run the table against it
 
 ```bash
-npm run simulator        # the tracker on ws://localhost:3333, the page on http://localhost:3344
+npm install
+npm run dev     # the simulator, and the table pointed at it
+# then open http://localhost:3344/
 ```
 
-Open the control page and an application beside it at `http://localhost:5173/?tuio=localhost:3333`, or let the page show the application under its own surface. The chip at the top names the tracker and counts the applications listening, so it says at once whether the two found each other.
+The table and the simulator are two apps, so `npm run dev` starts one of each and tells each where the other is. The control page opens the table under its own surface, where an object placed on the surface sits on the picture it drives.
 
-| Flag | What it is | Default |
+| Address | App | What it is |
 | --- | --- | --- |
-| `--host` | The interface both servers listen on. `0.0.0.0` lets a browser on another machine connect | `localhost` |
-| `--port` | The TUIO port of the tracker | `3333` |
-| `--tuio` | `2.0` or `1.1` | `2.0` |
-| `--transport` | `websocket` or `udp` | `websocket` |
-| `--page-port` | The HTTP port of the control page | `3344` |
-| `--rate` | Frames per second of a surface nobody is touching | `60` |
-| `--table <url>` | The table this simulator drives, which its page opens under the surface | `http://localhost:5173/` |
-| `--allow-origin` | One more page which may drive the simulator, repeatable, `"*"` for any | pages of this machine |
+| `http://localhost:3344/` | simulator | The surface, with the table under it |
+| `http://localhost:3344/?table=cardiovascular` | simulator | The same, opened on one table |
+| `http://localhost:5173/` | table | The table in a window of its own, on the mouse and the keyboard |
+| `ws://localhost:3333` | simulator | The tracker, which the table carries at `http://localhost:5173/tuio` |
 
-The flags come after `--`, because npm takes the ones before it for itself: `npm run simulator -- --host 0.0.0.0 --rate 30`.
+The **Application** field above the surface takes any address, so the simulator drives an application somewhere else just as well. The embedded one gets no mouse: the surface over it owns the pointer, which is what a real table is like. To use a table with the mouse, open it in a window of its own, where the digit keys put an object down under the pointer, dragging moves it, the wheel turns it, backspace lifts it and escape leaves a table for the body.
 
-### Who may drive it
+`npm run simulator` starts the simulator alone, with `--table <url>` for the table it drives, `--port` for the tracker, `--page-port` for the page, and `--host`, `--tuio`, `--transport`, `--rate` and `--allow-origin` for the rest; they come after `--`, because npm takes the ones before it for itself. [Development](development.md#the-two-apps-and-their-flags) has the whole list of both apps. Two apps are two forwarded ports: `ssh -L 5173:localhost:5173 -L 3344:localhost:3344 <machine>`.
 
-The control socket takes the objects of the surface and the settings of the tracker, so a page which reaches it decides what the table reads and where the tracker sends it. Only a page of this machine may, which is what a browser says about itself when it opens the socket. A page served from somewhere else is turned away, the simulator writes a line about it, and `--allow-origin http://table.local:5173` lets that one in; `npm run dev -- --host` passes `--allow-origin "*"` by itself, because a table which was opened to the network is reached under the address of the network. The simulator asks for no password: `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
-
-### Two apps, two ports
-
-The simulator and the table are two apps. Neither is served by the other, because a table at an exhibition carries no simulator, and a simulator is just as good at driving an application of somebody else. `npm run dev` starts one of each, on a port each, and points the table at the tracker of the simulator:
-
-| Address | What it is | Which app |
-| --- | --- | --- |
-| `http://localhost:5173/` | The table: the body, and a table with `?app=` | the table |
-| `http://localhost:3344/` | The control page, with the table under its own surface | the simulator |
-| `http://localhost:3344/?table=cardiovascular` | The same, opened on one table | the simulator |
-| `ws://localhost:3333` | The tracker, which the table carries at `http://localhost:5173/tuio` | the simulator |
-
-The page opens the table of `--table` under its surface by itself, `?table=<id>` opens one table of it, and the **Application** field takes any address, which is how the simulator drives an application somewhere else.
-
-A page that was not told about a tracker asks the server it came from whether it has one at `/tuio`, and takes it when it does, which is what `npm run dev` arranges. A page from a build without a tracker, the deployed one for instance, finds nothing there and runs on the mouse. `?tuio=off` keeps a page on the mouse even where a tracker answers.
-
-A tracker found this way does not take the mouse away: the objects of the simulator and the keys of the laptop go on the same surface, so a table can be tried with one hand on the mouse while the simulator stands beside it. A tracker the address names is a real table, and there the page listens to the table alone.
-
-Two apps are two forwarded ports, which is how a table is driven from another machine: `ssh -L 5173:localhost:5173 -L 3344:localhost:3344 <machine>`. The **Port** field of the page moves the tracker while it runs, and `npm run dev -- --tuio-port 3343` moves both ends at once.
-
-### What it speaks
-
-The **TUIO**, **Connection** and **Port** fields change the tracker while it runs, and it is replaced under the applications that are listening. A port that is taken changes nothing and says so in the chip, so a surface in front of an audience does not go down because somebody typed a port.
-
-| Field | What it does |
-| --- | --- |
-| TUIO | **2.0** sends `/tuio2/frm`, `/tuio2/tok`, `/tuio2/ptr` and `/tuio2/alv`. **1.1** sends `/tuio/2Dobj` and `/tuio/2Dcur` instead |
-| Connection | **WebSocket** listens, and is the only transport a browser can receive. **UDP** sends every frame to the port, as a tracker on a table does |
-| Port | 3333, the port of TUIO, for both transports |
-
-A UDP tracker cannot say who is listening, because nothing connects to a sender, so the chip says it is sending and leaves it there. The applications read TUIO 2.0 by default and TUIO 1.1 when the address carries `&tuio-version=1.1`, which the control page appends by itself.
-
-### Show the application under the surface
-
-Type the address of an application into the **Application** field and press **Show it under the surface**. The page embeds it, lays it out at the size of the sensor and scales it to the surface on screen, so the objects sit on the picture they drive. The address is pointed at this tracker, version and port included, and a change of either reloads it.
-
-The embedded application gets no mouse: the surface over it owns the pointer. To use an application with the mouse, open it in a window of its own.
-
-With an application underneath, an object is not a numbered disc. The table says what it reads on it, and the surface draws it: the name, the value and the picture of the thing itself, which grows as the object is turned up. An object whose number the open table does not read keeps a dashed amber ring, which is how a mislabelled puck is found without walking to the table. The table posts this to the page that embeds it and to nothing else, and nothing travels the other way, so the surface is still a tracker.
-
-### Drive it
+## Drive it
 
 | Gesture | What happens |
 | --- | --- |
@@ -87,34 +40,41 @@ With an application underneath, an object is not a numbered disc. The table says
 | **Clear surface** | Lifts everything at once |
 | **Full screen** | The surface alone, for a demonstration |
 
-A table has no click. A finger that taps a card, a switch or **Back** presses it when it goes, and a finger that rests on one presses it after a moment, filling the element while it is there. The three kinds of touch are three colours on the surface, teal, amber and blue, with a legend beside the gestures.
+The three kinds of touch are three colours on the surface, teal, amber and blue, with a legend beside the gestures. Every object says what a tracker reports about it: its id, its angle, its position as surface fractions and its session id. With a table underneath, an object is not a numbered disc: the table says what it reads on it and the surface draws it, and an object whose number the open table does not read keeps a dashed amber ring, which is how a mislabelled puck is found without walking to the table.
 
-Every object says what a tracker reports about it: its id, its angle in degrees, its position as the tuple of surface fractions the protocol sends, and its session id. The **Surface** fields are the sensor size the frame message carries, and the surface keeps its aspect ratio, so a position on the page is the position the application draws. The fields are kept for the next time the page is opened; what is on the surface is not.
+The rail on the left keeps what happened, newest first, and on its own line what the table made of each change, which is the quickest way to see where a disagreement is. An object that was turned with no reading under it is a table that did not hear the tracker; a reading that does not move is a table that heard it and did not believe it.
 
-The rail on the left keeps what happened, newest first: every object put down, turned, moved and taken off, every touch, and on its own line what the table made of each change. Turning one object folds into the line it rewrites, so a long turn is one entry and not forty. That is the quickest way to see where a disagreement is. An object that was turned with no reading under it is a table that did not hear the tracker; a reading that does not move is a table that heard it and did not believe it.
+## What it speaks
 
-The simulator sends a frame at the rate of the stream and at once when something moves, never reads anything from an application, and gives an application that connects in the middle the surface as it stands. One control page drives the surface at a time; a second one takes it over and the first says so. It places objects and touches, which is what these applications read. The mobiles of the Unity simulator, the blobs of TUIO 1.1 and the bounds and symbols of TUIO 2.0 are not simulated.
+The **TUIO**, **Connection** and **Port** fields change the tracker while it runs, and it is replaced under the applications that are listening. A port that is taken changes nothing and says so in the chip, so a surface in front of an audience does not go down because somebody typed a port.
 
-## The simulator of Interactive Scape
+| Field | What it does |
+| --- | --- |
+| TUIO | **2.0** sends `/tuio2/frm`, `/tuio2/tok`, `/tuio2/ptr` and `/tuio2/alv`. **1.1** sends `/tuio/2Dobj` and `/tuio/2Dcur` instead |
+| Connection | **WebSocket** listens, and is the only transport a browser can receive. **UDP** sends every frame to the port, as a tracker on a table does |
+| Port | 3333, the port of TUIO, for both transports |
 
-The simulator a table comes with is [InteractiveScapeGmbH/tuio-simulator](https://github.com/InteractiveScapeGmbH/tuio-simulator). It supports TUIO 1.1 and 2.0, UDP and WebSocket, and touches, tokens and mobiles. The repository is a Unity project and publishes no binaries, so either run a build you were given, or open the folder in Unity Hub, open the only scene and press play. The editor is enough.
+It sends a frame at the rate of the stream and at once when something moves, never reads anything from an application, and gives an application that connects in the middle the surface as it stands. One control page drives the surface at a time; a second takes it over and the first says so. The mobiles of the Unity simulator, the blobs of TUIO 1.1 and the bounds and symbols of TUIO 2.0 are not simulated.
 
-Before pressing **Start**, set TUIO version **2.0**, connection type **WebSocket** and port **3333**. The simulator is then a tracker on `ws://localhost:3333`. Port 3333 is the port of TUIO, which the specification names for UDP and which a WebSocket tracker may share: they are different sockets. A simulator on UDP is invisible to a browser whatever the port is.
+Only a page of this machine may drive it, because the control socket decides what the table reads: a page served from somewhere else is turned away with a line in the log, and `--allow-origin http://table.local:5173` lets that one in. `npm run dev -- --host` passes `--allow-origin "*"` by itself. The simulator asks for no password, so `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
 
-Double clicking places a token, the **Next Object ID** field sets the marker it carries, dragging moves it and scrolling over it turns it. The marker is what an application reads to know what an object is, so set the field before each token. Every table numbers its objects from 1: the [circulation](apps/cardiovascular.md) uses 1 to 3, [liver surgery](apps/lobes.md) 1 and 2, [the drug](apps/glimepiride.md) 1 to 6 and [machine perfusion](apps/perfusion.md) 1 to 4.
-
-Any other TUIO tracker works too, as long as it offers the bundles over a WebSocket. [tuio.org](https://tuio.org/) lists them. A browser cannot take the UDP a tracker usually sends, so the bundles have to arrive over a WebSocket, which is the one thing a tracker has to offer.
-
-## Point an application at it
+## Point an application at a tracker
 
 | What it says | Which tracker |
 | --- | --- |
 | `?tuio` | `ws://localhost:3333`, the simulator on this machine |
 | `?tuio=host:port` | A tracker somewhere else, which is how a [table](table.md) is addressed |
-| `?tuio=/tuio` | A tracker behind the server the page came from |
+| `?tuio=/tuio` | A tracker behind the server the page came from, which `npm run dev` arranges |
 | `?tuio=ws://host:port/path` | A tracker named in full |
+| `?tuio=off` | No tracker: the mouse alone, even where one answers |
 
-`&tuio-version=1.1` asks for the older protocol. The panel in the corner of the table names the tracker and its state: a teal dot means bundles are arriving, amber that the socket is open and the first frame has not come, red that nothing is listening or that the tracker went away. The reference circulation stays on screen while a tracker is missing, so a failed connection shows an idle table rather than an empty one.
+`&tuio-version=1.1` asks for the older protocol, which the control page appends by itself. The panel in the corner of the table names the tracker and its state: a teal dot means bundles are arriving, amber that the socket is open and the first frame has not come, red that nothing is listening or that the tracker went away. A tracker found behind the server does not take the mouse away, so a table can be tried with one hand on the mouse while the simulator stands beside it; a tracker the address names is a real table, and there the page listens to the table alone.
+
+## The simulator of Interactive Scape
+
+The simulator a table comes with is [InteractiveScapeGmbH/tuio-simulator](https://github.com/InteractiveScapeGmbH/tuio-simulator), a Unity project which publishes no binaries: run a build you were given, or open the folder in Unity Hub, open the only scene and press play. Before pressing **Start**, set TUIO version **2.0**, connection type **WebSocket** and port **3333**; it is then a tracker on `ws://localhost:3333`, which a page reaches with `?tuio=localhost:3333`. A simulator on UDP is invisible to a browser whatever the port is.
+
+Double clicking places a token, the **Next Object ID** field sets the marker it carries, dragging moves it and scrolling over it turns it. Any other TUIO tracker works too, as long as it offers the bundles over a WebSocket; [tuio.org](https://tuio.org/) lists them.
 
 ## When nothing arrives
 

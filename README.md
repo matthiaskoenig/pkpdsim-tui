@@ -10,41 +10,21 @@ Four tables you can touch, built on the PBPK/PD models of [pkpdsim](https://gith
 
 ![The body, with the four tables around it](docs/images/body.png)
 
-The tables are the circulation, liver surgery, a drug through the body, and a liver on a perfusion machine. Each speaks English, German and Spanish, at three levels, and reads itself aloud.
+The tables are the circulation, liver surgery, a drug through the body, and a liver on a perfusion machine. Everything is one application: it opens on the body of the person at the table, with the four tables on a ring around it. An object says what it is by its marker, which value it carries by its angle, and what it acts on by where it lies. Each table speaks English, German and Spanish, at three levels, and reads itself aloud.
 
 ![The circulation table, with two objects on the glass](docs/images/cardiovascular.png)
 
-## Quick start
-
-```bash
-npm install                  # and the resources of the release, about 50 MB
-npm run dev                  # http://localhost:5173
-```
-
-That is the whole of it: no checkout of pkpdsim beside this one and nothing to compile. The compiled models, their reference data and the clips the tables read aloud are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips of three languages, so they travel with a release instead, as two archives. `npm install` takes the ones of the release this checkout is, and `npm run assets` is the same said out loud, for a machine which was not on the network at install. How those archives are written, for whoever cuts the next release, is in [Development](https://matthiaskoenig.github.io/pkpdsim-tui/development/).
-
-`npm run dev` starts the two apps of this repository, each on a port of its own: the table on `http://localhost:5173/`, which carries the tracker it listens to at `/tuio`, and the TUIO simulator on `http://localhost:3344/`, which drives it. `npm run table` and `npm run simulator` start one of them alone, each with its own flags, and `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
-
-## On a real table
-
-```bash
-npm run table
-# then open http://localhost:5173/
-```
-
-That is the table of this exhibition, written down once in `package.json`:
-
-```bash
-node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
-```
-
-A booth runs the table and nothing else, because the table is the tracker. `--tuio` is where that tracker listens, which the server then carries at `/tuio`; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Every page the table serves is given both, so its address carries nothing and there is one place to change either.
-
-Everything is drawn on one surface, 1920 by 1080, and scaled to the glass it is shown on, so the 4K table of an exhibition shows the same picture at twice the size and a laptop shows it at its own. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
-
 ## Documentation
 
-[matthiaskoenig.github.io/pkpdsim-tui](https://matthiaskoenig.github.io/pkpdsim-tui) covers how to run it, the four tables, the simulator, a real table, the languages and the voice, and how the code is laid out.
+[matthiaskoenig.github.io/pkpdsim-tui](https://matthiaskoenig.github.io/pkpdsim-tui)
+
+| Page | What it is for |
+| --- | --- |
+| [The applications](https://matthiaskoenig.github.io/pkpdsim-tui/apps/) | The four tables, what a visitor chooses, and how a table behaves under a hand |
+| [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) | Install it, and run it at a booth with a real table and real objects |
+| [Run the simulator](https://matthiaskoenig.github.io/pkpdsim-tui/simulator/) | The same on a laptop, where the objects are placed with a mouse |
+| [Development](https://matthiaskoenig.github.io/pkpdsim-tui/development/) | The layout of the repository, the two apps, the tests and the releases |
+| [Languages and the voice](https://matthiaskoenig.github.io/pkpdsim-tui/languages/) | Where the words are and how the clips are recorded |
 
 ## License
 

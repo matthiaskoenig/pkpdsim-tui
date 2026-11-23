@@ -1,34 +1,6 @@
-# Languages, levels and the voice
+# Languages and the voice
 
-The same table in three languages and at three levels. A table in a museum is walked up to by a six year old, by their parent and by a hepatologist, one after the other, and they are not owed the same sentence.
-
-## What a visitor chooses
-
-Two switches carry it, and both are on every page:
-
-- **The language.** English, Deutsch, Español.
-- **The level.** Kids, Adults, Experts: *explain it like I am six*, *explain it to an adult who knows nothing about this*, and *tell me what it really is*.
-
-Both sit behind the gear in the far corner of every page, as either-or switches with a tick on the one that is on: the level as three pictograms, the language as three flags. A visitor who cannot read the language of the table can still find the language switch, which is why it is a flag. They travel in the address:
-
-```
-http://localhost:5173/?app=glimepiride&lang=de&level=child
-```
-
-A page which is given neither opens in German, for a child, which is what the booth it was built for needs; `?lang=auto` takes the language of the browser instead when it is one of the three. The level a visitor chooses holds for every table until it is changed.
-
-## What changes with the level
-
-Not only the words. The level decides how much is said at all:
-
-| | Kids | Adults | Experts |
-| --- | --- | --- | --- |
-| The title of a dial | *How fast the liver works* | *CYP2C9 activity* | *CYP2C9 activity* |
-| What it is | "How quickly the liver takes the tablet apart. Some people are slow at it." | "The activity of CYP2C9, which makes M1 out of glimepiride. Turning it down is a poor metabolizer." | "The enzyme which hydroxylates glimepiride to M1. The detents are the \*1/\*1, \*1/\*2, \*1/\*3, \*2/\*3 and \*3/\*3 genotypes." |
-| The numbers of the band | the two or three which answer the question | what a visitor asks next | all six |
-| German and Spanish | du, tú | Sie, usted | Sie, usted |
-
-A band of six numbers is not what a six year old came to read, so a number carries the level it appears from and the band is filtered by it (`StatDefinition.from`, `visibleStats`). A table never shows a child something it cannot explain to them.
+The same table in three languages, English, German and Spanish, and at three levels, for a child, for an adult who knows nothing about the subject, and for somebody who wants the mechanism. What a visitor chooses, and what the level changes, is in [The applications](apps/index.md#the-language-and-the-level); this page is how the words and the clips are made.
 
 ## Reading it aloud
 
