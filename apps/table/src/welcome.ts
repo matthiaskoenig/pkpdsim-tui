@@ -17,7 +17,8 @@
 
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import {
-  createVoice, languageOptions, LEVELS, pictogram, sayHtml, sayLabel, words,
+  createPress, createVoice, languageOptions, LEVELS, pictogram, pointerPoints, sayHtml, sayLabel,
+  words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Level, Locale} from "@pkpdsim-tui/tui-kit";
 import {HUB_TEXT} from "./text.ts";
@@ -27,9 +28,6 @@ export interface Welcome {
   readonly locale: Locale;
   readonly level: Level;
 }
-
-/** How long a finger rests on a card before it is pressed, as everywhere else on a table. */
-const PRESS = 620;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, character => ({
@@ -128,56 +126,20 @@ export function askWelcome(
       take(pick.dataset["choice"] ?? "");
     });
 
-    // The fingers of the table, which press a card by resting on it. The screen is pressed the
-    // same way the tables behind it are, so a visitor never learns two ways of choosing.
-
+    // The fingers of the table. A card is pressed by tapping it or by resting on it, which is
+    // the press of the whole application, so a visitor never learns two ways of choosing and
+    // everything of this screen answers a finger: the cards, and the speakers beside them.
     void openTableInput({parameters, element: root, markers: []}).then(source => {
       const {input} = source;
-      const resting = new Map<number, {key: string; since: number; fired: boolean}>();
-      let armed: Element | undefined;
-      let running = true;
-      const arm = (element: Element | undefined): void => {
-        if (armed === element) return;
-        armed?.removeAttribute("data-arming");
-        element?.setAttribute("data-arming", "true");
-        armed = element;
-      };
-      const watch = (now: number): void => {
-        if (!running) return;
-        window.requestAnimationFrame(watch);
-        const held = new Set<number>();
-        let filling: Element | undefined;
-        for (const pointer of input.snapshot.pointers.values()) {
-          const target = document.elementFromPoint(
-            pointer.x * window.innerWidth, pointer.y * window.innerHeight);
-          const pick = target?.closest?.(".welcome-pick");
-          if (!(pick instanceof HTMLElement)) continue;
-          const key = pick.dataset["choice"] ?? "";
-          held.add(pointer.sessionId);
-          const seen = resting.get(pointer.sessionId);
-          if (seen === undefined || seen.key !== key) {
-            resting.set(pointer.sessionId, {key, since: now, fired: false});
-            filling = pick;
-          } else if (!seen.fired && now - seen.since >= PRESS) {
-            seen.fired = true;
-            take(key);
-          } else if (!seen.fired) {
-            filling = pick;
-          }
-        }
-        for (const id of [...resting.keys()]) {
-          if (!held.has(id)) resting.delete(id);
-        }
-        arm(filling);
-      };
+      const press = createPress({
+        fingers: () => pointerPoints(
+          input.snapshot, {width: window.innerWidth, height: window.innerHeight}),
+      });
       stop = (): void => {
-        running = false;
-        arm(undefined);
+        press.stop();
         input.disconnect();
       };
       input.connect();
-      window.requestAnimationFrame(watch);
     });
-
   });
 }

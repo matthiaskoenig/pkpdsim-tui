@@ -82,7 +82,12 @@ Everything is upright for the people standing at the edge the panel is in: the p
 
 ## Choosing, and going back
 
-A table has no click, so everything that is pressed rather than turned is pressed by resting a finger on it: a disc on the landing page, the organ it points at, a switch in the panel, or **Back**, which every table carries above its title. The element fills while the finger is on it, and lifting the finger before it is full cancels it. A hand sweeping across the glass opens nothing.
+A table has no click, so everything that is pressed rather than turned is pressed by a finger: a disc on the landing page, the organ it points at, a switch in the panel, or **Back**, which every table carries above its title. Two gestures press one, and nobody has to be told which:
+
+- **A tap.** A finger that lands on an element and goes again presses it when it goes, the way a phone answers.
+- **A rest.** A finger that stays on an element presses it after a moment, and the element fills while the finger is there, so that holding is visibly doing something.
+
+A finger that moves off the element before it goes presses nothing, and neither does a hand sweeping across the glass or one leaning on it: a press belongs to the element the finger landed on and left from. Everything a visitor can press is at least a fingertip across, because a visitor aims by eye across a table rather than with a pointer.
 
 A visit begins before the landing page. The first screen asks which **language** to speak, with every language written in its own tongue; the second asks **who is looking**, a child, an adult or somebody of the field; the third asks **who is at the table**, the body every model is then solved for. All three answers go into the address, so a link that already says them walks straight in.
 

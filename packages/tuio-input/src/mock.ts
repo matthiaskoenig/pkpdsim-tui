@@ -79,7 +79,12 @@ export function createMockTableInput(options: MockTableInputOptions): MockTableI
   const applyPointer = (sessionId: number, x: number, y: number): void => {
     const object: TuioObjectLike = {
       sessionId, token: null,
-      pointer: {sessionId, tuId: 0, cId: 0, position: {x, y}, angle: 0, radius: 0.01, press: 0.5},
+      // The mouse of the machine the page is open on, which the page clicks for by itself: a
+      // press of a finger is not sent for it, so nothing here is pressed twice.
+      pointer: {
+        sessionId, tuId: 0, cId: 0, position: {x, y}, angle: 0, radius: 0.01, press: 0.5,
+        mouse: true,
+      },
     };
     snapshot = applyTuioObject(snapshot, object, now());
     publish();

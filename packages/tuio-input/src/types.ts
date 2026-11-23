@@ -27,6 +27,12 @@ export interface TablePointer {
   readonly radius: number;
   /** Pressure in -1..1, where a negative value is a hovering pointer. */
   readonly press: number;
+  /**
+   * Whether this is the mouse of a laptop rather than a finger of a tracker. The page sends the
+   * click of a mouse by itself, so what presses an element for a finger leaves this one alone,
+   * and nothing is pressed twice on the machine an application is developed on.
+   */
+  readonly mouse: boolean;
   readonly at: number;
 }
 

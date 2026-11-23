@@ -20,12 +20,11 @@ import {
 } from "@pkpdsim-tui/cardio-sim";
 import type {Individual, Sex} from "@pkpdsim-tui/cardio-sim";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
-import {bodyName, pictogram, sayHtml, sayLabel} from "@pkpdsim-tui/tui-kit";
+import {
+  bodyName, createPress, pictogram, pointerPoints, sayHtml, sayLabel,
+} from "@pkpdsim-tui/tui-kit";
 import type {Voice} from "@pkpdsim-tui/tui-kit";
 import {HUB_TEXT} from "./text.ts";
-
-/** How long a finger rests on a card before it is pressed, as everywhere else on a table. */
-const PRESS = 620;
 
 /** How tall a grown up stands on this screen, in pixels, and the height the two are drawn at. */
 const FIGURE = {height: 180, adult: 35} as const;
@@ -354,59 +353,27 @@ export function askPerson(
       take(pick.dataset["choice"] ?? "");
     });
 
-    // The fingers of the table: a card is pressed by resting on it, and a line is set by
-    // touching it anywhere, which is the gesture of a dial and not of a button.
+    // The fingers of the table. A card is pressed by tapping it or by resting on it, as
+    // everywhere else, and a line of a dial is set by touching it anywhere, which is the
+    // gesture of a dial and not of a button.
     void openTableInput({parameters, element: root, markers: []}).then(source => {
       const {input} = source;
-      const resting = new Map<number, {key: string; since: number; fired: boolean}>();
-      let armed: Element | undefined;
-      let running = true;
-      const arm = (element: Element | undefined): void => {
-        if (armed === element) return;
-        armed?.removeAttribute("data-arming");
-        element?.setAttribute("data-arming", "true");
-        armed = element;
-      };
-      const watch = (now: number): void => {
-        if (!running) return;
-        window.requestAnimationFrame(watch);
-        const held = new Set<number>();
-        let filling: Element | undefined;
-        for (const pointer of input.snapshot.pointers.values()) {
-          const x = pointer.x * window.innerWidth;
-          const target = document.elementFromPoint(x, pointer.y * window.innerHeight);
+      const press = createPress({
+        fingers: () => pointerPoints(
+          input.snapshot, {width: window.innerWidth, height: window.innerHeight}),
+        onPoint: point => {
+          const target = document.elementFromPoint(point.x, point.y);
           const track = target?.closest?.("[data-dial-track]");
-          if (track !== null && track !== undefined) {
-            setFrom(track, x);
-            continue;
-          }
-          const pick = target?.closest?.(".welcome-pick");
-          if (!(pick instanceof HTMLElement)) continue;
-          const key = pick.dataset["choice"] ?? "";
-          held.add(pointer.sessionId);
-          const seen = resting.get(pointer.sessionId);
-          if (seen === undefined || seen.key !== key) {
-            resting.set(pointer.sessionId, {key, since: now, fired: false});
-            filling = pick;
-          } else if (!seen.fired && now - seen.since >= PRESS) {
-            seen.fired = true;
-            take(key);
-          } else if (!seen.fired) {
-            filling = pick;
-          }
-        }
-        for (const id of [...resting.keys()]) {
-          if (!held.has(id)) resting.delete(id);
-        }
-        arm(filling);
-      };
+          if (track === null || track === undefined) return false;
+          setFrom(track, point.x);
+          return true;
+        },
+      });
       stop = (): void => {
-        running = false;
-        arm(undefined);
+        press.stop();
         input.disconnect();
       };
       input.connect();
-      window.requestAnimationFrame(watch);
     });
   });
 }

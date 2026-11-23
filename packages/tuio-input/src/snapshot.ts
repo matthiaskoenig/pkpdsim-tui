@@ -20,6 +20,8 @@ export interface TuioTokenLike {
 export interface TuioPointerLike extends TuioTokenLike {
   readonly radius: number;
   readonly press: number;
+  /** Set by the mouse of a laptop, which the page clicks for by itself. A tracker leaves it. */
+  readonly mouse?: boolean;
 }
 
 /** Any object identified by its session, which is all a removal needs. */
@@ -73,7 +75,7 @@ function pointerOf(pointer: TuioPointerLike, at: number): TablePointer {
   return {
     sessionId: pointer.sessionId, typeId: pointer.tuId,
     x: pointer.position.x, y: pointer.position.y,
-    radius: pointer.radius, press: pointer.press, at,
+    radius: pointer.radius, press: pointer.press, mouse: pointer.mouse === true, at,
   };
 }
 

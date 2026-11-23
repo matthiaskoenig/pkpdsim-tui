@@ -524,6 +524,10 @@
   cursor: pointer;
 }
 
+.hub-say-hit {
+  fill: transparent;
+}
+
 .hub-say-plate {
   fill: transparent;
   stroke: var(--panel-line);
@@ -544,7 +548,11 @@
 
 .hub-say:hover .hub-say-plate,
 .hub-say[data-arming="true"] .hub-say-plate,
-.hub-say[data-speaking="true"] .hub-say-plate {
+.hub-say[data-speaking="true"] .hub-say-hit {
+  fill: transparent;
+}
+
+.hub-say-plate {
   fill: var(--accent);
   stroke: var(--accent);
 }

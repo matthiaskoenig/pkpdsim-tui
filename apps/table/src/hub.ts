@@ -329,6 +329,9 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   const boxSay = svg("g", {
     class: "hub-say", role: "button", tabindex: 0, "data-dwell": "say",
   }, box);
+  // The hit area of the speaker, which is wider than the plate a visitor sees: a finger aims
+  // at the picture and lands around it, as it does on every other press of the table.
+  svg("circle", {class: "hub-say-hit", r: 28}, boxSay);
   svg("circle", {class: "hub-say-plate", r: 17}, boxSay);
   svg("path", {class: "hub-say-cone", d: SAY_PATH}, boxSay);
   svg("path", {class: "hub-say-waves", d: SAY_WAVES}, boxSay);
