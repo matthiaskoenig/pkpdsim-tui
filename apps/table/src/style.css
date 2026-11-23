@@ -116,41 +116,6 @@
   fill-opacity: 0.85;
 }
 
-/* What drives the table and whom the anatomy is from: small, at the foot, out of the way. */
-.hub-status {
-  font-size: 12px;
-  fill: var(--ink-dim);
-  pointer-events: auto;
-  cursor: help;
-}
-
-.hub-status-dot {
-  fill: var(--ink-dim);
-}
-
-.hub-foot[data-state="connected"] .hub-status-dot {
-  fill: var(--accent);
-}
-
-.hub-foot[data-state="error"] .hub-status-dot {
-  fill: #e2725b;
-}
-
-/* A smaller table, a laptop or a window beside the simulator: the heading and the cards shrink. */
-@media (max-height: 820px) {
-  .hub-heading {
-    font-size: 40px;
-  }
-
-  .hub-motivation {
-    font-size: 18px;
-  }
-
-  .hub-icon-title {
-    font-size: 18px;
-  }
-}
-
 /* ---------------------------------------------------------------------------------------- */
 /* The page about the models, the software, the licences and the laboratory. */
 
@@ -300,7 +265,7 @@
 
 /* What a visitor took from a table: one star a question of its quiz, in its own colour. */
 .hub-icon-stars {
-  font-size: 1.5rem;
+  font-size: 24px;
   letter-spacing: 0.12em;
 }
 
@@ -314,7 +279,7 @@
 }
 
 .hub-info-title {
-  font-size: 1.7rem;
+  font-size: 27.2px;
   font-weight: 700;
   fill: var(--panel-ink);
 }
@@ -325,12 +290,12 @@
 }
 
 .hub-info-line {
-  font-size: 1.05rem;
+  font-size: 16.8px;
   fill: var(--panel-ink-dim);
 }
 
 .hub-info-call {
-  font-size: 0.78rem;
+  font-size: 12.48px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -350,7 +315,7 @@
 }
 
 .hub-legend-name {
-  font-size: 1.12rem;
+  font-size: 17.92px;
   font-weight: 600;
   fill: var(--panel-ink);
 }
@@ -438,7 +403,7 @@
   justify-items: center;
   width: 17rem;
   padding: 1.6rem 1.2rem 1.4rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 1.4rem;
   background: var(--panel);
   color: var(--panel-ink);
@@ -466,7 +431,7 @@
 .welcome-pick:focus-visible,
 .welcome-pick[data-arming="true"] {
   border-color: var(--accent);
-  transform: translateY(-2px);
+  transform: translateY(-0.125rem);
   outline: none;
 }
 
@@ -491,7 +456,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.1rem 0.6rem 0.8rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 999px;
   background: var(--panel);
   color: var(--panel-ink);
@@ -642,7 +607,7 @@
   position: relative;
   height: 2.5rem;
   border-radius: 999px;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   background: var(--panel);
   cursor: pointer;
   touch-action: none;
@@ -660,8 +625,8 @@
   position: absolute;
   top: -0.3rem;
   bottom: -0.3rem;
-  width: 2px;
-  margin-left: -1px;
+  width: 0.125rem;
+  margin-left: -0.0625rem;
   background: var(--panel-ink-dim);
   opacity: 0.55;
 }
@@ -674,9 +639,9 @@
   margin-left: -1.45rem;
   transform: translateY(-50%);
   border-radius: 50%;
-  border: 4px solid var(--surface);
+  border: 0.25rem solid var(--surface);
   background: var(--accent);
-  box-shadow: 0 2px 8px rgba(15, 32, 56, 0.25);
+  box-shadow: 0 0.125rem 0.5rem rgba(15, 32, 56, 0.25);
   pointer-events: none;
 }
 
@@ -748,7 +713,7 @@
   height: 7rem;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 6px 18px rgba(15, 29, 40, 0.18);
+  box-shadow: 0 0.375rem 1.125rem rgba(15, 29, 40, 0.18);
 }
 
 .about-contacts {
@@ -757,7 +722,7 @@
   gap: 0.9rem 1.6rem;
   margin-top: 0.9rem;
   padding-top: 0.9rem;
-  border-top: 1px solid rgba(15, 29, 40, 0.1);
+  border-top: 0.0625rem solid rgba(15, 29, 40, 0.1);
 }
 
 .about-city {

@@ -38,6 +38,24 @@
      own constant in here, so the fill of a switch and the press behind it cannot drift apart. */
   --dwell: 620ms;
   color-scheme: light;
+  /*
+   * How large this surface is.
+   *
+   * Everything of a table is drawn on one surface, 1920 by 1080, the laptop these were drawn
+   * on: the text of the panel, the lines around a card, the body itself. The table of the
+   * exhibition is 4K, which is the same surface at twice the size, and a visitor standing at it
+   * must see the same picture twice as large rather than the same picture with half the ink in
+   * it. One number says that, and this is the number: the size of the text of the page.
+   *
+   * Everything of the page is a multiple of it, in `rem`, so the whole of the furniture of a
+   * table scales with the glass; the scene inside is drawn in the pixels of that surface and
+   * scales with the viewBox of it, which is `surfaceViewport` of the kit. A page is at the
+   * right size before a line of script has run.
+   *
+   * Nothing is let below ten pixels, so a window somebody opened beside the simulator is small
+   * rather than unreadable.
+   */
+  font-size: max(10px, calc(16 * min(100vw / 1920, 100vh / 1080)));
 }
 
 /*
@@ -55,6 +73,15 @@
 
 * {
   box-sizing: border-box;
+}
+
+/*
+ * A button of a browser carries a font of its own, 13.333 pixels of the glass, which is the one
+ * thing of a page that a larger surface does not make larger. Every button of a table is a
+ * button of the table: it takes the text of the page, and so the size of the surface.
+ */
+button {
+  font: inherit;
 }
 
 html,
@@ -108,10 +135,10 @@ body {
   position: absolute;
   max-width: 22rem;
   padding: 0.9rem 1.1rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 1rem;
   background: var(--panel);
-  box-shadow: 0 18px 44px rgba(15, 29, 40, 0.18);
+  box-shadow: 0 1.125rem 2.75rem rgba(15, 29, 40, 0.18);
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -121,13 +148,6 @@ body {
 .edge--near {
   left: 1.5rem;
   top: 1.5rem;
-}
-
-@media (max-width: 1500px) {
-  .edge {
-    max-width: 18rem;
-    font-size: 0.82rem;
-  }
 }
 
 /* What the table is, for somebody who walked up to it a moment ago. */
@@ -165,7 +185,7 @@ body {
   width: 1.5em;
   height: 1.5em;
   margin-left: 0.1em;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 50%;
   color: var(--ink-dim);
   font-size: 0.55em;
@@ -196,11 +216,11 @@ body {
   /* The same pale card the panel is, because it says the same kind of thing: a sentence about
      what the hand is on. It was a near black card with dark blue type on it, which is what a
      visitor two steps from the glass could not read. */
-  border: 1px solid var(--panel-line);
-  border-left: 4px solid var(--accent);
+  border: 0.0625rem solid var(--panel-line);
+  border-left: 0.25rem solid var(--accent);
   border-radius: 0.6rem;
   background: var(--panel);
-  box-shadow: 0 14px 34px rgba(15, 29, 40, 0.24);
+  box-shadow: 0 0.875rem 2.125rem rgba(15, 29, 40, 0.24);
   color: var(--panel-ink);
   font-size: 1rem;
   line-height: 1.5;
@@ -244,7 +264,7 @@ body {
 .boot-again,
 /* The one of the body, which is of the application rather than of the kit. */
 .again {
-  min-height: 44px;
+  min-height: 2.75rem;
 }
 
 .say::after,
@@ -253,8 +273,8 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   transform: translate(-50%, -50%);
 }
 
@@ -265,7 +285,7 @@ body {
   width: 2rem;
   height: 2rem;
   padding: 0;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 50%;
   background: transparent;
   color: var(--accent);
@@ -316,7 +336,7 @@ body {
   gap: 0.5rem;
   margin: 0;
   padding: 0.6rem 1.1rem 0.6rem 0.8rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 999px;
   /* It stands on the white of the table beside the quiz, not on the blue of the panel. */
   background: var(--surface);
@@ -326,7 +346,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: 0 10px 26px rgba(15, 29, 40, 0.12);
+  box-shadow: 0 0.625rem 1.625rem rgba(15, 29, 40, 0.12);
 }
 
 .reset-icon {
@@ -354,7 +374,7 @@ body {
   gap: 0.45rem;
   margin: 0 0 0.9rem;
   padding: 0.35rem 0.8rem 0.35rem 0.45rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 999px;
   background: transparent;
   color: var(--ink-dim);
@@ -411,7 +431,7 @@ body {
   padding: 0.45rem 0.6rem;
   /* The colour of the table where it has one, the accent of the page on the pages which do
      not: the landing page and the page about the models. */
-  border-left: 3px solid var(--table, var(--accent));
+  border-left: 0.1875rem solid var(--table, var(--accent));
   border-radius: 0 0.4rem 0.4rem 0;
   background: color-mix(in srgb, var(--table, var(--accent)) 12%, transparent);
   color: var(--ink);
@@ -444,18 +464,6 @@ body {
   width: 3.1rem;
   height: 2.2rem;
   fill: #ffffff;
-}
-
-@media (max-width: 1500px) {
-  .edge-mark {
-    width: 4rem;
-    height: 4rem;
-  }
-
-  .edge-mark-art {
-    width: 2.5rem;
-    height: 1.8rem;
-  }
 }
 
 .edge .tries {
@@ -491,7 +499,7 @@ body {
   flex-wrap: wrap;
   gap: 0.2rem;
   padding: 0.22rem;
-  border: 1.5px solid var(--panel-line, rgba(243, 248, 251, 0.2));
+  border: 0.09375rem solid var(--panel-line, rgba(243, 248, 251, 0.2));
   border-radius: 999px;
   background: color-mix(in srgb, var(--panel-ink, #f3f8fb) 5%, transparent);
 }
@@ -564,7 +572,7 @@ body {
   place-items: center;
   width: 1.9rem;
   height: 1.9rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 50%;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -673,9 +681,9 @@ body {
   display: inline-grid;
   place-items: center;
   justify-self: center;
-  min-height: 44px;
+  min-height: 2.75rem;
   padding: 0 1.4rem;
-  border: 1.5px solid var(--line);
+  border: 0.09375rem solid var(--line);
   border-radius: 999px;
   background: transparent;
   color: var(--ink);
@@ -883,7 +891,7 @@ body {
 
 .plot-tick-label {
   fill: var(--ink-dim);
-  font-size: 0.95rem;
+  font-size: 15.2px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -896,7 +904,7 @@ body {
 
 .plot-cursor-label {
   fill: var(--ink);
-  font-size: 0.85rem;
+  font-size: 13.6px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -916,7 +924,7 @@ body {
 }
 
 .trace-value {
-  font-size: 0.82rem;
+  font-size: 13.12px;
   font-variant-numeric: tabular-nums;
   paint-order: stroke;
   stroke: rgba(255, 255, 255, 0.9);
@@ -939,7 +947,7 @@ body {
   gap: 0.4rem;
   margin: 0;
   padding: 0.35rem 0.8rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 0.5rem;
   background: transparent;
   color: var(--ink-dim);
@@ -1082,7 +1090,7 @@ body {
   padding: 1.1rem 1.2rem 0.9rem;
   border-radius: 1rem;
   background: var(--panel);
-  box-shadow: 0 18px 44px rgba(15, 29, 40, 0.22);
+  box-shadow: 0 1.125rem 2.75rem rgba(15, 29, 40, 0.22);
 }
 
 .settings-card[hidden] {
@@ -1122,7 +1130,7 @@ body {
   justify-items: center;
   gap: 0.35rem;
   padding: 0.55rem 0.3rem 0.45rem;
-  border: 1.5px solid rgba(243, 248, 251, 0.18);
+  border: 0.09375rem solid rgba(243, 248, 251, 0.18);
   border-radius: 0.75rem;
   background: transparent;
   color: var(--panel-ink-dim);
@@ -1172,7 +1180,7 @@ body {
   display: none;
   width: 1.15rem;
   height: 1.15rem;
-  border: 2px solid var(--panel);
+  border: 0.125rem solid var(--panel);
   border-radius: 50%;
   background: var(--accent-bright);
 }
@@ -1185,7 +1193,7 @@ body {
   width: 0.26rem;
   height: 0.5rem;
   border: solid var(--panel);
-  border-width: 0 2px 2px 0;
+  border-width: 0 0.125rem 0.125rem 0;
   transform: rotate(42deg);
 }
 
@@ -1256,7 +1264,7 @@ body {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(13, 140, 134, 0.3);
+  box-shadow: 0 0.625rem 1.625rem rgba(13, 140, 134, 0.3);
 }
 
 .quiz-mark {
@@ -1277,7 +1285,7 @@ body {
 
 .quiz[data-open="true"] .quiz-button {
   background: var(--chrome);
-  box-shadow: 0 10px 26px rgba(15, 29, 40, 0.22);
+  box-shadow: 0 0.625rem 1.625rem rgba(15, 29, 40, 0.22);
 }
 
 .quiz-card {
@@ -1286,10 +1294,10 @@ body {
   width: min(32rem, calc(100vw - 3rem));
   padding: 1.2rem 1.3rem 1.1rem;
   /* The line keeps it a card of its own where it grows over the panel below it. */
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 1rem;
   background: var(--panel);
-  box-shadow: 0 18px 44px rgba(15, 29, 40, 0.24);
+  box-shadow: 0 1.125rem 2.75rem rgba(15, 29, 40, 0.24);
   color: var(--panel-ink);
 }
 
@@ -1321,7 +1329,7 @@ body {
 .quiz-dot {
   width: 0.7rem;
   height: 0.7rem;
-  border: 2px solid var(--panel-ink-dim);
+  border: 0.125rem solid var(--panel-ink-dim);
   border-radius: 50%;
 }
 
@@ -1348,7 +1356,7 @@ body {
 
 .quiz-close {
   padding: 0.3rem 0.8rem;
-  border: 1.5px solid rgba(243, 248, 251, 0.24);
+  border: 0.09375rem solid rgba(243, 248, 251, 0.24);
   border-radius: 999px;
   background: transparent;
   color: var(--panel-ink-dim);
@@ -1379,7 +1387,7 @@ body {
 /* An answer is a whole line a hand can land on, not a word in a sentence. */
 .quiz-choice {
   padding: 0.75rem 1rem;
-  border: 1.5px solid rgba(243, 248, 251, 0.22);
+  border: 0.09375rem solid rgba(243, 248, 251, 0.22);
   border-radius: 0.8rem;
   background: transparent;
   color: var(--panel-ink);
@@ -1500,7 +1508,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.3rem;
-  border: 1px solid transparent;
+  border: 0.0625rem solid transparent;
   border-radius: 0.7rem;
   cursor: pointer;
 }
@@ -1573,7 +1581,7 @@ body {
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 1rem;
-  border: 1.5px solid var(--panel-line);
+  border: 0.09375rem solid var(--panel-line);
   border-radius: 999px;
   background: var(--panel);
   color: var(--panel-ink);
@@ -1629,11 +1637,11 @@ body {
   max-height: 100%;
   overflow: hidden;
   padding: 2rem 2.6rem 2.2rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 1.6rem;
   background: var(--panel);
   color: var(--panel-ink);
-  box-shadow: 0 24px 60px rgba(15, 29, 40, 0.2);
+  box-shadow: 0 1.5rem 3.75rem rgba(15, 29, 40, 0.2);
   text-align: center;
 }
 
@@ -1728,7 +1736,7 @@ body {
   width: 1.9rem;
   height: 1.9rem;
   padding: 0;
-  border: 1.5px solid color-mix(in srgb, var(--table, var(--accent)) 45%, transparent);
+  border: 0.09375rem solid color-mix(in srgb, var(--table, var(--accent)) 45%, transparent);
   border-radius: 50%;
   background: transparent;
   color: var(--table, var(--accent));
@@ -1760,7 +1768,7 @@ body {
   display: grid;
   gap: 0.6rem;
   padding: 1rem 1.2rem 1.1rem;
-  border-left: 4px solid var(--table, var(--accent));
+  border-left: 0.25rem solid var(--table, var(--accent));
   border-radius: 0.4rem 0.9rem 0.9rem 0.4rem;
   background: color-mix(in srgb, var(--table, var(--accent)) 9%, var(--surface));
   text-align: left;
@@ -1787,9 +1795,9 @@ body {
 .brief-more-close {
   display: inline-grid;
   place-items: center;
-  min-height: 44px;
+  min-height: 2.75rem;
   padding: 0 1.1rem;
-  border: 1.5px solid var(--line);
+  border: 0.09375rem solid var(--line);
   border-radius: 999px;
   background: transparent;
   color: var(--ink-dim);
@@ -1837,30 +1845,16 @@ body {
   filter: brightness(1.08);
 }
 
-@media (max-width: 1500px) {
-  .brief-title {
-    font-size: 2.1rem;
-  }
-
-  .brief-about {
-    font-size: 1.2rem;
-  }
-
-  .brief-sheet {
-    padding: 1.4rem 1.8rem 1.6rem;
-  }
-}
-
 /* The scale at the side of a course, which stands still while the curve moves. */
 .plot-scale-label {
   fill: var(--ink-dim);
-  font-size: 0.95rem;
+  font-size: 15.2px;
   font-variant-numeric: tabular-nums;
 }
 
 .plot-scale-unit {
   fill: var(--ink-dim);
-  font-size: 0.95rem;
+  font-size: 15.2px;
   font-weight: 600;
   letter-spacing: 0.04em;
 }

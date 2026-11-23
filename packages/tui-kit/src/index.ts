@@ -13,6 +13,7 @@ export {ICONS} from "./icons.mjs";
 export type {Glyph, GlyphKind, TokenGlyph} from "./glyph.ts";
 export type {TableApp, TableHost, TableIndividual, TableMark} from "./host.ts";
 export {createLab, LAB_ROOM} from "./lab.ts";
+export {SURFACE, SURFACE_TEXT, surfaceScale, surfaceViewport, windowViewport} from "./surface.ts";
 export type {Lab, LabOptions} from "./lab.ts";
 export {createMirror, MIRROR_SOURCE} from "./mirror.ts";
 export type {Mirror, MirroredObject, MirrorState} from "./mirror.ts";

@@ -24,8 +24,8 @@ import {markersOn, openTableInput, rolesOn} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
-  bodyName, chooseQuery, createChrome, createQuiz, createInfo, createReadout, createTokenLayer,
-  driveHint, formatFactor, formatNumber, pointerPoints, visibleStats, words,
+  bodyName, chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer,
+  driveHint, formatFactor, formatNumber, pointerPoints, surfaceViewport, visibleStats, words
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {beatCycle, sampleBeat} from "./beat.ts";
@@ -172,7 +172,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   });
 
   const origins = new Map<number, number>();
-  let viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport = surfaceViewport();
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
 
@@ -325,7 +325,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   };
 
   const resize = (): void => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     scene.resize(viewport);
     readout.resize(viewport);

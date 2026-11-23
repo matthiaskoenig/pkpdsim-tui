@@ -166,6 +166,21 @@ npm run dev -- --host 192.168.1.14     # one of them
 
 It says in the banner what it opens, and the simulator then accepts the control page under the address of the network as well, which it otherwise only does for a page of its own machine. Serve the built `dist/` with a server of your own for anything that stands longer than a session.
 
+## The size of a surface
+
+A table is drawn on one surface, 1920 by 1080, and scaled to the glass in front of the visitor: the 4K table of the exhibition is that surface at twice the size, a laptop is it at its own size, and a window somebody made smaller is it smaller. How large the surface is is said in one place, the stylesheet of the kit, as the size of the text of the page:
+
+```css
+font-size: max(10px, calc(16 * min(100vw / 1920, 100vh / 1080)));
+```
+
+Two rules follow from that, and a table which breaks either of them is a table which looks right on the machine it was written on and wrong on the glass:
+
+- **The furniture of the page is in `rem`.** The panel, the cards of the settings, the brief, the buttons and the notes are HTML, and every length of them is a multiple of the text of the page: `0.0625rem` is the hairline of the drawing, `2.75rem` the smallest thing a finger presses. A length in pixels there is a length which stays the same while everything around it grows.
+- **A scene is drawn in the pixels of the surface.** Every table lays itself out in `surfaceViewport()` of the kit rather than in the window, which is the window in the pixels of the drawing, and sets that as the `viewBox` of its scene. The browser then scales the lines, the text and the layout of it together. A length inside a scene is therefore in `px`, which are the pixels of that surface and not of the glass; a length in `rem` inside a scene scales twice.
+
+`surfaceScale()` is the number itself, for the few places which have to speak in the pixels of the glass: the note of the info layer, which is placed beside an element the browser measured, and how far a tapping finger may travel before it was going somewhere else. A finger of the tracker arrives as a fraction of the sensor and is multiplied by the window, so it is in those pixels too.
+
 ## The input layer
 
 Everything that carries logic is a pure function and is tested without a socket: the unwrapping of an angle across the 2 pi boundary, the mapping of an angle to a value, the resolution of a marker to a role, the hit test of a position against the anchors of an anatomy, and the reducer that turns the nullable token and pointer of a `Tuio20Object` into a snapshot.
@@ -181,11 +196,12 @@ Everything that carries logic is a pure function and is tested without a socket:
 3. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs, and the `dev:<name>` script to the root `package.json`.
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
-6. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
-7. Anything a visitor presses rather than turns carries `data-dwell="<name>"` and a click handler. The note layer of `createInfo` watches the fingers of the tracker, fires the click when one has rested on it for a moment, and marks the element with `data-arming` while it does, which is what the element fills from. The name and not the element is the identity of a target, because a panel is redrawn under a finger which is resting on it.
-8. Write its words in `packages/<name>-table/src/text.ts`: one module with English, German and Spanish side by side, where every explanatory sentence is a `Phrase` of a child, an adult and an expert text. Nothing a visitor reads is written into the code of a scene, a card or a role, and a test walks every locale and every level to insist that nothing was forgotten. See [Languages and the voice](languages.md).
-9. Write its three quiz questions into the same module as `quiz`, in the three languages, with the same ids in the same order: what is asked, two or three answers, which one is right, the one sentence why, and what to turn at the table to see it. `createQuiz(host.chrome, {voice, questions: copy.quiz})` is the whole of what a table does with them. See [Run on a table](table.md).
-10. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
+6. Lay it out in `surfaceViewport()` and give that to the `viewBox` of its scene, so the table scales with the glass; see [The size of a surface](#the-size-of-a-surface) for which lengths are `px` and which are `rem`.
+7. Draw it with `packages/tui-kit`: the band, the cards, the panel, the notes and the course are shared, and only the scene of the application is its own. Give every number of the band and every role an `info`, which is the note a visitor opens, and every role a picture with `glyph`, which is what the object says about itself while it is turned.
+8. Anything a visitor presses rather than turns carries `data-dwell="<name>"` and a click handler. The note layer of `createInfo` watches the fingers of the tracker, fires the click when one has rested on it for a moment, and marks the element with `data-arming` while it does, which is what the element fills from. The name and not the element is the identity of a target, because a panel is redrawn under a finger which is resting on it.
+9. Write its words in `packages/<name>-table/src/text.ts`: one module with English, German and Spanish side by side, where every explanatory sentence is a `Phrase` of a child, an adult and an expert text. Nothing a visitor reads is written into the code of a scene, a card or a role, and a test walks every locale and every level to insist that nothing was forgotten. See [Languages and the voice](languages.md).
+10. Write its three quiz questions into the same module as `quiz`, in the three languages, with the same ids in the same order: what is asked, two or three answers, which one is right, the one sentence why, and what to turn at the table to see it. `createQuiz(host.chrome, {voice, questions: copy.quiz})` is the whole of what a table does with them. See [Run on a table](table.md).
+11. Add a page under `docs/apps/` that names every marker, and add it to `nav` in `zensical.toml`.
 
 ## Conventions
 

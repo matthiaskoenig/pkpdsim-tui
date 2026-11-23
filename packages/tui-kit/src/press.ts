@@ -18,6 +18,8 @@
  * This is the press of the whole application: the first screen, the body and every table.
  */
 
+import {surfaceScale} from "./surface.ts";
+
 /** A finger of the table, in the pixels of the page. */
 export interface PressPoint {
   readonly id: number;
@@ -47,9 +49,13 @@ export const PRESS = 620;
 const TAP_LEAST = 50;
 
 /**
- * How far a tapping finger may travel on what it landed on, in pixels. A finger which went
- * further was going somewhere: a hand leaning on the glass, or a sleeve drawn across it, and
- * neither of them tapped the element it happened to leave from.
+ * How far a tapping finger may travel on what it landed on, in the pixels of the drawing. A
+ * finger which went further was going somewhere: a hand leaning on the glass, or a sleeve drawn
+ * across it, and neither of them tapped the element it happened to leave from.
+ *
+ * A finger is measured in the pixels of the glass, of which the 4K table of the exhibition has
+ * two for every pixel of the drawing, so the travel of a tap is read on the scale of the
+ * surface: a tap crosses the same part of the switch it landed on wherever the table stands.
  */
 const TAP_DRIFT = 48;
 
@@ -143,7 +149,7 @@ export function createPress(options: PressOptions = {}): PressLayer {
     if (now - seen.since < TAP_LEAST) return false;
     const dx = seen.at.x - seen.from.x;
     const dy = seen.at.y - seen.from.y;
-    return Math.sqrt(dx * dx + dy * dy) <= TAP_DRIFT;
+    return Math.sqrt(dx * dx + dy * dy) <= TAP_DRIFT * surfaceScale();
   };
 
   const layer: PressLayer = {

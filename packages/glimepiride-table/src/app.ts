@@ -20,8 +20,8 @@ import {
 import type {GlimepirideIndividual, Sex} from "@pkpdsim-tui/glimepiride-sim";
 import {loadAnatomy, renalFactor} from "@pkpdsim-tui/cardio-sim";
 import {
-  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
-  formatNumber, LAB_ROOM, pointerPoints, visibleStats, words,
+  chooseQuery, createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer,
+  driveHint, formatNumber, LAB_ROOM, pointerPoints, surfaceViewport, visibleStats, words
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
 import {
@@ -133,7 +133,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   });
 
   const origins = new Map<number, number>();
-  let viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport = surfaceViewport();
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
 
@@ -281,7 +281,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   };
 
   const resize = (): void => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     figure.resize(bodyBox(viewport));
     plot.resize(plotBox(viewport));

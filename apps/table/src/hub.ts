@@ -14,7 +14,7 @@ import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
   attributes, chooseQuery, createInfo, ICONS, LAB_ROOM, pointerPoints, readStars, reportStatus,
-  SAY_PATH, SAY_WAVES, svg, watchStars, words,
+  SAY_PATH, SAY_WAVES, surfaceViewport, svg, watchStars, words
 } from "@pkpdsim-tui/tui-kit";
 import type {GlyphKind, TableApp, TableHost, Viewport, Voice} from "@pkpdsim-tui/tui-kit";
 import {ABOUT, entryCopy, OVERVIEW, TABLES} from "./tables.ts";
@@ -420,7 +420,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
     });
   }
 
-  let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport: Viewport = surfaceViewport();
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
   // The hold which opens a card, and the note behind the heading and the laboratory: one layer.
@@ -589,7 +589,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   };
 
   const resize = (): void => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     draw();
   };
