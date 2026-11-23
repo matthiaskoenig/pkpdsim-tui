@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/lobes-table",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "The lobed liver table: clamps and a scalpel on the Couinaud segments, and the days after the operation on a dial",
