@@ -1,0 +1,13 @@
+# One line ending everywhere. A table is developed on Linux, on macOS and on Windows, and the
+# exported models, the clips and the pages are the same bytes on all three: a checkout with the
+# line endings of Windows in it would change the fingerprint of a file and fail a test which
+# reads the first line of one.
+* text=auto eol=lf
+
+# What is not text and is never to be touched.
+*.png binary
+*.webp binary
+*.wasm binary
+*.mp3 binary
+*.wav binary
+*.woff2 binary
