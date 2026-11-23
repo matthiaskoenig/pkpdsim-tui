@@ -154,6 +154,8 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   // drug moving through the body rather than a dial a visitor has to find first.
   let started = performance.now();
   let span = 24 * 60;
+  /** The number of tablets the running course is of, which is the window it is drawn in. */
+  let dosesSolved: number = GLIMEPIRIDE_DOSES.value;
 
   const readoutOf = (course: Series, hour: number): GlimepirideReadout => ({
     pk: pharmacokinetics(course, "[Cve_gli]", {factor: MICROMOLAR}),
@@ -210,9 +212,14 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
 
     const next = JSON.stringify({individual, doses});
     if (next !== solved) {
+      // The course keeps running while the objects are moved. It starts over only when the
+      // window itself changes, which is the number of tablets: a hand on a dial changes the
+      // individual many times a second, and a course which started over at each of them stood
+      // at the first minutes of the first tablet for as long as the hand was on the glass,
+      // which is the whole of what a visitor came to watch.
+      if (doses !== dosesSolved) started = performance.now();
       solved = next;
-      // A new individual is a new course, which runs from the first tablet again.
-      started = performance.now();
+      dosesSolved = doses;
       window.clearTimeout(settle);
       settle = window.setTimeout(
         () => void solve(

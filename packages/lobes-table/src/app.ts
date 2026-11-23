@@ -183,6 +183,8 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   let solving = true;
   let notice = "";
   let plan = "";
+  /** The operation the running course is of, which is the course itself and not its rate. */
+  let operationShown = "";
   let frame = 0;
   let settle = 0;
   let pending: AbortController | null = null;
@@ -256,9 +258,13 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     // The rate is read to two digits, so a hand resting on the dial does not solve all day.
     const next = `${operation.id} ${factor.toFixed(2)}`;
     if (next !== plan) {
+      // A new operation is a new course and starts at the operation again. A new rate is the
+      // same course solved again, and the days keep running under it: a hand on the dial moves
+      // the rate many times a second, and a course which started over at each of them never
+      // left the day of the operation while the hand was on the glass.
+      if (operation.id !== operationShown) started = performance.now();
       plan = next;
-      // A new operation or a new rate is a new course, which starts at the operation again.
-      started = performance.now();
+      operationShown = operation.id;
       window.clearTimeout(settle);
       settle = window.setTimeout(() => void solveAll(operation, factor), SETTLE);
     }

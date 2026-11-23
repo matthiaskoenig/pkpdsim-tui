@@ -55,6 +55,50 @@ describe("pharmacokinetics", () => {
   });
 });
 
+/**
+ * A course of many daily tablets: the same one compartment course given again every morning,
+ * which rises to a peak each day and falls between them. The last third of it holds three of
+ * those peaks, so a line through the last third alone is nearly flat.
+ */
+function repeated(halflife: number, days: number, points: number): Record<string, number[]> {
+  const ka = 0.05;
+  const ke = Math.LN2 / halflife;
+  const day = 24 * 60;
+  const end = days * day;
+  const time: number[] = [];
+  const concentration: number[] = [];
+  for (let index = 0; index < points; index++) {
+    const t = (end * index) / (points - 1);
+    let value = 0;
+    for (let dose = 0; dose < days; dose++) {
+      const since = t - dose * day;
+      if (since < 0) continue;
+      value += (ka / (ka - ke)) * (Math.exp(-ke * since) - Math.exp(-ka * since));
+    }
+    time.push(t);
+    concentration.push(value);
+  }
+  return {time, concentration};
+}
+
+describe("the half life of a course of many tablets", () => {
+  const halflife = 360;
+  const series = repeated(halflife, 10, 2881);
+  const result = pharmacokinetics(series, "concentration");
+
+  // The fit starts at the last peak of the course and not a third of the way from the end,
+  // which for ten tablets would draw a line through three more mornings and read as the drug
+  // staying in the body for a week.
+  it("is read off the part after the last tablet", () => {
+    expect(result.halflife).toBeGreaterThan(halflife * 0.8);
+    expect(result.halflife).toBeLessThan(halflife * 1.6);
+  });
+
+  it("is of the drug and not of the course", () => {
+    expect(result.halflife).toBeLessThan(24 * 60);
+  });
+});
+
 describe("finalValue", () => {
   it("is what has accumulated at the end of the course", () => {
     expect(finalValue({time: [0, 1], amount: [0, 2.5]}, "amount", 1000)).toBe(2500);
