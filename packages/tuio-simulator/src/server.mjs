@@ -68,7 +68,8 @@ const CONTENT_TYPES = {
 
 const USAGE = `The TUIO simulator of pkpdsim-tui.
 
-  npm run simulator -- [options]
+  npm run simulator                                      the simulator, as it is
+  node packages/tuio-simulator/src/server.mjs <options>  with options, said directly
 
   --host <host>       the interface both servers listen on (default ${DEFAULT_SETTINGS.host})
   --port <port>       the TUIO port of the tracker (default ${DEFAULT_SETTINGS.port})

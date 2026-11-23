@@ -16,7 +16,9 @@
  * which drives the table of another machine or an application of somebody else.
  *
  * Usage:
- *   npm run dev [-- <options>]
+ *   npm run dev                       both apps, as they are
+ *   node scripts/dev.mjs <options>    both apps with options, said directly, because npm
+ *                                     keeps the flags before `--` for itself
  *
  *   --app <id>         print the address of one table, e.g. cardiovascular
  *   --port <port>      the port of the table (default 5173)
@@ -49,7 +51,9 @@ function usage() {
   const text = [
     "Both apps of this repository: the simulator, and the table pointed at it.",
     "",
-    "  npm run dev [-- <options>]",
+    "  npm run dev                     both apps, as they are",
+    "  node scripts/dev.mjs <options>  both apps with options: they are said to the script",
+    "                                  itself, because npm keeps the flags of npm run",
     "",
     "  --app <id>         print the address of one table (default: the body)",
     `  --port <port>      the port of the table (default ${DEFAULTS.port})`,

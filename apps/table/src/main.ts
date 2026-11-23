@@ -12,7 +12,7 @@
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?ids=1,3,5,6,11,12,21 the ids the markers of this table carry, in the order the objects of
  *                         a table are picked up. The table itself says them once, with
- *                         `npm run dev -- --ids 1,3,5,6,11,12,21`, and a page which says
+ *                         `node scripts/table.mjs --ids 1,3,5,6,11,12,21`, and a page which says
  *                         nothing reads the markers from 1
  *   ?sex=female           the female reference body, on the body and in every table
  *   ?age=35               the age of the person every table is solved for, 3 to 120 years

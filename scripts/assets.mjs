@@ -142,8 +142,9 @@ function usage() {
   process.stdout.write([
     "The resources of the table: the compiled models and the clips it reads aloud.",
     "",
-    "  npm run assets [-- <options>]        take them from the release of this checkout",
+    "  npm run assets                       take them from the release of this checkout",
     "  npm run assets:pack                  pack what this checkout has, for a release",
+    "  node scripts/assets.mjs <options>    the same with options, said to the script itself",
     "",
     "  --version <v>      the release to take them from (default: the version of this tree)",
     "  --url <base>       where the archives are, for a release which is not on GitHub yet",

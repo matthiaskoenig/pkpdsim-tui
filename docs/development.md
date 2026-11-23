@@ -42,6 +42,7 @@ npm run dev           # one of each: the table on 5173, the simulator on 3344
 npm run dev:app       # the table alone and on no tracker, which is the mouse
 npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
 npm run preview       # the built table, served the same way
+npm run table:preview # the built table with the tracker and the pucks of this exhibition
 npm run speech:texts  # every sentence the table can say, for the clips
 npm run speech        # the same, and records the clips with scripts/speak.py
 npm test              # vitest
@@ -70,9 +71,9 @@ Each has a `.sha256` beside it, which is checked before anything is unpacked. `s
 
 ```bash
 npm run assets                      # both archives of the release this checkout is
-npm run assets -- --no-voice        # the models alone, which is 4 MB of the 53
-npm run assets -- --version 0.2.0   # the archives of another release
-npm run assets -- --url http://localhost:3390   # a release which is not on GitHub yet
+node scripts/assets.mjs --no-voice        # the models alone, which is 4 MB of the 53
+node scripts/assets.mjs --version 0.2.0   # the archives of another release
+node scripts/assets.mjs --url http://localhost:3390   # a release which is not on GitHub yet
 npm run assets:check                # what is missing, and nothing else
 npm run assets:pack                 # the archives of this checkout, for the next release
 ```
@@ -115,7 +116,8 @@ flat = build(definition, Path("models"))  # models/rat_liver_nmp_flat.xml
 ```
 
 ```bash
-npm run export:perfusion -- --sbml ../pkpdsim/models/rat_liver_nmp_flat.xml
+uv run python scripts/export_model.py --sbml ../pkpdsim/models/rat_liver_nmp_flat.xml \
+  --output apps/table/public/assets/perfusion/solver
 ```
 
 `node scripts/qr.mjs` regenerates the QR code of the landing page footer. It is generated once and committed as a module of paths, so the page carries no QR library and works with no network; `node scripts/qr.mjs --print` draws it in the terminal to check it, and the address it encodes is `LAB_URL` at the top of the script.
@@ -141,7 +143,7 @@ The table and the simulator are two apps, started by two commands, and neither c
 | `--quiet` | No banner, for a command which prints one of its own | |
 | `--help` | The list above | |
 
-The tracker and the ids are of the booth and not of a visitor, so they are said once and no address of that table carries either. For the table of this exhibition they are written down in `package.json`, as `npm run table`, which is `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22` and takes the same flags after `--`. A built page takes them from the environment instead, `TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=5,6,11,12,21,22 npm run build`, and a page may still name its own with `?tuio=` and `?ids=`.
+The tracker and the ids are of the booth and not of a visitor, so they are said once and no address of that table carries either. For the table of this exhibition they are written down in `package.json`, as `npm run table`, which is `node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22`; another table says its own two to `scripts/table.mjs` directly. A built page takes them from the environment instead, `TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=5,6,11,12,21,22 npm run build`, and a page may still name its own with `?tuio=` and `?ids=`.
 
 **`npm run simulator`**, a tracker and the surface which drives it:
 
@@ -152,16 +154,16 @@ The tracker and the ids are of the booth and not of a visitor, so they are said 
 | `--table <url>` | The table this simulator drives, which its page opens under the surface | `http://localhost:5173/` |
 | `--host`, `--tuio`, `--transport`, `--rate`, `--allow-origin` | What it speaks and who may drive it, see [Run the simulator](simulator.md) | |
 
-**`npm run dev`**, one of each: `--port` for the table, `--page-port` and `--tuio-port` for the simulator, and `--host`, `--app` and `--preview`, which it hands on.
+**`npm run dev`**, one of each: `--port` for the table, `--page-port` and `--tuio-port` for the simulator, and `--host`, `--app` and `--preview`, which it hands on. It is `node scripts/dev.mjs`, which is what an option is said to.
 
-The flags come after `--`, because npm takes the ones before it for itself:
+An option is said to the script and not to `npm run`, because npm keeps the flags of a command for itself and would need `--` in front of them. Each command of `package.json` is one of these lines with its options written down, so nothing anybody types carries a `--`:
 
 ```bash
-npm run dev -- --port 8080
-npm run dev -- --port 8080 --page-port 3346 --tuio-port 3335   # a second copy beside the first
+node scripts/dev.mjs --port 8080
+node scripts/dev.mjs --port 8080 --page-port 3346 --tuio-port 3335   # a second copy beside the first
 ```
 
-`--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken. `npm run preview` takes the flags of the table.
+`--port` alone is enough while nothing else is running. A second copy needs all three, because the simulator binds its own two ports and stops with the reason when one of them is taken.
 
 ### The table on the network
 
@@ -174,8 +176,8 @@ ssh -L 5173:localhost:5173 <machine>
 `--host` is the way out of that, for the table itself or a tablet beside it:
 
 ```bash
-npm run dev -- --host                  # every interface
-npm run dev -- --host 192.168.1.14     # one of them
+node scripts/dev.mjs --host                  # every interface
+node scripts/dev.mjs --host 192.168.1.14     # one of them
 ```
 
 It says in the banner what it opens, and the simulator then accepts the control page under the address of the network as well, which it otherwise only does for a page of its own machine. Serve the built `dist/` with a server of your own for anything that stands longer than a session.

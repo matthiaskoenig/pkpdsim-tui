@@ -99,7 +99,7 @@ describe("the tracker of a query", () => {
 });
 
 /**
- * The tracker of a booth: the real table `npm run dev -- --tuio 10.0.0.20:3343` was started on,
+ * The tracker of a booth: the real table `node scripts/table.mjs --tuio 10.0.0.20:3343` was started on,
  * which the server of the page carries at `/tuio` and the page is told about once. It is the one
  * place the address of a table is said, so no page of that table carries a machine.
  */

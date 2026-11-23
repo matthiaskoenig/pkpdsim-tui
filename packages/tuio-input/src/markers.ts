@@ -13,7 +13,7 @@
  *                           mouse of a laptop give
  *
  * The ids of a table are said once, to the server which serves it, with
- * `npm run dev -- --ids 1,3,5,6,11,12,21`: a booth is then one address with nothing in it, and
+ * `node scripts/table.mjs --ids 1,3,5,6,11,12,21`: a booth is then one address with nothing in it, and
  * every page of that table reads the same markers, the one a visitor is handed, the one a table
  * opens again and the one somebody typed. A page which names its own ids says them for itself,
  * which is how another list is tried without restarting the table.

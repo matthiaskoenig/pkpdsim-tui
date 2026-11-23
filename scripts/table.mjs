@@ -19,7 +19,9 @@
  * pointed at the tracker of the simulator, which is the setup of a table on a laptop.
  *
  * Usage:
- *   npm run table [-- <options>]
+ *   npm run table                       the table of this exhibition, which takes no options
+ *   node scripts/table.mjs <options>    any other table, said directly, because npm keeps
+ *                                       the flags before `--` for itself
  *
  *   --app <id>         print the address of one table, e.g. cardiovascular
  *   --port <port>      the port of the table (default 5173)
@@ -54,7 +56,9 @@ function usage() {
   const text = [
     "The table: the application, and the tracker it listens to.",
     "",
-    "  npm run table [-- <options>]",
+    "  npm run table                     the table of this exhibition, which takes no options",
+    "  node scripts/table.mjs <options>  any other table: the options are said to the script",
+    "                                    itself, because npm keeps the flags of npm run",
     "",
     `  --app <id>         print the address of one table (default: the body)`,
     `  --port <port>      the port of the table (default ${DEFAULTS.port})`,

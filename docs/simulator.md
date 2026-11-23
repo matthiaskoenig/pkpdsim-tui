@@ -23,7 +23,7 @@ The table and the simulator are two apps, so `npm run dev` starts one of each an
 
 The **Application** field above the surface takes any address, so the simulator drives an application somewhere else just as well. The embedded one gets no mouse: the surface over it owns the pointer, which is what a real table is like. To use a table with the mouse, open it in a window of its own, where the digit keys put an object down under the pointer, dragging moves it, the wheel turns it, backspace lifts it and escape leaves a table for the body.
 
-`npm run simulator` starts the simulator alone, with `--table <url>` for the table it drives, `--port` for the tracker, `--page-port` for the page, and `--host`, `--tuio`, `--transport`, `--rate` and `--allow-origin` for the rest; they come after `--`, because npm takes the ones before it for itself. [Development](development.md#the-two-apps-and-their-flags) has the whole list of both apps. Two apps are two forwarded ports: `ssh -L 5173:localhost:5173 -L 3344:localhost:3344 <machine>`.
+`npm run simulator` starts the simulator alone. Its options are said to the script itself, `node packages/tuio-simulator/src/server.mjs --host 0.0.0.0 --rate 30`, because npm keeps the flags of `npm run` for itself: `--table <url>` is the table it drives, `--port` the tracker, `--page-port` the page, and `--host`, `--tuio`, `--transport`, `--rate` and `--allow-origin` the rest. [Development](development.md#the-two-apps-and-their-flags) has the whole list of both apps. Two apps are two forwarded ports: `ssh -L 5173:localhost:5173 -L 3344:localhost:3344 <machine>`.
 
 ## Drive it
 
@@ -56,7 +56,7 @@ The **TUIO**, **Connection** and **Port** fields change the tracker while it run
 
 It sends a frame at the rate of the stream and at once when something moves, never reads anything from an application, and gives an application that connects in the middle the surface as it stands. One control page drives the surface at a time; a second takes it over and the first says so. The mobiles of the Unity simulator, the blobs of TUIO 1.1 and the bounds and symbols of TUIO 2.0 are not simulated.
 
-Only a page of this machine may drive it, because the control socket decides what the table reads: a page served from somewhere else is turned away with a line in the log, and `--allow-origin http://table.local:5173` lets that one in. `npm run dev -- --host` passes `--allow-origin "*"` by itself. The simulator asks for no password, so `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
+Only a page of this machine may drive it, because the control socket decides what the table reads: a page served from somewhere else is turned away with a line in the log, and `--allow-origin http://table.local:5173` lets that one in. `node scripts/dev.mjs --host` passes `--allow-origin "*"` by itself. The simulator asks for no password, so `--host 0.0.0.0` on a network you do not trust hands it to everybody on that network.
 
 ## Point an application at a tracker
 
