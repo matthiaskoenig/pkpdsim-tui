@@ -108,7 +108,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   // first frame fell into the wait for the tracker and read a snapshot which did not
   // exist yet, and the layer died with it.
   createInfo(surface, () => [
-    ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
+    ...pointerPoints(snapshot), ...tokenPoints(snapshot),
   ], voice);
   let series: Series = {};
   let baseline: Series = {};

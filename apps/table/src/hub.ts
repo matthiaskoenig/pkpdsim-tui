@@ -424,7 +424,7 @@ export const startOverview: TableApp = async (host: TableHost): Promise<void> =>
   let status: TableStatus = input.status;
   let snapshot: TableSnapshot = input.snapshot;
   // The hold which opens a card, and the note behind the heading and the laboratory: one layer.
-  createInfo(host.surface, () => pointerPoints(snapshot, viewport), voice);
+  createInfo(host.surface, () => pointerPoints(snapshot), voice);
 
   /** The table a hand is pointing at, which is what the sidebar is about. */
   let pointed: TableEntry | undefined;

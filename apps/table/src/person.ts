@@ -359,8 +359,7 @@ export function askPerson(
     void openTableInput({parameters, element: root, markers: []}).then(source => {
       const {input} = source;
       const press = createPress({
-        fingers: () => pointerPoints(
-          input.snapshot, {width: window.innerWidth, height: window.innerHeight}),
+        fingers: () => pointerPoints(input.snapshot),
         onPoint: point => {
           const target = document.elementFromPoint(point.x, point.y);
           const track = target?.closest?.("[data-dial-track]");

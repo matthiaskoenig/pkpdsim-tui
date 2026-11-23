@@ -7,12 +7,19 @@
 
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
 import {createPress, PRESS} from "./press.ts";
-import {surfaceScale} from "./surface.ts";
+import {surfaceScale, windowViewport} from "./surface.ts";
 import {sayHtml, sayLabel} from "./say.ts";
-import type {Viewport} from "./types.ts";
 import type {Voice} from "./voice.ts";
 
-/** A finger of the tracker, in pixels of the surface. */
+/**
+ * A finger of the tracker, in the pixels of the glass.
+ *
+ * This is the space a browser speaks: what `document.elementFromPoint` is asked in and what
+ * `getBoundingClientRect` answers in, which is why a finger is never in the pixels of the
+ * drawing. On the 4K table of the exhibition the drawing is half the glass, so a finger put
+ * into the pixels of the drawing lands in the top left quarter of the table and presses
+ * nothing.
+ */
 export interface InfoPoint {
   readonly id: number;
   readonly x: number;
@@ -27,20 +34,28 @@ export interface InfoLayer {
   hide(): void;
 }
 
-/** The fingers of a snapshot, in the pixels of the surface. */
-export function pointerPoints(
-  snapshot: TableSnapshot, viewport: Viewport,
-): readonly InfoPoint[] {
+/**
+ * The fingers of a snapshot, in the pixels of the glass.
+ *
+ * A tracker reports a finger as a fraction of its sensor, which is the whole surface, so the
+ * window is what it is multiplied by. The window and not the drawing: no size is taken here,
+ * because the one a caller could hand over is the one its scene is drawn in, and a table whose
+ * fingers were in the pixels of its drawing answered no touch at all on the 4K table.
+ */
+export function pointerPoints(snapshot: TableSnapshot): readonly InfoPoint[] {
+  const viewport = windowViewport();
   return [...snapshot.pointers.values()].map(pointer => ({
     id: pointer.sessionId, x: pointer.x * viewport.width, y: pointer.y * viewport.height,
     mouse: pointer.mouse,
   }));
 }
 
-/** The objects of a snapshot, in the pixels of the surface. An object chooses as a finger does. */
-export function tokenPoints(
-  snapshot: TableSnapshot, viewport: Viewport,
-): readonly InfoPoint[] {
+/**
+ * The objects of a snapshot, in the pixels of the glass. An object chooses as a finger does, so
+ * it is put into the same space for the same reason.
+ */
+export function tokenPoints(snapshot: TableSnapshot): readonly InfoPoint[] {
+  const viewport = windowViewport();
   return [...snapshot.tokens.values()].map(token => ({
     id: token.sessionId, x: token.x * viewport.width, y: token.y * viewport.height,
   }));
@@ -106,13 +121,19 @@ export function createInfo(
       open = element;
     }
     const box = element.getBoundingClientRect();
-    const size = note.getBoundingClientRect();
     // The box of an element is measured in the pixels of the glass, so the room around the note
     // is taken in those as well: the drawing of a larger surface is larger.
     const scale = surfaceScale();
     const gap = GAP * scale;
     const edge = EDGE * scale;
     const width = Math.min(WIDTH * scale, window.innerWidth - 2 * edge);
+    // How wide the note is said before it is measured, because how tall it is follows from it.
+    // A note measured at the width it had a moment ago is placed for a height it does not have,
+    // and a note placed above a button near the bottom of the table then grew down over it: the
+    // finger resting on that button was on the note instead, and the button could not be
+    // pressed at all. Start again of the landing page was that button.
+    note.style.width = `${Math.round(width)}px`;
+    const size = note.getBoundingClientRect();
     // Under the element where there is room for it, above it where there is not.
     const below = box.bottom + gap;
     const top = below + size.height + edge < window.innerHeight
@@ -122,7 +143,6 @@ export function createInfo(
       Math.max(edge, box.left + box.width / 2 - width / 2), window.innerWidth - width - edge);
     note.style.left = `${Math.round(left)}px`;
     note.style.top = `${Math.round(top)}px`;
-    note.style.width = `${Math.round(width)}px`;
   };
 
   let fading: number | undefined;
