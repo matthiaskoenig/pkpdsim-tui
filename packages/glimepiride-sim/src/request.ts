@@ -73,8 +73,9 @@ export function glimepirideRequest(
   // Five minutes of the course per point, whatever the window is: enough for the rise after a
   // tablet, and enough for the peak of every one of ten days, which a coarser grid samples at a
   // different place each day and draws as peaks of different heights. The solver answers a day
-  // of this grid in about 2 ms and ten days in about 15 ms, and the surface draws the longer
-  // path at the rate it drew the short one, so the grid is not what costs anything here.
+  // of this grid in a millisecond or two and ten days of it in about fifteen, measured in the
+  // browser of the table, and the surface draws the longer path at the rate it drew the short
+  // one, so the grid is not what costs anything here.
   const points = days * 288 + 1;
   const dose = individual.dose ?? GLIMEPIRIDE_CONTROLS.dose.value;
   const changes: TimedChange[] = Array.from({length: days - 1}, (_unused, index) => ({
