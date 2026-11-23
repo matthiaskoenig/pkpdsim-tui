@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/core-runtime",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "description": "The sbmlsim-core WebAssembly runtime in the browser: a compiled SBML model solved with SUNDIALS IDA in a Web Worker",

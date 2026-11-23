@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/tuio-simulator",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "description": "A TUIO 2.0 tracker for development: a control surface in a browser page and the bundles of a tracker on a WebSocket",
