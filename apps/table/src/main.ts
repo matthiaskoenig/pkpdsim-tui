@@ -11,7 +11,9 @@
  *   ?tuio=/tuio           a tracker behind the server this page came from, on its port
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
  *   ?ids=1,3,5,6,11,12,21 the ids the markers of this table carry, in the order the objects of
- *                         a table are picked up; the markers from 1 otherwise
+ *                         a table are picked up. The table itself says them once, with
+ *                         `npm run dev -- --ids 1,3,5,6,11,12,21`, and a page which says
+ *                         nothing reads the markers from 1
  *   ?sex=female           the female reference body, on the body and in every table
  *   ?age=35               the age of the person every table is solved for, 3 to 120 years
  *   ?bw=60                what that person weighs, the reference of their age otherwise
@@ -27,7 +29,7 @@ import {
 import type {
   ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
 } from "@pkpdsim-tui/tui-kit";
-import {markerIds} from "@pkpdsim-tui/tuio-input";
+import {carryTracker, markerIds} from "@pkpdsim-tui/tuio-input";
 import {startAbout} from "./about.ts";
 import {askWelcome} from "./welcome.ts";
 import {askPerson, personLine, personOf, writePerson} from "./person.ts";
@@ -141,10 +143,15 @@ function labOf(voice: Voice): LabOptions {
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
-  // The ids of the markers of this table, read before anything opens: a list which is not one
-  // is a booth nobody can drive, and it is said here rather than at the first object a visitor
-  // picks up. Every table of the collection reads the same list.
-  const markers = markerIds(parameters);
+  // What the booth this page belongs to is: the real table whose tracker drives it, and the ids
+  // of the markers of that table. Both are said once, to the server which serves the page, so
+  // the address of a table carries nothing and every page of it is the same table; the address
+  // of a page says them for itself where somebody is trying another table or another list.
+  carryTracker(__TABLE_TRACKER__);
+  // The ids are read before anything opens: a list which is not one is a booth nobody can
+  // drive, and it is said here rather than at the first object a visitor picks up. Every table
+  // of the collection reads the same list.
+  const markers = markerIds(parameters, __TABLE_IDS__);
   const entry = tableOf(parameters);
   const about = entry === undefined && parameters.get("app") === ABOUT;
   // The question of who is at the table, opened again from the landing page.

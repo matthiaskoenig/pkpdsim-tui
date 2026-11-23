@@ -8,12 +8,19 @@
  * up, and the nth object of every table is then read from the nth id of that list:
  *
  *   ?ids=1,3,5,6,11,12,21   the pucks of this table, in that order
- *   (nothing)               the markers from 1, which the simulator and the mouse give
+ *   (nothing)               what the server of the page carries, and the markers from 1
+ *                           where it carries nothing, which is what the simulator and the
+ *                           mouse of a laptop give
  *
- * They are of the table and not of the visitor, so they stay in the address while somebody walks
- * from one table to the next, like the address of the tracker does. What a visitor reads is the
- * id of the puck in their hand everywhere: the number on the card of an object, the one in the
- * panel and the one in the sentence which asks for an object are the ids of this table.
+ * The ids of a table are said once, to the server which serves it, with
+ * `npm run dev -- --ids 1,3,5,6,11,12,21`: a booth is then one address with nothing in it, and
+ * every page of that table reads the same markers, the one a visitor is handed, the one a table
+ * opens again and the one somebody typed. A page which names its own ids says them for itself,
+ * which is how another list is tried without restarting the table.
+ *
+ * What a visitor reads is the id of the puck in their hand everywhere: the number on the card of
+ * an object, the one in the panel and the one in the sentence which asks for an object are the
+ * ids of this table.
  *
  * A list which is not a list of whole numbers, which names one puck twice, or which does not
  * reach as far as the objects of a table, is said at the start rather than left to a visitor who
@@ -26,25 +33,34 @@ import type {TokenRole} from "./roles.ts";
 export const MARKER_IDS = "ids";
 
 /** An example, for the sentence a wrong list is refused with. */
-const EXAMPLE = "?ids=1,3,5,6,11,12,21";
+const EXAMPLE = "1,3,5,6,11,12,21";
 
-/** The ids of the markers of this table, or nothing when it is numbered from 1. */
-export function markerIds(parameters: URLSearchParams): readonly number[] {
-  const value = parameters.get(MARKER_IDS);
-  if (value === null || value.trim() === "") return [];
+/**
+ * The ids of the markers of a table, as the page was given them: the list of its own address,
+ * the list the server of the page carries where the address says nothing, and nothing at all
+ * where neither does, which is a table numbered from 1.
+ */
+export function markerIds(parameters: URLSearchParams, carried = ""): readonly number[] {
+  const asked = parameters.get(MARKER_IDS);
+  return parseMarkerIds(asked === null || asked.trim() === "" ? carried : asked);
+}
+
+/** One list of ids, as a person writes it, or the reason it is no list of a table. */
+export function parseMarkerIds(value: string): readonly number[] {
+  if (value.trim() === "") return [];
   const ids = value.split(",").map(part => {
     const asked = part.trim();
     if (!/^\d+$/u.test(asked)) {
       throw new Error(
         `The ids of the markers of the table are whole numbers, like ${EXAMPLE}: `
-        + `"${asked}" of "?${MARKER_IDS}=${value}" is none.`);
+        + `"${asked}" of "${value}" is none.`);
     }
     return Number.parseInt(asked, 10);
   });
   for (const [index, id] of ids.entries()) {
     if (ids.indexOf(id) !== index) {
       throw new Error(
-        `Every object of a table is one marker of it: "?${MARKER_IDS}=${value}" says ${id} twice.`);
+        `Every object of a table is one marker of it: "${value}" says ${id} twice.`);
     }
   }
   return ids;
@@ -56,7 +72,7 @@ export function markerOf(ids: readonly number[], marker: number): number {
   const id = ids[marker - 1];
   if (id === undefined) {
     throw new Error(
-      `This table reads ${marker} objects and "?${MARKER_IDS}=" says ${ids.length} of them `
+      `This table reads ${marker} objects and the ids of it say ${ids.length} of them `
       + `(${ids.join(", ")}): every object of a table needs the id of its marker.`);
   }
   return id;

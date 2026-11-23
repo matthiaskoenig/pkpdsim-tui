@@ -98,8 +98,10 @@ A table is developed against the [simulator](simulator.md) of `packages/tuio-sim
 | `--port <port>` | The one port of the table: the application, the simulator page and the tracker behind it | `5173` |
 | `--page-port <port>` | The port the simulator serves its own control page on | `3344` |
 | `--tuio-port <port>` | The port of the tracker of the simulator | `3333` |
-| `--tuio <host:port>` | The tracker of a real table, `10.0.0.20:3343`, which the printed address points the page at with `?tuio=` | |
-| `--ids <list>` | The ids the markers of a real table carry, `1,3,5,6,11,12,21`, which the printed address carries as `?ids=`, see [Run on a table](table.md#the-ids-of-the-markers) | the markers from 1 |
+| `--tuio <host:port>` | The tracker of a real table, `10.0.0.20:3343`. The server carries it at `/tuio`, where every page it serves finds it | the simulator |
+| `--ids <list>` | The ids the markers of a real table carry, `1,3,5,6,11,12,21`, which every page the server serves reads, see [Run on a table](table.md#the-ids-of-the-markers) | the markers from 1 |
+
+The last two are of the booth and not of a visitor, so they are said once and no address of that table carries either. For the table of this exhibition they are written down in `package.json`, as `npm run table`, which is `node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21` and takes the same flags after `--`. A built page takes them from the environment instead, `TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=1,3,5,6,11,12,21 npm run build`, and a page may still name its own with `?tuio=` and `?ids=`.
 | `--host <host>` | Opens the table to the network. Without it the three ports are only reachable from this machine | this machine |
 | `--app <id>` | Also prints the address of that one table | |
 | `--no-simulator` | The application alone, for a real table or another tracker | |

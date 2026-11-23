@@ -84,3 +84,34 @@ describe("the roles of a table", () => {
       .toEqual([8, 9]);
   });
 });
+
+/**
+ * The ids of a booth: said once, to the server which serves the table, so every page of it reads
+ * the same markers and the address of a table carries nothing.
+ */
+describe("the ids the server carries", () => {
+  const ids = (query: string, carried: string): readonly number[] =>
+    markerIds(new URLSearchParams(query), carried);
+
+  it("are the ids of every page of that table", () => {
+    expect(ids("app=cardiovascular", "1,3,5,6,11,12,21")).toEqual([1, 3, 5, 6, 11, 12, 21]);
+    expect(ids("", "1,3,5")).toEqual([1, 3, 5]);
+  });
+
+  it("give way to a page which says its own, which is how another list is tried", () => {
+    expect(ids("ids=2,4,6", "1,3,5")).toEqual([2, 4, 6]);
+  });
+
+  it("are the markers from 1 where neither the page nor the server says any", () => {
+    expect(ids("", "")).toEqual([]);
+    expect(ids("ids=", "")).toEqual([]);
+    // A page which empties the list reads what the table carries: an empty parameter is a page
+    // which said nothing, not a page which said "no ids".
+    expect(ids("ids=", "1,3,5")).toEqual([1, 3, 5]);
+  });
+
+  it("are refused like a list of an address is", () => {
+    expect(() => ids("", "1,3,x")).toThrow(/whole numbers/u);
+    expect(() => ids("", "1,3,3")).toThrow(/3 twice/u);
+  });
+});

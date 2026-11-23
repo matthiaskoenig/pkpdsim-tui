@@ -30,14 +30,18 @@ That one port carries the application, the TUIO simulator at `/simulator/` and t
 
 ## On a real table
 
-A table brings its own tracker and its own markers, and both are said when the application is started:
-
 ```bash
-npm run dev -- --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
-# http://localhost:5173/?tuio=10.0.0.20:3343&ids=1,3,5,6,11,12,21
+npm run table
+# then open http://localhost:5173/
 ```
 
-`--no-simulator` leaves the simulator out, because the table is the tracker; `--tuio` is where that tracker listens; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Without them the objects are the markers 1 up, which is what the simulator and the mouse give. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
+That is the table of this exhibition, written down once in `package.json`:
+
+```bash
+node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+```
+
+`--no-simulator` leaves the simulator out, because the table is the tracker; `--tuio` is where that tracker listens, which the server then carries at `/tuio`; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Every page the table serves is given both, so its address carries nothing and there is one place to change either. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
 
 ## Documentation
 

@@ -47,6 +47,13 @@ export interface TuioTableInputOptions {
   readonly path?: string;
   /** Which version the tracker speaks. The two are different protocols, not two dialects. */
   readonly version?: TuioVersion;
+  /**
+   * The tracker as a person reads it, `10.0.0.20:3343`, which is what the panel of a table says
+   * and what a sentence about a tracker which is not answering names. The socket of the page is
+   * said where nothing else is, and it is the address of a proxy where a server carries the
+   * tracker of the table behind one, which names a machine nobody is looking for.
+   */
+  readonly address?: string;
   /** The clock of the snapshots, so a test or a recording can supply its own. */
   readonly now?: () => number;
 }
@@ -91,9 +98,16 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   const version = options.version ?? DEFAULT_TUIO_VERSION;
   const now = options.now ?? (() => performance.now());
   const listeners = new Set<TableListener>();
+  /** The tracker as it is said: its own address, or the socket this page talks to. */
+  const named = (): string => {
+    const address = options.address ?? "";
+    return address === "" ? receiver.url : address;
+  };
 
   let snapshot = emptySnapshot();
-  let status: TableStatus = {state: "idle", source: `ws://${host}:${port}`, detail: ""};
+  let status: TableStatus = {
+    state: "idle", source: options.address ?? `ws://${host}:${port}`, detail: "",
+  };
   let dirty = false;
   /** Whether the application asked for the tracker and has not let it go again. */
   let wanted = false;
@@ -109,8 +123,8 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   };
 
   const waiting = (): TableStatus => ({
-    state: "connecting", source: receiver.url,
-    detail: `Waiting for a TUIO ${version} tracker on ${receiver.url}.`,
+    state: "connecting", source: named(),
+    detail: `Waiting for a TUIO ${version} tracker on ${named()}.`,
   });
 
   /**
@@ -123,7 +137,7 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
   const lost = (detail: string): void => {
     snapshot = emptySnapshot();
     if (!wanted) {
-      setStatus({state: "idle", source: receiver.url, detail: ""});
+      setStatus({state: "idle", source: named(), detail: ""});
       return;
     }
     if (timer !== undefined) {
@@ -134,7 +148,7 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
     attempt += 1;
     const wait = retryDelay(attempt);
     setStatus({
-      state: "error", source: receiver.url,
+      state: "error", source: named(),
       detail: `${detail} Trying again in ${Math.round(wait / 1000)} s.`,
     });
     timer = window.setTimeout(() => {
@@ -149,10 +163,10 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
     host, port, secure: options.secure ?? false, path: options.path ?? DEFAULT_TUIO_PATH,
     onOpen: () => {
       attempt = 0;
-      setStatus({state: "connected", source: receiver.url, detail: ""});
+      setStatus({state: "connected", source: named(), detail: ""});
     },
-    onClose: () => lost(`The tracker on ${receiver.url} closed the connection.`),
-    onError: () => lost(`No tracker answers on ${receiver.url}.`),
+    onClose: () => lost(`The tracker on ${named()} closed the connection.`),
+    onError: () => lost(`No tracker answers on ${named()}.`),
   });
 
   const apply = (object: TuioObjectLike): void => {
@@ -172,7 +186,7 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
       dirty = true;
     }
     if (status.state !== "connected") {
-      status = {state: "connected", source: receiver.url, detail: ""};
+      status = {state: "connected", source: named(), detail: ""};
       dirty = true;
     }
     if (!dirty) return;
@@ -226,7 +240,7 @@ export function createTuioTableInput(options: TuioTableInputOptions = {}): Table
         timer = undefined;
       }
       client.disconnect();
-      setStatus({state: "idle", source: receiver.url, detail: ""});
+      setStatus({state: "idle", source: named(), detail: ""});
     },
     subscribe(listener: TableListener): () => void {
       listeners.add(listener);
