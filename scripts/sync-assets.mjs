@@ -145,10 +145,18 @@ async function syncApp(name, examples, pkpdsim) {
     console.log(`  ${name}: skipped, the checkout has no ${missing.join(", ")}`);
     return false;
   }
+  // Part of an export is of no use to a table: the body a visitor is given by default is the
+  // female one, and the anatomy is what the picture of it is drawn from, so a missing file is
+  // a table which does not start. Nothing is copied, and both ways out of it are named: a
+  // checkout which is behind the export the tables ask for is the usual reason, and a checkout
+  // which never wrote the export is the other.
   if (missing.length > 0) {
     throw new Error(
-      `The checkout has an incomplete export for ${name}: ${missing.join(", ")} missing. `
-      + `Generate it in pkpdsim with "uv run python scripts/${name}_examples.py".`,
+      `The export of ${name} in ${pkpdsim} is incomplete: ${missing.join(", ")} missing.\n`
+      + `  The checkout is behind the export the tables ask for, most likely: update it with `
+      + `"git -C ${pkpdsim} pull".\n`
+      + `  A checkout which never wrote the export writes it with `
+      + `"uv run python scripts/${name}_examples.py" in ${pkpdsim}.`,
     );
   }
   const target = resolve(root, app.target);
@@ -201,10 +209,18 @@ async function main() {
   const git = await gitDescribe(options.pkpdsim);
   console.log(`pkpdsim: ${options.pkpdsim}${git.commit ? ` at ${git.commit.slice(0, 8)}` : ""}`
     + `${git.branch ? ` (${git.branch}${git.dirty ? ", modified" : ""})` : ""}`);
+  // Each table has an export of its own, so one which is incomplete is said at the end and the
+  // others are copied in anyway: a checkout which is behind on one table still runs the rest.
   let synced = 0;
+  const failures = [];
   for (const name of options.apps) {
-    if (await syncApp(name, examples, options.pkpdsim)) synced++;
+    try {
+      if (await syncApp(name, examples, options.pkpdsim)) synced++;
+    } catch (failure) {
+      failures.push(failure instanceof Error ? failure.message : String(failure));
+    }
   }
+  if (failures.length > 0) throw new Error(failures.join("\n"));
   if (synced === 0) throw new Error("Nothing was synced. The checkout holds no exported examples.");
 }
 

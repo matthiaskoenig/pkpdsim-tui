@@ -1,6 +1,7 @@
 import {readFileSync} from "node:fs";
 import {defineConfig} from "vite";
 import type {Connect, Plugin, ProxyOptions} from "vite";
+import {dataNotFound} from "./data-404.ts";
 
 /**
  * The one application: the body and every table of pkpdsim behind it, from one page.
@@ -70,7 +71,7 @@ export default defineConfig({
   // The page is served from a file path on the machine that drives the table as often as from a
   // server, so every asset is referenced relatively.
   base: "./",
-  plugins: [simulatorSlash()],
+  plugins: [simulatorSlash(), dataNotFound()],
   resolve: {
     alias: {
       // `tuio-client` declares itself an ES module but points `main` at its CommonJS bundle.

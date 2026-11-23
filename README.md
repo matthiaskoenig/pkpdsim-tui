@@ -18,9 +18,13 @@ The tables are the circulation, liver surgery, a drug through the body, and a li
 
 ```bash
 npm install
-npm run sync          # copies the models and reference data of a pkpdsim checkout
-npm run dev           # http://localhost:5173
+npm run sync                 # the models and reference data of a pkpdsim checkout
+npm run export:glimepiride   # the glimepiride model, from its own checkout
+npm run export:perfusion     # the machine perfusion model, built with pkpdsim
+npm run dev                  # http://localhost:5173
 ```
+
+The exports are not in the repository. `npm run sync` reads a pkpdsim checkout beside this one, the two export commands compile the models which live in their own repositories, and a table which finds no model of its own says which of the three writes it.
 
 That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`.
 

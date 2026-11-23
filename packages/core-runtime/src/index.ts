@@ -1,6 +1,8 @@
 /** The sbmlsim-core WebAssembly runtime of a table application. */
 
-export {fetchSolverAssets} from "./assets.ts";
+export {
+  assetCommand, assetJson, fetchAsset, fetchSolverAssets, missingAsset,
+} from "./assets.ts";
 export type {AssetOptions} from "./assets.ts";
 export {loadCoreHost} from "./host.ts";
 export {column, linspace, peak, sampleAt, toSeries, trapezoid} from "./series.ts";

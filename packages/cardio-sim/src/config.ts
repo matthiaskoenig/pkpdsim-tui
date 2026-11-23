@@ -1,5 +1,6 @@
 /** The `config.json` beside the compiled heart: what one run of it asks for. */
 
+import {assetJson} from "@pkpdsim-tui/core-runtime";
 import type {HeartConfig} from "./heart.ts";
 
 function numberAt(source: Record<string, unknown>, key: string, what: string): number {
@@ -39,9 +40,5 @@ export function parseHeartConfig(value: unknown): HeartConfig {
 
 /** The configuration beside a compiled heart. */
 export async function loadHeartConfig(url: URL): Promise<HeartConfig> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Could not load ${url.pathname}: HTTP ${response.status}. Run "npm run sync".`);
-  }
-  return parseHeartConfig(await response.json());
+  return parseHeartConfig(await assetJson(url));
 }

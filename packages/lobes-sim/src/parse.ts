@@ -1,5 +1,6 @@
 /** Runtime validation of the exported lobe data and of the configuration of a compiled liver. */
 
+import {assetJson} from "@pkpdsim-tui/core-runtime";
 import type {Lobe, LobeCase, LobeConfig, LobeData, LobeSpecies} from "./types.ts";
 
 function record(value: unknown, what: string): Record<string, unknown> {
@@ -106,18 +107,10 @@ export function parseLobeConfig(value: unknown): LobeConfig {
   };
 }
 
-async function loadJson(url: string | URL): Promise<unknown> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Could not load ${String(url)}: HTTP ${response.status}. Run "npm run sync".`);
-  }
-  return response.json();
-}
-
 export async function loadLobeData(url: string | URL): Promise<LobeData> {
-  return parseLobeData(await loadJson(url));
+  return parseLobeData(await assetJson(url));
 }
 
 export async function loadLobeConfig(url: string | URL): Promise<LobeConfig> {
-  return parseLobeConfig(await loadJson(url));
+  return parseLobeConfig(await assetJson(url));
 }

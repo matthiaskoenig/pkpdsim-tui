@@ -189,7 +189,9 @@ Nothing goes to a registry. The packages are private and a table is served as a 
 ```bash
 git switch --detach x.y.z
 npm ci
-npm run sync          # the models and reference data, which are not in the repository
+npm run sync                 # the models and reference data, which are not in the repository
+npm run export:glimepiride   # and the two models which live in their own repositories
+npm run export:perfusion
 npm run build
 ```
 

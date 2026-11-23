@@ -4,6 +4,7 @@
  * loaded by a script element rather than imported.
  */
 
+import {assetCommand} from "./assets.ts";
 import type {CoreHost} from "./types.ts";
 
 declare global {
@@ -36,7 +37,9 @@ export function loadCoreHost(url: string | URL): Promise<CoreHost> {
     });
     script.addEventListener("error", () => {
       loading.delete(href);
-      reject(new Error(`Could not load the sbmlsim-core runtime from ${href}. Run "npm run sync".`));
+      reject(new Error(
+        `Could not load the sbmlsim-core runtime from ${href}. `
+        + `Run "${assetCommand(href)}".`));
     });
     document.head.appendChild(script);
   });
