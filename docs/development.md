@@ -35,9 +35,6 @@ npm install           # and the resources of the release: the models and the voi
 npm run assets        # the same, for a checkout which was not on the network at install
 npm run assets:check  # whether every one of them is where a page looks for it
 npm run assets:pack   # packs the ones of this checkout into the archives of a release
-npm run sync          # the exported models and data of a pkpdsim checkout
-npm run export:glimepiride  # compiles the glimepiride model of its own repository
-npm run export:perfusion    # compiles a machine perfusion model built with pkpdsim
 npm run dev           # the application and the simulator, both on http://localhost:5173
 npm run dev:app       # the application alone, for a real table or another tracker
 npm run dev:cardiovascular  # the same as npm run dev, and prints the address of that table
@@ -51,6 +48,8 @@ npm run build         # the production bundle
 npm run docs          # this site, served
 npm run docs:build    # this site, strict
 ```
+
+Nothing of a table is missing from that list: the models and the clips arrive with the release, and the commands which write them from a pkpdsim checkout are in [The resources of a release](#the-resources-of-a-release), which is for whoever cuts the next one.
 
 Every one of them runs on Linux, on macOS and on Windows: a command of a package is started as the script it is, with the `node` which is running, and never through a shim of `node_modules/.bin`, which is no program under its plain name on Windows and was issue #21. The same holds for what is written in `package.json`, where nothing asks a shell to expand it, and `test/scripts.test.ts` and `test/bin.test.ts` keep both of those true.
 
@@ -183,6 +182,21 @@ Two rules follow from that, and a table which breaks either of them is a table w
 
 ## The input layer
 
+`packages/tuio-input` speaks TUIO 2.0 and TUIO 1.1 over WebSocket, through the [`tuio-client`](https://github.com/InteractiveScapeGmbH/tuio_client_js) package of Interactive Scape. That package ships no WebSocket receiver, so the repository carries one built on [`osc-js`](https://github.com/adzialocha/osc-js). A browser cannot take the UDP a tracker usually sends, which is why a table has to offer the bundles over a WebSocket; [tuio.org](https://tuio.org/) has the protocol itself.
+
+What an application sees of it is one small shape:
+
+| TUIO 2.0 | In `packages/tuio-input` |
+| --- | --- |
+| `Tuio20Object.token` with `cId` | `TableToken.marker` |
+| `Tuio20Token.position` | `TableToken.x`, `TableToken.y`, fractions of the sensor |
+| `Tuio20Token.angle` | `TableToken.angle` in 0 to 2 pi, and `TableToken.turn`, which keeps counting past it |
+| `Tuio20Object.pointer` | `TablePointer`, with its radius and pressure |
+| `dim` of `/tuio2/frm` | `TableSnapshot.sensor` |
+| `/tuio2/alv` | A session that is no longer in `TableSnapshot.tokens` |
+
+`TableToken.turn` is the one addition. A tracker sends the angle wrapped into 0 to 2 pi, so an object turned past the boundary reads as a jump of almost a full turn backwards. The input layer undoes that by taking the shorter way round between two frames, which is how a knob turned twice reports two turns. The same `TableInput` interface is implemented by the mouse, which is why these applications run on a laptop.
+
 Everything that carries logic is a pure function and is tested without a socket: the unwrapping of an angle across the 2 pi boundary, the mapping of an angle to a value, the resolution of a marker to a role, the hit test of a position against the anchors of an anatomy, and the reducer that turns the nullable token and pointer of a `Tuio20Object` into a snapshot.
 
 `createMockTableInput` is not a test double. It implements the same `TableInput` interface from mouse, touch and keyboard events, which is how a table application is developed and demonstrated without a table. An application never learns which input it is drawing.
@@ -193,7 +207,7 @@ Everything that carries logic is a pure function and is tested without a socket:
 
 1. Add a package under `packages/<name>-table` whose `src/app.ts` exports one `TableApp`: a function which takes the `TableHost` of `packages/tui-kit` and draws on the surface it is given. It looks for no element of its own, and reads the query and the assets of its table from the host.
 2. Add it to `TABLES` in `apps/table/src/tables.ts`: what `?app` calls it, its card on the body, the organ the card points at, the folder of its assets and the import which loads it.
-3. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs, and the `dev:<name>` script to the root `package.json`.
+3. Add its entry to `APPS` in `scripts/sync-assets.mjs`, naming the exported files it needs, name those files in `PARTS` of `scripts/assets.mjs`, which is what says a release carries them, and add the `dev:<name>` script to the root `package.json`.
 4. Define its roles: which marker does what, over which range, on which scale, and which objects carry their meaning in their position instead (`mode: "position"`).
 5. Put the model layer in a package under `packages/`, never in the application, and hold it to the exported reference of pkpdsim with a test.
 6. Lay it out in `surfaceViewport()` and give that to the `viewBox` of its scene, so the table scales with the glass; see [The size of a surface](#the-size-of-a-surface) for which lengths are `px` and which are `rem`.
@@ -212,6 +226,7 @@ Everything that carries logic is a pure function and is tested without a socket:
 - What is not needed at a glance is a note behind the element it belongs to, which a hover or a finger at rest opens, and not another paragraph on the surface.
 - Every word a visitor reads comes from the `text.ts` of its package, in three languages and at three levels. A string in the middle of a scene is a word which cannot be translated and cannot be read aloud.
 - The reference state stays on screen when something fails. An empty table in front of an audience is the worst failure mode there is.
+- A table is drawn on one surface, 1920 by 1080, and scaled to the glass in front of the visitor. The page is in `rem`, a scene is in the pixels of that surface, and nothing is laid out in the pixels of the window; see [The size of a surface](#the-size-of-a-surface).
 - Markdown carries no hard line wraps: a paragraph, a list item or a table row is a single line.
 
 ## Branches, the version and a release

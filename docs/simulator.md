@@ -100,7 +100,7 @@ Before pressing **Start**, set TUIO version **2.0**, connection type **WebSocket
 
 Double clicking places a token, the **Next Object ID** field sets the marker it carries, dragging moves it and scrolling over it turns it. The marker is what an application reads to know what an object is, so set the field before each token. Every table numbers its objects from 1: the [circulation](apps/cardiovascular.md) uses 1 to 3, [liver surgery](apps/lobes.md) 1 and 2, [the drug](apps/glimepiride.md) 1 to 6 and [machine perfusion](apps/perfusion.md) 1 to 4.
 
-Any other TUIO tracker works too, as long as it offers the bundles over a WebSocket. [tuio.org](https://tuio.org/) lists them, and the [TUIO page](tuio.md) explains why a browser needs WebSocket rather than UDP.
+Any other TUIO tracker works too, as long as it offers the bundles over a WebSocket. [tuio.org](https://tuio.org/) lists them. A browser cannot take the UDP a tracker usually sends, so the bundles have to arrive over a WebSocket, which is the one thing a tracker has to offer.
 
 ## Point an application at it
 

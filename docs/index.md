@@ -1,7 +1,7 @@
 # pkpdsim-tui
 [![ci](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/ci.yml) [![documentation](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml/badge.svg)](https://github.com/matthiaskoenig/pkpdsim-tui/actions/workflows/docs.yml) [![Documentation](https://img.shields.io/badge/docs-pkpdsim--tui-3f51b5.svg)](https://matthiaskoenig.github.io/pkpdsim-tui) [![TUIO](https://img.shields.io/badge/TUIO-1.1%20%7C%202.0-00897b.svg)](https://tuio.org/) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
 
-Four tables you can touch, built on the PBPK/PD models of [pkpdsim](https://github.com/matthiaskoenig/pkpdsim). A visitor puts a physical object on a multitouch table, turns it, and the model answers: the blood pressure changes, the liver grows back, the drug moves through the body. The input is [TUIO](tuio.md), which the tables of [Interactive Scape](https://www.interactive-scape.com/) and the [simulator](simulator.md) speak. A mouse works too, so everything also runs on a laptop.
+Four tables you can touch, built on the PBPK/PD models of [pkpdsim](https://github.com/matthiaskoenig/pkpdsim). A visitor puts a physical object on a multitouch table, turns it, and the model answers: the blood pressure changes, the liver grows back, the drug moves through the body. The input is [TUIO](https://tuio.org/), which the tables of [Interactive Scape](https://www.interactive-scape.com/) and the [simulator](simulator.md) speak. A mouse works too, so everything also runs on a laptop.
 
 ![The body, with the four tables around it](images/body.png)
 
@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-The install takes the resources of the table with it: the compiled models of the four tables, their reference data and the clips they read aloud, about 50 MB, from the release this checkout is. They are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips, so a clone which carried them would grow by all of it again at every release; `npm run assets` takes them again, for a machine which was not on the network at install, and a table which finds no model of its own says that one command. A checkout which writes the models itself, from a pkpdsim beside it, is what `npm run sync` and the export commands are for, see [Development](development.md#the-resources-of-a-release).
+The install takes the resources of the table with it: the compiled models of the four tables, their reference data and the clips they read aloud, about 50 MB, from the release this checkout is. They are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips, so a clone which carried them would grow by all of it again at every release; `npm run assets` takes them again, for a machine which was not on the network at install, and a table which finds no model of its own says that one command. How the resources of a release are written, for whoever cuts the next one, is in [Development](development.md#the-resources-of-a-release).
 
 `npm run dev` starts the application and the [TUIO simulator](simulator.md) on one port. The application finds the tracker of that server by itself, so there is nothing to add to the address:
 
@@ -39,7 +39,7 @@ The install takes the resources of the table with it: the compiled models of the
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
-| `http://localhost:5173/?ids=1,3,5,6,11,12,21` | The ids the markers of a table carry, for a page which is not of a booth, see [Run on a table](table.md#the-ids-of-the-markers) |
+| `http://localhost:5173/?ids=1,3,5,6,11,12` | The ids the markers of a table carry, for a page which is not of a booth, see [Run on a table](table.md#the-ids-of-the-markers) |
 | `http://localhost:5173/?tuio=10.0.0.20:3343` | The tracker of a real table, which the page then listens to alone |
 
 Both the mouse and the objects work while `npm run dev` is running. The digit keys put an object down under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body. `?tuio=off` keeps a page on the mouse alone, `?tuio=<host>:<port>` points it at a tracker somewhere else.
@@ -94,7 +94,7 @@ A table opens on a page that introduces its objects: what the table is about in 
 
 ## What runs the model
 
-Nothing here solves a PBPK model of its own. The models, their compiled form, their runtime and their reference solutions are exported by pkpdsim and copied in by `npm run sync`, so what the table shows is what the SBML says. A model that lives in its own repository, like glimepiride, is compiled here by `scripts/export_model.py` with the same release of sbmlsim-core.
+Nothing here solves a PBPK model of its own. The models, their compiled form, their runtime and their reference solutions are exported by pkpdsim and travel with the release, so what the table shows is what the SBML says. A model that lives in its own repository, like glimepiride, is compiled here by `scripts/export_model.py` with the same release of sbmlsim-core.
 
 Two kinds of model meet on these tables. The steady pressure network of the circulation has an exact algebraic reduction, so the anatomy answers within a frame. The lobed liver and glimepiride are integrated with SUNDIALS IDA in a Web Worker on the compiled SBML: the objects stay where they are, the table says it is solving, and the answer replaces the one before it.
 

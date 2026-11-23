@@ -14,7 +14,6 @@ extra_css = ["stylesheets/extra.css"]
 
 nav = [
   { "Home" = "index.md" },
-  { "What TUIO is" = "tuio.md" },
   { "Run the simulator" = "simulator.md" },
   { "Run on a table" = "table.md" },
   { "Languages and the voice" = "languages.md" },

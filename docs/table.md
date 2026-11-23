@@ -168,19 +168,19 @@ A table has no keyboard and no browser chrome. Start Chrome in kiosk mode on the
 ```bash
 google-chrome --kiosk --noerrdialogs --disable-pinch --overscroll-history-navigation=0 \
   --autoplay-policy=no-user-gesture-required \
-  --app="http://localhost:4173/?tuio=localhost:3333&lang=de"
+  --app="http://localhost:5173/?lang=de"
 ```
 
 `--autoplay-policy=no-user-gesture-required` is for the clips: a finger resting on a button is a press of the table and not a gesture the browser counts as an interaction, and without the flag Chrome would hold the first clip of the day back. `&lang=` and `&level=` open the table in the language and at the level a booth starts the day with.
 
-Serve the built application rather than the development server:
+The address carries nothing of the table itself: the tracker and the ids are of the server, which is what `npm run table` says. Serve the built application rather than the development server:
 
 ```bash
 npm run build
-npm run preview
+npm run table -- --preview
 ```
 
-The build under `apps/table/dist` is self contained, every table with its models and its runtime, so it can be copied to the machine that drives the table and served by anything. Nothing it needs is on the network. `npm run preview` serves it on 4173 and starts the simulator beside it; `npx vite preview --port 4173 apps/table` serves it alone.
+The build under `apps/table/dist` is self contained, every table with its models and its runtime, so it can be copied to the machine that drives the table and served by anything. Nothing it needs is on the network. `--preview` serves that build on the one port of the table, 5173, with the tracker and the ids of the booth as before; `npm run preview` is the same without them, the simulator beside it, and `npx vite preview --port 5173 apps/table` is the build alone.
 
 Also worth doing on the machine at a booth: turn off screen blanking and the screen saver, turn off automatic updates, and disable the system gestures a stray palm on the glass would trigger.
 
