@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/tuio-input",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "TUIO 2.0 tokens and pointers as a table snapshot, with the role, angle and target vocabulary of a tangible application",

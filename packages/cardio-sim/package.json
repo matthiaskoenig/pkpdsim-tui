@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/cardio-sim",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "The cardiovascular model of pkpdsim: the steady pressure network, the beating heart and the loaders of its exported reference data",
