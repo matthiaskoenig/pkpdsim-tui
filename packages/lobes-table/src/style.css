@@ -12,7 +12,7 @@
 /* What the eight blocks are, under the organ. */
 .liver-caption {
   fill: var(--ink-dim);
-  font-size: 0.92rem;
+  font-size: 14.72px;
 }
 
 /* The two monitors beside the liver: the pressure around it and the blood through it. */
@@ -24,7 +24,7 @@
 
 .monitor-title {
   fill: var(--panel-ink-dim);
-  font-size: 0.95rem;
+  font-size: 15.2px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -59,14 +59,14 @@
 }
 
 .monitor-key {
-  font-size: 0.92rem;
+  font-size: 14.72px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 
 .monitor-tick {
   fill: var(--panel-ink-dim);
-  font-size: 0.78rem;
+  font-size: 12.48px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -104,25 +104,25 @@
 
 .segment-label {
   fill: var(--ink);
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 650;
   letter-spacing: 0.04em;
 }
 
 .segment-name {
   fill: var(--ink-dim);
-  font-size: 0.82rem;
+  font-size: 13.12px;
 }
 
 .segment-value {
   fill: var(--ink);
-  font-size: 1.05rem;
+  font-size: 16.8px;
   font-variant-numeric: tabular-nums;
 }
 
 .segment-note {
   fill: var(--ink-dim);
-  font-size: 0.78rem;
+  font-size: 12.48px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -171,7 +171,7 @@
 
 .trunk-label {
   fill: var(--ink-dim);
-  font-size: 0.8rem;
+  font-size: 12.8px;
   font-variant-numeric: tabular-nums;
 }
 

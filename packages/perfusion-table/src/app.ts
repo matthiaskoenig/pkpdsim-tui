@@ -16,8 +16,8 @@ import {
 } from "@pkpdsim-tui/perfusion-sim";
 import type {PerfusionSettings} from "@pkpdsim-tui/perfusion-sim";
 import {
-  createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint, formatNumber,
-  LAB_ROOM, pointerPoints, tokenPoints, visibleStats, words,
+  createChrome, createInfo, createPlot, createQuiz, createReadout, createTokenLayer, driveHint,
+  formatNumber, LAB_ROOM, pointerPoints, surfaceViewport, tokenPoints, visibleStats, words
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
 import {
@@ -99,7 +99,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   });
 
   const origins = new Map<number, number>();
-  let viewport: Viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport: Viewport = surfaceViewport();
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
 
@@ -220,7 +220,7 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   };
 
   const resize = (): void => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     const layout = boxes(viewport);
     circuit.resize(layout.circuit);

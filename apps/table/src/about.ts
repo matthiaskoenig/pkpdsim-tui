@@ -7,7 +7,9 @@
  * own page can say the whole thing instead of fitting into a footnote on the glass.
  */
 
-import {createInfo, pointerPoints, tokenPoints, words} from "@pkpdsim-tui/tui-kit";
+import {
+  createInfo, pointerPoints, surfaceViewport, tokenPoints, words
+} from "@pkpdsim-tui/tui-kit";
 import type {TableApp, TableHost} from "@pkpdsim-tui/tui-kit";
 import {openTableInput} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
@@ -95,7 +97,7 @@ ${escapeHtml(kit.back)}
   const {input} = await openTableInput({
     parameters: host.parameters, element: host.surface, markers: [],
   });
-  let viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport = surfaceViewport();
   let snapshot: TableSnapshot = input.snapshot;
   createInfo(host.surface, () => [
     ...pointerPoints(snapshot, viewport), ...tokenPoints(snapshot, viewport),
@@ -104,7 +106,7 @@ ${escapeHtml(kit.back)}
     snapshot = next;
   });
   window.addEventListener("resize", () => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
   }, {passive: true});
   window.addEventListener("pagehide", () => input.disconnect());
   input.connect();

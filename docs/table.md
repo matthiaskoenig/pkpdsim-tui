@@ -6,6 +6,12 @@ A multitouch table with object recognition is a browser, a tracker and a sheet o
 
 The tables of [Interactive Scape](https://www.interactive-scape.com/) recognise objects capacitively: the markers are passive and are read through the glass, with no camera below the table and no light of their own. The table reports them over TUIO, which is what makes a browser enough to write a table application. [DISPLAX](https://www.displax.com/) and the SUR40 bridges emit TUIO as well, and anything else that offers TUIO 2.0 over a WebSocket will work. The sensor reports its own size in every frame, so positions arrive as fractions of the surface rather than in pixels.
 
+## The size of the picture
+
+The table of an exhibition is 4K and the laptop a table is written on is not, so everything is drawn on one surface, 1920 by 1080, and scaled to the glass it is shown on. A 4K table carries the same picture at twice the size: the same panel in the same corner, the same cards beside the objects, the same lines of the same thickness, the text twice as large. Nothing is set for this, and there is no setting to get wrong.
+
+A window of another shape is laid out for the shape it has rather than stretched: the panel at the edge of a wider surface stands further out, and the body in the middle keeps its proportions. Nothing is let below ten pixels of text, so a window somebody opened beside the simulator is small rather than unreadable.
+
 ## Start it on a table
 
 A real table brings two things of its own: the tracker it reports its objects over, and the markers whose ids are printed on its pucks. Both belong to the booth and not to a visitor, so both are said once, in the command of the table, and starting it is the whole of it:

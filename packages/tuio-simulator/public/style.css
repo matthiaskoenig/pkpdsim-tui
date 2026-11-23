@@ -23,6 +23,12 @@
   --warn: #e8a33d;
   --error: #e2574c;
   color-scheme: dark;
+  /*
+   * How large this surface is: the same number the tables take, so a simulator opened on the 4K
+   * table of the exhibition is the surface of a table rather than a quarter of it. Everything
+   * of this page is a multiple of the text of it.
+   */
+  font-size: max(10px, calc(16 * min(100vw / 1920, 100vh / 1080)));
 }
 
 * {
@@ -37,7 +43,7 @@ body {
   background: var(--surface);
   color: var(--ink);
   font-family: ui-sans-serif, "Inter", "Helvetica Neue", Arial, sans-serif;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 body {
@@ -57,7 +63,7 @@ body {
 .rail {
   overflow-y: auto;
   padding: 0.9rem 1.1rem;
-  border-right: 1px solid var(--panel-line);
+  border-right: 0.0625rem solid var(--panel-line);
   background: var(--panel);
   font-size: 0.82rem;
   line-height: 1.5;
@@ -98,7 +104,7 @@ body {
   flex-direction: column;
   gap: 0.55rem;
   padding: 0.7rem 1.1rem;
-  border-bottom: 1px solid var(--panel-line);
+  border-bottom: 0.0625rem solid var(--panel-line);
   background: var(--panel);
 }
 
@@ -184,7 +190,7 @@ body {
 .fields select {
   width: 4.6rem;
   padding: 0.3rem 0.45rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 0.4rem;
   background: rgba(7, 11, 16, 0.8);
   color: var(--ink);
@@ -208,8 +214,8 @@ body {
 
 .fields input:focus-visible,
 .fields select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 0.125rem solid var(--accent);
+  outline-offset: 0.0625rem;
 }
 
 .fields .times,
@@ -219,7 +225,7 @@ body {
 
 button {
   padding: 0.38rem 0.8rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 0.4rem;
   background: rgba(39, 179, 172, 0.12);
   color: var(--ink);
@@ -251,7 +257,7 @@ button.ghost {
    sensor inside it and scaled down to that box, so the objects sit where they sit on the glass. */
 .surface {
   position: relative;
-  border: 1px solid var(--table-line);
+  border: 0.0625rem solid var(--table-line);
   border-radius: 0.6rem;
   overflow: hidden;
 }
@@ -294,10 +300,10 @@ button.ghost {
   position: absolute;
   z-index: 2;
   padding: 0.55rem;
-  border: 1px solid var(--panel-line);
+  border: 0.0625rem solid var(--panel-line);
   border-radius: 0.5rem;
   background: var(--panel);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(0.375rem);
   box-shadow: 0 0.6rem 1.4rem rgba(0, 0, 0, 0.45);
 }
 
@@ -368,7 +374,7 @@ button.ghost {
 
 .token-marker {
   fill: var(--ink);
-  font-size: 1.15rem;
+  font-size: 18.4px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-anchor: middle;
@@ -475,7 +481,7 @@ button.ghost {
   gap: 1.25rem;
   flex-wrap: wrap;
   padding: 0.6rem 1.1rem;
-  border-top: 1px solid var(--panel-line);
+  border-top: 0.0625rem solid var(--panel-line);
   background: var(--panel);
   font-size: 0.8rem;
   color: var(--ink-dim);
@@ -534,17 +540,17 @@ button.ghost {
   height: 0.8rem;
   border-radius: 50%;
   background: var(--hold);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hold) 22%, transparent);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--hold) 22%, transparent);
 }
 
 .legend li[data-kind="tap"] .swatch {
   background: var(--tap);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tap) 22%, transparent);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--tap) 22%, transparent);
 }
 
 .legend li[data-kind="drag"] .swatch {
   background: var(--drag);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--drag) 22%, transparent);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--drag) 22%, transparent);
 }
 
 /* What has happened: every action of the surface, newest first. */
@@ -576,8 +582,8 @@ button.small {
   grid-template-columns: auto 1fr;
   gap: 0.5rem;
   padding: 0.25rem 0.4rem;
-  border-left: 3px solid var(--panel-line);
-  border-radius: 0 4px 4px 0;
+  border-left: 0.1875rem solid var(--panel-line);
+  border-radius: 0 0.25rem 0.25rem 0;
   background: rgba(126, 160, 196, 0.06);
   color: var(--ink);
 }

@@ -7,6 +7,7 @@
 
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
 import {createPress, PRESS} from "./press.ts";
+import {surfaceScale} from "./surface.ts";
 import {sayHtml, sayLabel} from "./say.ts";
 import type {Viewport} from "./types.ts";
 import type {Voice} from "./voice.ts";
@@ -47,7 +48,11 @@ export function tokenPoints(
 
 /** How long a finger rests on an element before its note opens, in milliseconds. */
 const DWELL = 260;
-/** Between the element and its note, and between the note and the edge of the surface. */
+/**
+ * Between the element and its note, and between the note and the edge of the surface, in the
+ * pixels of the drawing: a note on the 4K table of the exhibition is as wide beside the number
+ * it belongs to as it is on the laptop, which `surfaceScale` is what says.
+ */
 const GAP = 12;
 const EDGE = 14;
 const WIDTH = 340;
@@ -102,14 +107,19 @@ export function createInfo(
     }
     const box = element.getBoundingClientRect();
     const size = note.getBoundingClientRect();
-    const width = Math.min(WIDTH, window.innerWidth - 2 * EDGE);
+    // The box of an element is measured in the pixels of the glass, so the room around the note
+    // is taken in those as well: the drawing of a larger surface is larger.
+    const scale = surfaceScale();
+    const gap = GAP * scale;
+    const edge = EDGE * scale;
+    const width = Math.min(WIDTH * scale, window.innerWidth - 2 * edge);
     // Under the element where there is room for it, above it where there is not.
-    const below = box.bottom + GAP;
-    const top = below + size.height + EDGE < window.innerHeight
+    const below = box.bottom + gap;
+    const top = below + size.height + edge < window.innerHeight
       ? below
-      : Math.max(EDGE, box.top - GAP - size.height);
+      : Math.max(edge, box.top - gap - size.height);
     const left = Math.min(
-      Math.max(EDGE, box.left + box.width / 2 - width / 2), window.innerWidth - width - EDGE);
+      Math.max(edge, box.left + box.width / 2 - width / 2), window.innerWidth - width - edge);
     note.style.left = `${Math.round(left)}px`;
     note.style.top = `${Math.round(top)}px`;
     note.style.width = `${Math.round(width)}px`;

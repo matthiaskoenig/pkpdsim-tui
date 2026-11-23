@@ -18,7 +18,7 @@ import {
 import type {Lobe, LobeConfig, LobeState} from "@pkpdsim-tui/lobes-sim";
 import {
   bodyName, chooseQuery, createChrome, createInfo, createQuiz, createReadout, createTokenLayer,
-  driveHint, formatNumber, pointerPoints, visibleStats, words,
+  driveHint, formatNumber, pointerPoints, surfaceViewport, visibleStats, words
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, Pictogram, TableHost} from "@pkpdsim-tui/tui-kit";
 import {bodyParameters} from "@pkpdsim-tui/cardio-sim";
@@ -166,7 +166,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   };
 
   const origins = new Map<number, number>();
-  let viewport = {width: window.innerWidth, height: window.innerHeight};
+  let viewport = surfaceViewport();
   let snapshot: TableSnapshot = input.snapshot;
   let status: TableStatus = input.status;
 
@@ -319,7 +319,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   };
 
   const resize = (): void => {
-    viewport = {width: window.innerWidth, height: window.innerHeight};
+    viewport = surfaceViewport();
     root.setAttribute("viewBox", `0 0 ${viewport.width} ${viewport.height}`);
     scene.resize(viewport);
     plot.resize(plotBox(viewport));
