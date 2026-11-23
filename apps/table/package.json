@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/table",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "The one table application: the body to choose a table from, and every table of pkpdsim behind it",

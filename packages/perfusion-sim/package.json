@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/perfusion-sim",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "The machine perfusion model as a table application needs it: the settings of the machine, the request that solves them, and what is read out of the result",
