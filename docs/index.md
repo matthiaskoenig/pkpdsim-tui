@@ -85,7 +85,7 @@ The vocabulary is the same everywhere, so a visitor who learned one table has le
 - Its position says **what it acts on**, where that matters: the vessel, organ or lobe under it.
 - Lifting the object **undoes** it. Nothing here is permanent.
 
-A table has no click, so a touch chooses by resting: a finger that stays on a card or a switch for a moment presses it, and the element fills while the finger is there. Touches do what touches are good at, such as scrubbing a time course or switching the table or the body.
+A table has no click, so a touch chooses in the two ways a person tries: a tap, which presses when the finger goes, and a rest, which presses after a moment and fills the element while the finger is there. Touches do what touches are good at, such as scrubbing a time course or switching the table or the body.
 
 Each table says in words what it is. The panel in the corner carries the title and a sentence on the state the objects have put the body in, which changes as they move. The numbers at the edge are for whoever wants them, the sentence is for everybody else. Everything else waits behind the thing it belongs to: hovering a number, an object or an organ with the mouse, or resting a finger on it, opens a note that says what it is.
 

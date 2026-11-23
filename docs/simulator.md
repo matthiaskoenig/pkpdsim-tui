@@ -84,7 +84,7 @@ With an application underneath, an object is not a numbered disc. The table says
 | **Clear surface** | Lifts everything at once |
 | **Full screen** | The surface alone, for a demonstration |
 
-A table has no click. A finger that rests on a card, a switch or **Back** presses it after a moment, and the element fills while the finger is there. The three kinds of touch are three colours on the surface, teal, amber and blue, with a legend beside the gestures.
+A table has no click. A finger that taps a card, a switch or **Back** presses it when it goes, and a finger that rests on one presses it after a moment, filling the element while it is there. The three kinds of touch are three colours on the surface, teal, amber and blue, with a legend beside the gestures.
 
 Every object says what a tracker reports about it: its id, its angle in degrees, its position as the tuple of surface fractions the protocol sends, and its session id. The **Surface** fields are the sensor size the frame message carries, and the surface keeps its aspect ratio, so a position on the page is the position the application draws. The fields are kept for the next time the page is opened; what is on the surface is not.
 

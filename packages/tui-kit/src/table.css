@@ -229,6 +229,24 @@ body {
   position: relative;
 }
 
+/* Everything a finger presses is at least as tall as a fingertip, because a finger is not a
+   mouse: a visitor aims by eye across a table and then rests on what they hit, and a control
+   which is shorter than this is one they miss. The round ones carry their hit area below. */
+.back,
+.reset,
+.quiz-button,
+.quiz-close,
+.quiz-next,
+.quiz-choice,
+.choice,
+.pick,
+.settings-person,
+.boot-again,
+/* The one of the body, which is of the application rather than of the kit. */
+.again {
+  min-height: 44px;
+}
+
 .say::after,
 .brief-more::after {
   content: "";

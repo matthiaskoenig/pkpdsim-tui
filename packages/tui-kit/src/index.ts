@@ -17,6 +17,8 @@ export type {Lab, LabOptions} from "./lab.ts";
 export {createMirror, MIRROR_SOURCE} from "./mirror.ts";
 export type {Mirror, MirroredObject, MirrorState} from "./mirror.ts";
 export {createInfo, pointerPoints, tokenPoints} from "./info.ts";
+export {createPress, PRESS, pressTarget} from "./press.ts";
+export type {PressLayer, PressOptions, PressPoint, PressTarget} from "./press.ts";
 export type {InfoLayer, InfoPoint} from "./info.ts";
 export {createPlot} from "./plot.ts";
 export {chooseQuery} from "./query.ts";

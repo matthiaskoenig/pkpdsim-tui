@@ -6,6 +6,7 @@
  */
 
 import type {TableSnapshot} from "@pkpdsim-tui/tuio-input";
+import {createPress, PRESS} from "./press.ts";
 import {sayHtml, sayLabel} from "./say.ts";
 import type {Viewport} from "./types.ts";
 import type {Voice} from "./voice.ts";
@@ -15,6 +16,8 @@ export interface InfoPoint {
   readonly id: number;
   readonly x: number;
   readonly y: number;
+  /** Whether this is the mouse of a laptop, which the page clicks for by itself. */
+  readonly mouse?: boolean;
 }
 
 export interface InfoLayer {
@@ -29,6 +32,7 @@ export function pointerPoints(
 ): readonly InfoPoint[] {
   return [...snapshot.pointers.values()].map(pointer => ({
     id: pointer.sessionId, x: pointer.x * viewport.width, y: pointer.y * viewport.height,
+    mouse: pointer.mouse,
   }));
 }
 
@@ -43,12 +47,6 @@ export function tokenPoints(
 
 /** How long a finger rests on an element before its note opens, in milliseconds. */
 const DWELL = 260;
-/**
- * How long a finger rests on something that can be pressed before it is pressed. A table has no
- * click: a switch, a card or the way back is chosen by holding a finger on it, and the element
- * fills while the finger is there so that holding is visibly doing something.
- */
-const PRESS = 620;
 /** Between the element and its note, and between the note and the edge of the surface. */
 const GAP = 12;
 const EDGE = 14;
@@ -61,18 +59,6 @@ const WIDTH = 340;
  * glass between them. It stays long enough to be walked to, and goes on its own after that.
  */
 const LINGER = 2600;
-
-/**
- * What a finger can press, and under which name. The name and not the element is the identity of
- * a target, because a panel is redrawn while a finger is resting on it.
- */
-function pressOf(element: Element | null | undefined): {element: Element; key: string} | undefined {
-  const found = element?.closest?.("[data-dwell]");
-  if (found === null || found === undefined) return undefined;
-  if (found instanceof HTMLButtonElement && found.disabled) return undefined;
-  const key = found.getAttribute("data-dwell") ?? "";
-  return key === "" ? undefined : {element: found, key};
-}
 
 function noteOf(element: Element | null | undefined): {element: Element; text: string} | undefined {
   const found = element?.closest?.("[data-info]");
@@ -102,16 +88,9 @@ export function createInfo(
   document.documentElement.style.setProperty("--dwell", `${PRESS}ms`);
   let open: Element | undefined;
   const dwelling = new Map<number, {element: Element; since: number}>();
-  const pressing = new Map<number, {key: string; since: number; fired: boolean}>();
-  let arming: Element | undefined;
-
-  /** The element a finger is filling, which is the only one that shows it. */
-  const arm = (element: Element | undefined): void => {
-    if (arming === element) return;
-    arming?.removeAttribute("data-arming");
-    element?.setAttribute("data-arming", "true");
-    arming = element;
-  };
+  // What a finger presses is not of the notes: the one press of the application reads the same
+  // fingers, so a tap and a rest do the same thing here as they do on the first screen.
+  const press = createPress();
 
   const place = (element: Element, text: string): void => {
     hold();
@@ -199,27 +178,10 @@ export function createInfo(
   const layer: InfoLayer = {
     follow(points: readonly InfoPoint[], now: number): void {
       const live = new Set<number>();
-      const held = new Set<number>();
       let found: {element: Element; text: string} | undefined;
-      let armed: Element | undefined;
+      press.follow(points, now);
       for (const point of points) {
         const target = document.elementFromPoint(point.x, point.y);
-        const press = pressOf(target);
-        if (press !== undefined) {
-          held.add(point.id);
-          const seen = pressing.get(point.id);
-          if (seen === undefined || seen.key !== press.key) {
-            pressing.set(point.id, {key: press.key, since: now, fired: false});
-            armed = press.element;
-          } else if (!seen.fired && now - seen.since >= PRESS) {
-            seen.fired = true;
-            if (press.element instanceof HTMLElement || press.element instanceof SVGElement) {
-              press.element.dispatchEvent(new MouseEvent("click", {bubbles: true}));
-            }
-          } else if (!seen.fired) {
-            armed = press.element;
-          }
-        }
         // A finger which is on the note itself is reading it, or on its way to the speaker.
         if (target instanceof Element && note.contains(target)) {
           live.add(point.id);
@@ -239,10 +201,6 @@ export function createInfo(
       for (const id of [...dwelling.keys()]) {
         if (!live.has(id)) dwelling.delete(id);
       }
-      for (const id of [...pressing.keys()]) {
-        if (!held.has(id)) pressing.delete(id);
-      }
-      arm(armed);
       if (found !== undefined) place(found.element, found.text);
       // A table has no pointer which could leave the note: the fingers are all there is, so a
       // note starts to go as soon as none of them is on it, the empty surface of a visitor who
