@@ -42,6 +42,33 @@ jobs:
         # without them; the application loads them at run time
         run: npm run build
 
+  windows:
+    name: windows
+    # A table is set up on Windows as well, and the one thing which cannot be the same there is
+    # how a command of a package is started: the shims of `node_modules/.bin` are no programs
+    # under their plain name, which is what issue #21 was. The checks of `node` run here again
+    # rather than only on Linux, so the next one of those is seen before a table is unpacked.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903  # v6.0.0
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install the locked dependencies
+        run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        # the exported models are not in the repository, so the bundle is built
+        # without them; the application loads them at run time
+        run: npm run build
+
   release:
     name: release
     # the release is made from the tree the checks passed on, see docs/development.md

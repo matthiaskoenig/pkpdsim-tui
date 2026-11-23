@@ -26,7 +26,7 @@ npm run dev                  # http://localhost:5173
 
 The exports are not in the repository. `npm run sync` reads a pkpdsim checkout beside this one, the two export commands compile the models which live in their own repositories, and a table which finds no model of its own says which of the three writes it.
 
-That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`.
+That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`, and `npm run dev:app` for the application alone, without the simulator, which is what a real table or another tracker asks for. `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
 
 ## Documentation
 

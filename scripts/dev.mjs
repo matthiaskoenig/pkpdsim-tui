@@ -30,6 +30,7 @@
 import {spawn} from "node:child_process";
 import {dirname, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
+import {binScript} from "./bin.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -196,7 +197,10 @@ async function main() {
     children.push(simulator);
   }
 
-  const vite = spawn(join(root, "node_modules", ".bin", "vite"), [
+  // vite is started as the script it is, with this node, like the simulator above: the shim of
+  // `node_modules/.bin` is no program on Windows, see `bin.mjs` and issue #21.
+  const vite = spawn(process.execPath, [
+    binScript("vite", "vite"),
     ...(options.preview ? ["preview"] : []),
     "--port", String(options.port), "--strictPort",
   ], {
