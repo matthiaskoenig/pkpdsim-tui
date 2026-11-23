@@ -17,14 +17,11 @@ The tables are the circulation, liver surgery, a drug through the body, and a li
 ## Quick start
 
 ```bash
-npm install
-npm run sync                 # the models and reference data of a pkpdsim checkout
-npm run export:glimepiride   # the glimepiride model, from its own checkout
-npm run export:perfusion     # the machine perfusion model, built with pkpdsim
+npm install                  # and the resources of the release, about 50 MB
 npm run dev                  # http://localhost:5173
 ```
 
-The exports are not in the repository. `npm run sync` reads a pkpdsim checkout beside this one, the two export commands compile the models which live in their own repositories, and a table which finds no model of its own says which of the three writes it.
+That is the whole of it: no checkout of pkpdsim beside this one and nothing to compile. The compiled models, their reference data and the clips the tables read aloud are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips of three languages, so they travel with a release instead, as two archives. `npm install` takes the ones of the release this checkout is, and `npm run assets` is the same said out loud, for a machine which was not on the network at install. A checkout which writes the models itself, from pkpdsim, is what `npm run sync` and the export commands are for, see [Development](https://matthiaskoenig.github.io/pkpdsim-tui/development/).
 
 That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`, and `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
 

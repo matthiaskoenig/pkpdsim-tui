@@ -18,6 +18,7 @@
 | `packages/perfusion-table` | The machine perfusion table |
 | `apps/table` | The one application: the body, the tables behind it, the assets of each of them, and the development server that carries the simulator |
 | `scripts/dev.mjs` | Starts the application and the simulator on one port |
+| `scripts/assets.mjs` | Takes the resources of a release, the compiled models and the clips the table reads aloud, and packs them for the next one |
 | `scripts/sync-assets.mjs` | Copies the exported runtime, model and reference data of a pkpdsim checkout into `apps/table/public/assets/<table>` |
 | `scripts/export_model.py` | Compiles an SBML model that comes from its own repository into the WebAssembly an application runs |
 | `scripts/speech.mjs` | Collects every sentence of the copy, in three languages and at three levels, for the clips the table reads aloud |
@@ -30,7 +31,10 @@ The repository is an npm workspace. The packages ship TypeScript source and are 
 ## Commands
 
 ```bash
-npm install
+npm install           # and the resources of the release: the models and the voice
+npm run assets        # the same, for a checkout which was not on the network at install
+npm run assets:check  # whether every one of them is where a page looks for it
+npm run assets:pack   # packs the ones of this checkout into the archives of a release
 npm run sync          # the exported models and data of a pkpdsim checkout
 npm run export:glimepiride  # compiles the glimepiride model of its own repository
 npm run export:perfusion    # compiles a machine perfusion model built with pkpdsim
@@ -49,6 +53,34 @@ npm run docs:build    # this site, strict
 ```
 
 Every one of them runs on Linux, on macOS and on Windows: a command of a package is started as the script it is, with the `node` which is running, and never through a shim of `node_modules/.bin`, which is no program under its plain name on Windows and was issue #21. The same holds for what is written in `package.json`, where nothing asks a shell to expand it, and `test/scripts.test.ts` and `test/bin.test.ts` keep both of those true.
+
+### The resources of a release
+
+A table needs 68 MB which is not in the repository: the compiled models of the four tables with their reference data, under `apps/table/public/assets/`, and the clips the tables read aloud, 2253 of them in three languages, under `apps/table/public/audio/`. None of it is source. A model is written by pkpdsim and compiled to WebAssembly, the clips are recorded from the copy, and both are written again whenever either changes, so a repository which carried them would grow by all of it at every release.
+
+They travel with a release instead, as two archives of the tag:
+
+| Archive | What is in it | Packed |
+| --- | --- | --- |
+| `pkpdsim-tui-models-<version>.tar.gz` | `assets/`: the compiled models of the four tables, their runtimes and their reference data | 4 MB |
+| `pkpdsim-tui-voice-<version>.tar.gz` | `audio/`: the clips of the three languages and the texts they were recorded from | 49 MB |
+
+Each has a `.sha256` beside it, which is checked before anything is unpacked. `scripts/assets.mjs` is both halves of this:
+
+```bash
+npm run assets                      # both archives of the release this checkout is
+npm run assets -- --no-voice        # the models alone, which is 4 MB of the 53
+npm run assets -- --version 0.2.0   # the archives of another release
+npm run assets -- --url http://localhost:3390   # a release which is not on GitHub yet
+npm run assets:check                # what is missing, and nothing else
+npm run assets:pack                 # the archives of this checkout, for the next release
+```
+
+The archives are packed and unpacked with `tar`, which Linux, macOS and Windows 10 and later all carry, and nothing else is needed to take them.
+
+`npm install` runs it as `--if-missing`: a clone takes the resources of its version once and says so, a checkout which has them says nothing, and one which cannot reach the release says what to run rather than failing the install. The checks of the repository need none of it, so an install with `CI` in its environment takes nothing.
+
+So a table is a clone, an install and `npm run table`. A checkout which writes the models itself needs a pkpdsim beside it, and that is what the rest of this section is about.
 
 `npm run sync` reads the checkout named by `--pkpdsim`, then by the environment variable `PKPDSIM_DIR`, then the sibling directory `../pkpdsim`. What it copies is gitignored, so a clone stays small, and `--list` prints what each application needs.
 
@@ -190,14 +222,22 @@ A release is prepared on a branch, because `develop` takes nothing else, and tag
 
     This starts `ci.yml` once more on the tagged tree, and when the checks pass it creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing: a tag can be neither moved nor deleted.
 
+6.  Put the resources of the table on the release, from a checkout which has them all:
+
+    ```bash
+    npm run assets:check   # all of them, or there is nothing to pack
+    npm run assets:pack    # writes the two archives and their sha256 files
+    gh release upload x.y.z pkpdsim-tui-models-x.y.z.tar.gz pkpdsim-tui-voice-x.y.z.tar.gz \
+      pkpdsim-tui-models-x.y.z.tar.gz.sha256 pkpdsim-tui-voice-x.y.z.tar.gz.sha256
+    ```
+
+    `npm run assets:pack` prints that command with the paths it wrote. This is what makes a clone of the release a table: an install of it takes these archives, so they belong to every release and a release without them is one which has to be told to run `npm run sync`.
+
 Nothing goes to a registry. The packages are private and a table is served as a build of `apps/table`, so the release is the tag, the notes and `main`. A table is deployed from a tag rather than from a branch:
 
 ```bash
 git switch --detach x.y.z
-npm ci
-npm run sync                 # the models and reference data, which are not in the repository
-npm run export:glimepiride   # and the two models which live in their own repositories
-npm run export:perfusion
+npm ci                       # and the resources of that release, from the release itself
 npm run build
 ```
 
