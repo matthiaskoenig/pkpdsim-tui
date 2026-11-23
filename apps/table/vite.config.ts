@@ -1,24 +1,26 @@
 import {readFileSync} from "node:fs";
 import {defineConfig} from "vite";
-import type {Connect, Plugin, ProxyOptions} from "vite";
+import type {ProxyOptions} from "vite";
 import {dataNotFound} from "./data-404.ts";
 
 /**
  * The one application: the body and every table of pkpdsim behind it, from one page.
  *
- * The development server also carries the TUIO simulator, so that the whole table is one port.
- * `ssh -L 5173:localhost:5173 <host>` is then everything a remote machine needs: the application
- * on `/`, the surface which drives it on `/simulator/`, and the tracker itself on `/tuio`, which
- * an application is pointed at with `?tuio=/tuio` and finds by itself.
+ * This is the app of the table and nothing else. The server carries the tracker of the table at
+ * `/tuio`, which `npm run table -- --tuio <host:port>` names, so the application, its models and
+ * the tracker are one address and one forwarded port:
  *
- * `npm run dev -- --tuio <host:port>` puts a real table behind `/tuio` in place of the
- * simulator, which is the one place the tracker of a table is said.
+ *   ssh -L 5173:localhost:5173 <host>
+ *
+ * The simulator is an app of its own, on a port of its own, and is started with `npm run
+ * simulator`. It is not served from here: a table of an exhibition carries no simulator, so
+ * neither does the server of a table.
  */
 /**
  * Which interface the server listens on. It stays on this machine unless it is sent out with
- * `npm run dev -- --host`: the proxy below carries the control socket of the simulator and the
- * tracker with it, and neither asks for a password, so a table on the network of an exhibition
- * would hand them to everybody on it.
+ * `npm run table -- --host`: the proxy below carries the tracker of the table with it, and that
+ * asks for no password, so a table on the network of an exhibition would hand it to everybody
+ * on it.
  */
 const HOST = process.env["TUIO_TABLE_HOST"] ?? "localhost";
 
@@ -31,20 +33,20 @@ const VERSION = (JSON.parse(
   readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
 ) as {version: string}).version;
 
-const SIMULATOR_PAGE = process.env["TUIO_SIMULATOR_PAGE"] ?? "127.0.0.1:3344";
-
 /**
- * The tracker this server carries at `/tuio`: the simulator of this machine by default, and the
- * real table where `npm run dev -- --tuio 10.0.0.20:3343` named one. It is `host:port`, or a
- * whole `ws://host:port/path` for a tracker which listens under a path of its own.
+ * The tracker this server carries at `/tuio`, which `npm run table -- --tuio 10.0.0.20:3343`
+ * names: the real table at an exhibition, and the tracker of the simulator where `npm run dev`
+ * started one beside this server. It is `host:port`, or a whole `ws://host:port/path` for a
+ * tracker which listens under a path of its own.
  *
  * This is the one place the tracker of a table is said. A page which was not told about one
  * finds it here, so every page of the table is driven by it and no address of one carries a
  * machine: the page a visitor is handed, the page a table opens again, and a page somebody
- * typed all reach the same tracker.
+ * typed all reach the same tracker. A server which was given none carries none, and its pages
+ * are driven by the mouse.
  */
-const TUIO_TRACKER = process.env["TUIO_TRACKER"] ?? "127.0.0.1:3333";
-const TRACKER_URL = new URL(
+const TUIO_TRACKER = process.env["TUIO_TRACKER"] ?? "";
+const TRACKER_URL = TUIO_TRACKER === "" ? null : new URL(
   /^wss?:\/\//u.test(TUIO_TRACKER) ? TUIO_TRACKER : `ws://${TUIO_TRACKER}`);
 
 /**
@@ -66,14 +68,7 @@ if (TABLE_IDS !== "" && !/^\d+(,\d+)*$/u.test(TABLE_IDS)) {
     + `got "${TABLE_IDS}".`);
 }
 
-const proxy: Record<string, ProxyOptions> = {
-  "/simulator": {
-    target: `http://${SIMULATOR_PAGE}`,
-    ws: true,
-    // The simulator serves its page at the root of its own port, and the control socket of the
-    // page is `/control` beside it.
-    rewrite: path => path.replace(/^\/simulator/, "") || "/",
-  },
+const proxy: Record<string, ProxyOptions> = TRACKER_URL === null ? {} : {
   "/tuio": {
     target: `ws://${TRACKER_URL.host}`,
     ws: true,
@@ -83,32 +78,11 @@ const proxy: Record<string, ProxyOptions> = {
   },
 };
 
-/** `/simulator` without the slash would resolve the files of the page against the root. */
-function simulatorSlash(): Plugin {
-  const redirect: Connect.NextHandleFunction = (request, response, next) => {
-    if (request.url !== "/simulator") {
-      next();
-      return;
-    }
-    response.writeHead(301, {location: "/simulator/"});
-    response.end();
-  };
-  return {
-    name: "simulator-slash",
-    configureServer: server => {
-      server.middlewares.use(redirect);
-    },
-    configurePreviewServer: server => {
-      server.middlewares.use(redirect);
-    },
-  };
-}
-
 export default defineConfig({
   // The page is served from a file path on the machine that drives the table as often as from a
   // server, so every asset is referenced relatively.
   base: "./",
-  plugins: [simulatorSlash(), dataNotFound()],
+  plugins: [dataNotFound()],
   resolve: {
     alias: {
       // `tuio-client` declares itself an ES module but points `main` at its CommonJS bundle.

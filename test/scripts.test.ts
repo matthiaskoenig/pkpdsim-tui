@@ -48,9 +48,20 @@ describe("every command of the repository", () => {
   // `npm run table` is the whole of it and no address of that table carries either.
   it("has one for the table itself, with its tracker and the ids of its markers", () => {
     const table = scripts["table"] ?? "";
-    expect(table).toContain("--no-simulator");
+    expect(table).toContain("scripts/table.mjs");
     expect(table).toMatch(/--tuio \d+\.\d+\.\d+\.\d+:\d+/u);
     expect(table).toMatch(/--ids \d+(,\d+)+/u);
+  });
+
+  // The two apps of the repository are two commands, and neither starts the other: the table is
+  // the application and the tracker it listens to, the simulator is a tracker and the surface
+  // which drives it, and `npm run dev` is the one which starts both for a laptop.
+  it("has one for each app, and one which starts both", () => {
+    expect(scripts["table"] ?? "").toContain("scripts/table.mjs");
+    expect(scripts["table"] ?? "").not.toContain("simulator");
+    expect(scripts["simulator"] ?? "").toContain("tuio-simulator");
+    expect(scripts["simulator"] ?? "").not.toContain("scripts/table.mjs");
+    expect(scripts["dev"] ?? "").toContain("scripts/dev.mjs");
   });
 
   it("quotes nothing the way only a POSIX shell reads it", () => {

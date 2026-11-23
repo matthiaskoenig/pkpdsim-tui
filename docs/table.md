@@ -2,6 +2,45 @@
 
 A multitouch table with object recognition is a browser, a tracker and a sheet of glass. The browser is the only part these applications know about.
 
+## Quickstart
+
+```bash
+npm install     # the repository, and the resources of this release
+npm run table   # the table, the tracker it listens to and the ids of its pucks
+# then open http://localhost:5173/
+```
+
+That is the whole of a booth. `npm run table` is the one command of this exhibition, written down in `package.json`:
+
+```bash
+node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
+```
+
+| What the command carries | How it is said | This exhibition |
+| --- | --- | --- |
+| The tracker of the table | `--tuio <host:port>` | `10.0.0.20:3343`, which the server carries at `/tuio` |
+| The objects of the table | `--ids <list>` | `5,6,11,12,21,22`, the ids printed on the six pucks |
+| The port of the table | `--port <port>` | `5173`, which also carries the tracker |
+
+Every page the server serves is given the tracker and the ids, so the address a visitor is handed carries nothing at all. Another table is the same command with its own two, after `--`:
+
+```bash
+npm run table -- --tuio 10.0.0.21:3343 --ids 2,4,8,9,14,15,22
+```
+
+### The ports
+
+The table is one app and the [simulator](simulator.md) is another. A booth runs the table alone, which is one port; a laptop runs both, which is one port each and a third for the tracker between them.
+
+| Port | What listens there | Which app | Started by |
+| --- | --- | --- | --- |
+| `5173` | The table: the body, and a table with `?app=` | the table | `npm run table` |
+| `5173/tuio` | The tracker of the table, carried by the server of the table | the table | `--tuio <host:port>` |
+| `3344` | The control page of the simulator, with the table under its surface | the simulator | `npm run simulator` |
+| `3333` | The tracker of the simulator, which an application reaches with `?tuio=localhost:3333` | the simulator | `npm run simulator` |
+
+`npm run dev` starts one of each and points the table at the tracker of the simulator, which is this exhibition with the glass replaced by a page. The booth needs none of that: a table is the tracker.
+
 ## The surface
 
 The tables of [Interactive Scape](https://www.interactive-scape.com/) recognise objects capacitively: the markers are passive and are read through the glass, with no camera below the table and no light of their own. The table reports them over TUIO, which is what makes a browser enough to write a table application. [DISPLAX](https://www.displax.com/) and the SUR40 bridges emit TUIO as well, and anything else that offers TUIO 2.0 over a WebSocket will work. The sensor reports its own size in every frame, so positions arrive as fractions of the surface rather than in pixels.
@@ -28,17 +67,7 @@ A real table brings two things of its own: the tracker it reports its objects ov
     http://localhost:5173/
     ```
 
-That command is the table of this exhibition written down once, in `package.json`:
-
-```bash
-node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
-```
-
-`--no-simulator` leaves the simulator out, because the table is the tracker. `--tuio` is where that tracker listens, the host and the port of the table itself: the server carries it at `/tuio`, where every page it serves finds it. `--ids` are the ids of the markers of the table, in the order the objects of a table are picked up, and every page it serves reads them. Another table is the same command with its own two, either in `package.json` or after `--`:
-
-```bash
-npm run table -- --tuio 10.0.0.21:3343 --ids 2,4,8,9,14,15,22
-```
+That command is the table of this exhibition written down once, in `package.json`, as the [quickstart](#quickstart) above shows. `--tuio` is where the tracker of the table listens, the host and the port of the table itself: the server carries it at `/tuio`, where every page it serves finds it. `--ids` are the ids of the markers of the table, in the order the objects of a table are picked up, and every page it serves reads them. The simulator is not part of any of this: it is an app of its own and a booth does not start it.
 
 The address is the body, from which a visitor opens a table; `?app=cardiovascular` opens one at once, which is what a booth with one subject uses.
 

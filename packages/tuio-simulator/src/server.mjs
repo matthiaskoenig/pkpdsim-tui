@@ -32,6 +32,16 @@ import {createTracker} from "./tracker.mjs";
 /** Frames per second of a surface nobody is touching. */
 const DEFAULT_RATE = 60;
 
+/**
+ * The table this simulator drives, which its page opens under the surface.
+ *
+ * The table is an app of its own, on a port of its own, so the simulator is told where it is
+ * rather than serving it. It is the address a page is allowed to open by itself: `?table=` of
+ * the page names a table of this one, and anything else has to be typed into the field above
+ * the surface, so a link somebody was sent cannot put a page of its choosing under the glass.
+ */
+const DEFAULT_TABLE = "http://localhost:5173/";
+
 /** The close code of a control page that another control page replaced. */
 const TAKEN_OVER = 4000;
 
@@ -66,6 +76,7 @@ const USAGE = `The TUIO simulator of pkpdsim-tui.
   --transport <kind>  ${TRANSPORTS.join(" or ")} (default ${DEFAULT_SETTINGS.transport})
   --page-port <port>  the HTTP port of the control page (default ${DEFAULT_PAGE_PORT})
   --rate <hz>         frames per second (default ${DEFAULT_RATE})
+  --table <url>       the table this simulator drives (default ${DEFAULT_TABLE})
   --allow-origin <o>  one more page which may drive the simulator, repeatable ("*" for any)
   --help              this text
 
@@ -75,7 +86,7 @@ The control page changes the version, the transport and the port while the simul
 function parseOptions(argv) {
   const options = {
     ...DEFAULT_SETTINGS, pagePort: DEFAULT_PAGE_PORT, rate: DEFAULT_RATE, help: false,
-    allowOrigin: [],
+    table: DEFAULT_TABLE, allowOrigin: [],
   };
   const numbers = {"--port": "port", "--page-port": "pagePort", "--rate": "rate"};
   for (let index = 0; index < argv.length; index += 1) {
@@ -85,6 +96,19 @@ function parseOptions(argv) {
     } else if (flag === "--host") {
       index += 1;
       options.host = argv[index] ?? options.host;
+    } else if (flag === "--table") {
+      index += 1;
+      const value = (argv[index] ?? "").trim();
+      let address = null;
+      try {
+        address = new URL(value);
+      } catch {
+        address = null;
+      }
+      if (address === null || !/^https?:$/u.test(address.protocol)) {
+        throw new Error(`${flag} is the address of a table, like ${DEFAULT_TABLE}, got "${value}".`);
+      }
+      options.table = address.href;
     } else if (flag === "--allow-origin") {
       index += 1;
       const value = argv[index] ?? "";
@@ -215,6 +239,9 @@ async function main() {
     driver.send(JSON.stringify({
       type: "status",
       settings,
+      // Where the table is. The page of a simulator opens it under the surface, and a table
+      // which is somewhere else is this one flag rather than an address in every link.
+      table: options.table,
       transport: tracker?.kind ?? settings.transport,
       trackers: tracker?.listeners ?? null,
       source: tracker?.url ?? "",

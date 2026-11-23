@@ -23,7 +23,7 @@ npm run dev                  # http://localhost:5173
 
 That is the whole of it: no checkout of pkpdsim beside this one and nothing to compile. The compiled models, their reference data and the clips the tables read aloud are not in the repository, because a model is written by pkpdsim and the voice is 2253 clips of three languages, so they travel with a release instead, as two archives. `npm install` takes the ones of the release this checkout is, and `npm run assets` is the same said out loud, for a machine which was not on the network at install. How those archives are written, for whoever cuts the next release, is in [Development](https://matthiaskoenig.github.io/pkpdsim-tui/development/).
 
-That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`, and `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
+`npm run dev` starts the two apps of this repository, each on a port of its own: the table on `http://localhost:5173/`, which carries the tracker it listens to at `/tuio`, and the TUIO simulator on `http://localhost:3344/`, which drives it. `npm run table` and `npm run simulator` start one of them alone, each with its own flags, and `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
 
 ## On a real table
 
@@ -35,10 +35,10 @@ npm run table
 That is the table of this exhibition, written down once in `package.json`:
 
 ```bash
-node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
+node scripts/table.mjs --tuio 10.0.0.20:3343 --ids 5,6,11,12,21,22
 ```
 
-`--no-simulator` leaves the simulator out, because the table is the tracker; `--tuio` is where that tracker listens, which the server then carries at `/tuio`; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Every page the table serves is given both, so its address carries nothing and there is one place to change either.
+A booth runs the table and nothing else, because the table is the tracker. `--tuio` is where that tracker listens, which the server then carries at `/tuio`; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Every page the table serves is given both, so its address carries nothing and there is one place to change either.
 
 Everything is drawn on one surface, 1920 by 1080, and scaled to the glass it is shown on, so the 4K table of an exhibition shows the same picture at twice the size and a laptop shows it at its own. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
 
