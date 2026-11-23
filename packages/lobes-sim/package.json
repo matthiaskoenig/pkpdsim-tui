@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/lobes-sim",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "The lobed liver of pkpdsim: the states of a segment, the parameters they change and the request that solves them",

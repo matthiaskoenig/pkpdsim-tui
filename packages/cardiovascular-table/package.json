@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/cardiovascular-table",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "description": "The cardiovascular table: the resistances of the circulation and the beat of the heart as objects on an anatomy",
