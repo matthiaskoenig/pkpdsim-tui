@@ -35,7 +35,7 @@ npm run table
 That is the table of this exhibition, written down once in `package.json`:
 
 ```bash
-node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 5,6,11,12,21
 ```
 
 `--no-simulator` leaves the simulator out, because the table is the tracker; `--tuio` is where that tracker listens, which the server then carries at `/tuio`; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Every page the table serves is given both, so its address carries nothing and there is one place to change either. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
