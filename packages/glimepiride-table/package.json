@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/glimepiride-table",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "description": "The glimepiride table: the dose, the genotype and the organs of one individual as objects",

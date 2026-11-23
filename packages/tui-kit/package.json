@@ -1,6 +1,6 @@
 {
   "name": "@pkpdsim-tui/tui-kit",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "description": "What every table application shares: the surface, the dials and cards of the objects, the bands at the edges and the panels in the corners",
