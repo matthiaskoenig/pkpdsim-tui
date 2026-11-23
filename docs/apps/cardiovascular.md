@@ -60,12 +60,11 @@ A run of the heart takes about two seconds. While it is in flight the anatomy ke
 
 The algebraic solution is a port of `cardiovascular-model.mjs` of the pkpdsim documentation, and its test holds it to the exported reference: the portal pressure, the pressure in the liver, the cardiac output and all fourteen organ flows, with both nodes conserving flow. The beating heart is a port of `cardiovascular-solver.mjs`, with the same request and the same intervention at the end of a whole beat; its test summarizes the beats pkpdsim published and requires the numbers that came with them. Where the table departs from the export it does so to stay quick under a hand: it reads the summarized beats at 2 ms instead of 0.2 ms, which moves every number by less than a tenth of its unit, and asks for eleven columns instead of thirty four.
 
-The reference circulation, the organ resistances and the anatomy are generated in pkpdsim by `scripts/cardiovascular_examples.py` and copied in by `npm run sync`, which writes a `provenance.json` naming the commit they came from.
+The reference circulation, the organ resistances and the anatomy are generated in pkpdsim by `scripts/cardiovascular_examples.py` and travel with the release, beside a `provenance.json` naming the commit they came from.
 
 ## Run it
 
 ```bash
-npm run sync
 npm run dev:cardiovascular
 ```
 

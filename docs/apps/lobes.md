@@ -51,12 +51,11 @@ The small number under each one is the change against the same liver without the
 
 ## Where the numbers come from
 
-The liver, its segments and their mass fractions, the compiled model and the solver settings are generated in pkpdsim by `scripts/lobes_examples.py` and copied in by `npm run sync`, which writes a `provenance.json` naming the commit they came from. The states of a segment and the parameters each one writes (`g_po_<segment>`, `g_ha_<segment>`, `f_present_<segment>`) are a port of `lobes-model.mjs` of the pkpdsim documentation, and one run is a port of `lobes-solver.mjs`. Its test holds the port to the export: for every precomputed case, the operation has to produce exactly the parameter changes the export carries.
+The liver, its segments and their mass fractions, the compiled model and the solver settings are generated in pkpdsim by `scripts/lobes_examples.py` and travel with the release, beside a `provenance.json` naming the commit they came from. The states of a segment and the parameters each one writes (`g_po_<segment>`, `g_ha_<segment>`, `f_present_<segment>`) are a port of `lobes-model.mjs` of the pkpdsim documentation, and one run is a port of `lobes-solver.mjs`. Its test holds the port to the export: for every precomputed case, the operation has to produce exactly the parameter changes the export carries.
 
 ## Run it
 
 ```bash
-npm run sync
 npm run dev:lobes
 ```
 

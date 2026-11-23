@@ -53,7 +53,7 @@ uv run python scripts/speak.py     # one clip per sentence
 | `--engine espeak` | `espeak-ng` of the system | 1990 |
 | `--engine flite` | nothing: the voice is inside `ffmpeg` where it was built with libflite | 1996, and English only, which is how the clips are tried out |
 
-`ffmpeg`, where it is installed, packs the clips into Ogg Opus: a twentieth of the size of the WAV, and what every browser of a table plays. The clips are an asset like the models and are not in the repository; a fresh clone records them again, or runs without them.
+`ffmpeg`, where it is installed, packs the clips into Ogg Opus: a twentieth of the size of the WAV, and what every browser of a table plays. The clips are an asset like the models: they are not in the repository but travel with a release, which the install takes, so a fresh clone has the voice without recording anything. Recording is for the sentences which changed.
 
 !!! note "A browser holds sound back until it has been touched"
     Chrome refuses to play a sound on a page nobody has interacted with. At a table, where a finger resting on the button is a synthetic click rather than a gesture of the browser, start it with `--autoplay-policy=no-user-gesture-required`, as [Run on a table](table.md) does. Without it the first press of the day falls back to the speech of the browser.

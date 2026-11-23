@@ -59,12 +59,7 @@ The plot beside the body is the plasma course of glimepiride, M1 and M2. All thr
 
 ## Where the numbers come from
 
-The model is the SBML of its own repository, compiled here by `scripts/export_model.py` with the same release of sbmlsim-core that pkpdsim exports its examples with:
-
-```bash
-npm run export:glimepiride            # expects a glimepiride-model checkout beside this one
-GLIMEPIRIDE_MODEL=/path/to/glimepiride_body_flat.xml npm run export:glimepiride
-```
+The model is the SBML of its own repository, compiled here by `scripts/export_model.py` with the same release of sbmlsim-core that pkpdsim exports its examples with, and the compiled model travels with the release. [The resources of a release](../development.md#the-resources-of-a-release) is how it is written again.
 
 The individual becomes five parameters of that model (`PODOSE_gli`, `LI__f_cyp2c9`, `f_cirrhosis`, `KI__f_renal_function`, `BW`), set before the initial values are resolved, because that is how an oral dose is given: the tablet is in the intestine when the clock starts. The creatinine clearance is the one control that is not a parameter; the model takes the fraction of the renal function that is left, and a clearance above the reference does not make the kidneys clear more than they can.
 
@@ -73,7 +68,6 @@ The pharmacokinetics are arithmetic on the solved course: the peak and its time 
 ## Run it
 
 ```bash
-npm run export:glimepiride
 npm run dev:glimepiride
 ```
 
