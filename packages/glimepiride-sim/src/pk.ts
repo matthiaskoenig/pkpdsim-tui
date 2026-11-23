@@ -21,9 +21,20 @@ export interface Pharmacokinetics {
   readonly halflife: number;
 }
 
-/** The slope of a straight line through the logarithm of the last `share` of a course. */
+/**
+ * The slope of a straight line through the logarithm of the last `share` of a course, and never
+ * through anything before its highest point. A course of one tablet falls from the second hour
+ * on, so the last third of it is the terminal part. A course of ten tablets rises again every
+ * morning, and the last third of it holds three more of those peaks: a line through them is
+ * almost flat and reads as a half life of a week. The part after the last peak is the only part
+ * of a course of any length which is the drug leaving the body.
+ */
 function terminalSlope(times: readonly number[], values: readonly number[], share: number): number {
-  const from = Math.max(0, Math.floor(times.length * (1 - share)));
+  let highest = 0;
+  for (let index = 1; index < values.length; index++) {
+    if ((values[index] as number) > (values[highest] as number)) highest = index;
+  }
+  const from = Math.max(highest, Math.floor(times.length * (1 - share)));
   const points: {x: number; y: number}[] = [];
   for (let index = from; index < times.length; index++) {
     const value = values[index];

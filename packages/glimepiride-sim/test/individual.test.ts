@@ -77,6 +77,18 @@ describe("glimepirideRequest", () => {
     expect(ten.changes[0]).toEqual({time: 24 * 60, values: [["PODOSE_gli", 2]]});
   });
 
+  // A grid of the window divided into a fixed number of points is coarser the longer the
+  // course is, and at ten tablets it sampled each morning at a different place and drew ten
+  // peaks of different heights. Five minutes is the same resolution whatever is asked for.
+  it("reads the course every five minutes, however many tablets there are", () => {
+    for (const doses of [1, 2, 5, 10]) {
+      const times = glimepirideRequest({}, heightOf(), undefined, doses).output.times;
+      const steps = times.slice(1).map((time, index) => time - (times[index] as number));
+      expect(times.at(-1)).toBe(doses * 24 * 60);
+      for (const step of steps) expect(step).toBeCloseTo(5, 9);
+    }
+  });
+
   it("asks for the plasma of the parent and of both metabolites", () => {
     expect(glimepirideRequest().selections).toContain("[Cve_gli]");
     expect(glimepirideRequest().selections).toContain("[Cve_m1]");
