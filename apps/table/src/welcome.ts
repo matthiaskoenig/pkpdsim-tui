@@ -132,8 +132,7 @@ export function askWelcome(
     void openTableInput({parameters, element: root, markers: []}).then(source => {
       const {input} = source;
       const press = createPress({
-        fingers: () => pointerPoints(
-          input.snapshot, {width: window.innerWidth, height: window.innerHeight}),
+        fingers: () => pointerPoints(input.snapshot),
       });
       stop = (): void => {
         press.stop();

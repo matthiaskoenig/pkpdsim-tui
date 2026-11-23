@@ -141,7 +141,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   // the page, so it is built once there is one. Built before the input is opened, its
   // first frame fell into the wait for the tracker and read a snapshot which did not
   // exist yet, and the layer died with it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
+  createInfo(surface, () => pointerPoints(snapshot), voice);
   let series: Series = {};
   let baseline: Series = {};
   let solving = true;

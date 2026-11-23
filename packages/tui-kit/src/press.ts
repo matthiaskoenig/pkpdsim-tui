@@ -20,7 +20,10 @@
 
 import {surfaceScale} from "./surface.ts";
 
-/** A finger of the table, in the pixels of the page. */
+/**
+ * A finger of the table, in the pixels of the glass: the space `document.elementFromPoint` is
+ * asked in and `getBoundingClientRect` answers in, and never the pixels a table is drawn in.
+ */
 export interface PressPoint {
   readonly id: number;
   readonly x: number;

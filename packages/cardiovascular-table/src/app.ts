@@ -180,7 +180,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   // the page, so it is built once there is one. Built before the input is opened, its
   // first frame fell into the wait for the tracker and read a snapshot which did not
   // exist yet, and the layer died with it.
-  createInfo(surface, () => pointerPoints(snapshot, viewport), voice);
+  createInfo(surface, () => pointerPoints(snapshot), voice);
   let steady: PressureSolution = steadyBaseline;
   let heartControls: HeartControls = heartControlsFromTokens(roles, new Map());
   let summary: HeartSummary = referenceSummary;
