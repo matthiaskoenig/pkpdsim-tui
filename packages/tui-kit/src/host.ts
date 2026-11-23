@@ -34,6 +34,13 @@ export interface TableHost {
   /** The query of the page: the tracker, the body, the species, which table this is. */
   readonly parameters: URLSearchParams;
   /**
+   * The ids the markers of this table carry, from `?ids=` of the address, in the order the
+   * objects of a table are picked up: the nth object of a table is read from the nth id. Empty
+   * where the table is numbered from 1 like the application is, which is what the simulator and
+   * the mouse give. See `markerIds` of `@pkpdsim-tui/tuio-input`.
+   */
+  readonly markerIds: readonly number[];
+  /**
    * The language and the level of the person at the table, which every word a table says goes
    * through. Both are switches in the panel and both are in the address, so a table is handed
    * over as a link that says them.

@@ -20,7 +20,9 @@ import {
   LAB_ROOM, pointerPoints, tokenPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, TableHost, Viewport} from "@pkpdsim-tui/tui-kit";
-import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
+import {
+  markersOn, openTableInput, rolesOn, unassignedMarkers, valuesFromTokens,
+} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {cardFor, perfusionStats, perfusionTraces} from "./cards.ts";
 import type {PerfusionReadout} from "./cards.ts";
@@ -70,7 +72,8 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   });
 
   const hours = PERFUSION_SIMULATION.end / 60;
-  const roles = perfusionRoles(hours, voice);
+  // The objects of this table, read from the markers this table carries, see `?ids=`.
+  const roles = rolesOn(host.markerIds, perfusionRoles(hours, voice));
   const axis = {max: PERFUSION_SIMULATION.end, tick: 60, scale: 1 / 60, unit: "h"};
 
   const surface = host.surface;
@@ -91,7 +94,8 @@ export async function startPerfusionTable(host: TableHost): Promise<void> {
   });
 
   const {input, tracker} = await openTableInput({
-    parameters: host.parameters, element: surface, markers: [...PERFUSION_MARKERS],
+    parameters: host.parameters, element: surface,
+    markers: markersOn(host.markerIds, PERFUSION_MARKERS),
   });
 
   const origins = new Map<number, number>();

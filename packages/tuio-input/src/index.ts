@@ -3,6 +3,7 @@
 export {signedAngle, TWO_PI, unwrapAngle, wrapAngle} from "./angle.ts";
 export {hitTest} from "./hit-test.ts";
 export type {Anchor, Point} from "./hit-test.ts";
+export {MARKER_IDS, markerIds, markerOf, markersOn, rolesOn} from "./markers.ts";
 export {createMockTableInput, MOCK_SOURCE} from "./mock.ts";
 export type {MockTableInput, MockTableInputOptions} from "./mock.ts";
 export {

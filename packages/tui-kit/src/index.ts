@@ -44,6 +44,7 @@ export {
 } from "./voice.ts";
 export type {Level, Locale, Phrase, PhraseLevels, Voice} from "./voice.ts";
 export {
-  bodyName, driveHint, GROWN_UP, KIT_TEXT, languageOptions, markerSpan, organName, words,
+  bodyName, driveHint, GROWN_UP, keySpan, KIT_TEXT, languageOptions, markerSpan, organName,
+  words,
 } from "./words.ts";
 export type {DriveState, KitCopy} from "./words.ts";

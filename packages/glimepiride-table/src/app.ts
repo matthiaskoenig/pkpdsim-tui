@@ -24,7 +24,9 @@ import {
   formatNumber, LAB_ROOM, pointerPoints, visibleStats, words,
 } from "@pkpdsim-tui/tui-kit";
 import type {Box, ChoiceGroup, TableHost} from "@pkpdsim-tui/tui-kit";
-import {openTableInput, unassignedMarkers, valuesFromTokens} from "@pkpdsim-tui/tuio-input";
+import {
+  markersOn, openTableInput, rolesOn, unassignedMarkers, valuesFromTokens,
+} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus, TrackerOptions} from "@pkpdsim-tui/tuio-input";
 import {
   cardFor, categoryOf, formatValue, glimepirideStats, glimepirideTraces, MICROMOLAR,
@@ -85,7 +87,8 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   // and the reference weight of the body, and whose years carry what the kidneys still clear.
   const person = host.individual;
   const sex: Sex = person.sex;
-  const roles = glimepirideRoles(voice, person);
+  // The objects of this table, read from the markers this table carries, see `?ids=`.
+  const roles = rolesOn(host.markerIds, glimepirideRoles(voice, person));
   const reference: GlimepirideIndividual = {
     ...referenceIndividual(sex),
     // The table opens at the dose a body of this weight is started on, so a child does not
@@ -126,7 +129,7 @@ export async function startGlimepirideTable(host: TableHost): Promise<void> {
   });
 
   const {input, tracker} = await openTableInput({
-    parameters, element: surface, markers: [...GLIMEPIRIDE_MARKERS],
+    parameters, element: surface, markers: markersOn(host.markerIds, GLIMEPIRIDE_MARKERS),
   });
 
   const origins = new Map<number, number>();

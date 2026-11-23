@@ -22,7 +22,7 @@ import {
 } from "@pkpdsim-tui/tui-kit";
 import type {ChoiceGroup, Pictogram, TableHost} from "@pkpdsim-tui/tui-kit";
 import {bodyParameters} from "@pkpdsim-tui/cardio-sim";
-import {openTableInput, valueFromAngle} from "@pkpdsim-tui/tuio-input";
+import {markersOn, openTableInput, rolesOn, valueFromAngle} from "@pkpdsim-tui/tuio-input";
 import type {
   TableSnapshot, TableStatus, TokenRole,
 } from "@pkpdsim-tui/tuio-input";
@@ -32,7 +32,7 @@ import {createLiverScene, plotBox} from "./scene.ts";
 import {createRegeneration} from "./regeneration.ts";
 import {createMonitors} from "./monitors.ts";
 import {
-  GROWTH_MARKER, LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
+  LOBE_MARKERS, lobeRoles, operationAtDial, operationName, operationsOf, statesOf,
 } from "./operations.ts";
 import type {Operation} from "./operations.ts";
 import {courseOf} from "./course.ts";
@@ -114,7 +114,8 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     // of a rat or a mouse is the animal's own and carries no body of ours.
     ...(species === "human" ? {preinit: bodyParameters(person)} : {}),
   };
-  const roles = lobeRoles(voice, operations.length);
+  // The objects of this table, read from the markers this table carries, see `?ids=`.
+  const roles = rolesOn(host.markerIds, lobeRoles(voice, operations.length));
 
   host.progress(copy.startingSolver);
   const core = await loadCoreHost(new URL("sbmlsim-core.js", runtime));
@@ -150,7 +151,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
   });
 
   const {input, tracker} = await openTableInput({
-    parameters, element: surface, markers: [...LOBE_MARKERS],
+    parameters, element: surface, markers: markersOn(host.markerIds, LOBE_MARKERS),
   });
 
   /** The operation the knife is pointing at, which is nothing while it is off the table. */
@@ -195,7 +196,7 @@ export async function startLobesTable(host: TableHost): Promise<void> {
     const dial = roles.find(role => role.id === "growth");
     if (dial === undefined) return 1;
     for (const token of snapshot.tokens.values()) {
-      if (token.marker !== GROWTH_MARKER) continue;
+      if (!dial.markers.includes(token.marker)) continue;
       return valueFromAngle(dial, token.turn);
     }
     return 1;

@@ -6,17 +6,55 @@ A multitouch table with object recognition is a browser, a tracker and a sheet o
 
 The tables of [Interactive Scape](https://www.interactive-scape.com/) recognise objects capacitively: the markers are passive and are read through the glass, with no camera below the table and no light of their own. The table reports them over TUIO, which is what makes a browser enough to write a table application. [DISPLAX](https://www.displax.com/) and the SUR40 bridges emit TUIO as well, and anything else that offers TUIO 2.0 over a WebSocket will work. The sensor reports its own size in every frame, so positions arrive as fractions of the surface rather than in pixels.
 
+## Start it on a table
+
+A real table brings two things of its own: the tracker it reports its objects over, and the markers whose ids are printed on its pucks. Both are said when the application is started, and this is the whole of it:
+
+!!! tip "The command for a real table"
+
+    ```bash
+    npm run dev -- --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+    ```
+
+    `--no-simulator` leaves the simulator out, because the table is the tracker. `--tuio` is where that tracker listens, the host and the port of the table itself. `--ids` are the ids of its markers, in the order the objects of a table are picked up. The command prints the address to open, which carries both:
+
+    ```
+    http://localhost:5173/?tuio=10.0.0.20:3343&ids=1,3,5,6,11,12,21
+    ```
+
+Open that address on the machine the table is driven from. It is the body, from which a visitor opens a table; `&app=cardiovascular` opens one at once, which is what a booth with one subject uses.
+
 ## Point the browser at the tracker
 
-Find the WebSocket host and port of the table in its own configuration, then open the application with them:
+Find the WebSocket host and port of the table in its own configuration. They go into the address as `?tuio=<table host>:<table port>`, which is what `--tuio` above writes for you:
 
 ```
-http://<the machine that serves the application>:5173/?tuio=<table host>:<table port>
+http://<the machine that serves the application>:5173/?tuio=10.0.0.20:3343
 ```
 
-That address is the body, from which a visitor opens a table; `&app=cardiovascular` opens one at once, which is what a booth with one subject uses. If the browser runs on the table itself, the host is `localhost`. Start with the [simulator settings](simulator.md), which is the same protocol on the same port.
+If the browser runs on the table itself, the host is `localhost`. Start with the [simulator settings](simulator.md), which is the same protocol on the same port.
 
 A page told about a tracker this way listens to it alone, so a stray mouse cannot put objects on the surface of an exhibition. A page told nothing looks for a tracker behind its own server at `/tuio` and otherwise runs on the mouse, which is what the development server and a deployed build respectively give you.
+
+## The ids of the markers
+
+The objects of a table are numbered from 1 here: the first object of a table is 1, the second 2, and the same pucks serve all four tables. The markers of a real table carry whatever ids were printed on them, which is `[1, 3, 5, 6, 11, 12, 21]` on one table and something else on the next. `?ids=` says them, in the order the objects of a table are picked up, and the nth object of every table is then read from the nth id:
+
+```
+http://localhost:5173/?ids=1,3,5,6,11,12,21
+```
+
+The circulation then reads 1, 3 and 5, liver surgery reads 1 and 3, and the drug reads 1, 3, 5, 6, 11 and 12. Every number a visitor sees is the id of the puck in their hand: the one on the card beside an object, the one in the panel, and the one in the sentence which asks for an object. The list is of the table and not of the visitor, so it stays in the address while somebody walks from one table to the next, and a table which starts again keeps it.
+
+Give at least as many ids as the table with the most objects needs, which is six, for the drug through the body. A list which is not a list of whole numbers, which names one puck twice, or which does not reach as far as the objects of a table is refused at the start, with the reason, rather than left to a visitor who turns an object nothing answers to.
+
+The [simulator](simulator.md) places an object of any id between 1 and 999, so the mapping of a table can be tried before the table is there: `http://localhost:5173/simulator/?table=cardiovascular&ids=1,3,5` drives the application under the surface with the same list. On the mouse of a laptop the digit keys follow the order of the list instead of the ids themselves, because 11 and 12 are no keys: the first key is the first object.
+
+The laboratory is in the bottom right corner of every page, with the square a phone is pointed at, in the same place and at the same size, so a visitor can read whose work this is and take the address with them. The line under it opens the page [about](#the-page-about-all-of-this) all of this.
+
+Who the tables are solved for stands beside the gear in the far corner, on every page: a line with the body, the age, the weight and the height, which opens the question again when it is pressed. It is the one setting a visitor changes while they are at a table. Everything about the table itself waits behind the **gear**: which table is open, the language, the level, the body and the address of the tracker. They are rows of either-or switches drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The choices hold while a visitor walks from one table to the next and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
+
+Every table wears its own colour and its own picture over the title of its panel: the red heart of the circulation, the purple scalpel of the operations, the green tablet of the drug, the blue pump of the machine. **Back** stands in that row, and the **Quiz** and **Start again** of a table in the opposite corner: one row of furniture in each corner, and the rest of the glass for the body.
 
 ## One side of the table
 
@@ -31,12 +69,6 @@ A visit begins before the landing page. The first screen asks which **language**
 The landing page carries no panel: a heading, what the tables are for, the body of that person in the middle, and the four tables as coloured discs on a ring around it, each the same distance from the body and each in the colour of the organ it is about. The figure is that person and nobody else, at the height of that body and the width its weight makes. What a table is about stands in the sidebar at the right: the disc a hand is over, or an organ a finger is on, fills it with the whole of what that table shows, in the colour of that table. While nothing is chosen the sidebar is the key of the four colours.
 
 The landing page reads no object at all. The objects belong to a table, which numbers them from 1, so one set of pucks serves every table and nothing has to be handed to a visitor who has just walked up.
-
-The laboratory is in the bottom right corner of every page, with the square a phone is pointed at, in the same place and at the same size, so a visitor can read whose work this is and take the address with them. The line under it opens the page [about](#the-page-about-all-of-this) all of this.
-
-Who the tables are solved for stands beside the gear in the far corner, on every page: a line with the body, the age, the weight and the height, which opens the question again when it is pressed. It is the one setting a visitor changes while they are at a table. Everything about the table itself waits behind the **gear**: which table is open, the language, the level, the body and the address of the tracker. They are rows of either-or switches drawn as pictograms and flags rather than words, because a visitor who cannot read the language is the one who needs the language switch. The choices hold while a visitor walks from one table to the next and travel in the address, so a booth can be opened on `?lang=es&level=child` and stay there. See [Languages and the voice](languages.md).
-
-Every table wears its own colour and its own picture over the title of its panel: the red heart of the circulation, the purple scalpel of the operations, the green tablet of the drug, the blue pump of the machine. **Back** stands in that row, and the **Quiz** and **Start again** of a table in the opposite corner: one row of furniture in each corner, and the rest of the glass for the body.
 
 ## The page a table opens with
 

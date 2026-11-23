@@ -20,6 +20,37 @@ function pointerEvent(type: string, clientX: number, clientY: number, pointerId 
   return event;
 }
 
+function keyEvent(key: string): Event {
+  const event = new Event("keydown", {bubbles: true}) as Event & Record<string, unknown>;
+  Object.assign(event, {key});
+  return event;
+}
+
+describe("the digit keys of the mock", () => {
+  it("put the object of that number down where the markers are the numbers", () => {
+    const input = createMockTableInput({element, markers: [1, 2, 3, 4]});
+    input.connect();
+    document.dispatchEvent(keyEvent("3"));
+    expect([...input.snapshot.tokens.values()].map(token => token.marker)).toEqual([3]);
+  });
+
+  // A table which was given the ids of the markers of a real one is driven by the place of an
+  // object in that list: 11 and 12 are no keys of a laptop, and they are objects 5 and 6.
+  it("put the nth object down where the markers are the ids of a table", () => {
+    const input = createMockTableInput({element, markers: [1, 3, 5, 6, 11, 12]});
+    input.connect();
+    for (const key of ["2", "5", "6"]) document.dispatchEvent(keyEvent(key));
+    expect([...input.snapshot.tokens.values()].map(token => token.marker)).toEqual([3, 11, 12]);
+  });
+
+  it("put nothing down for a key no object of the table has", () => {
+    const input = createMockTableInput({element, markers: [1, 2]});
+    input.connect();
+    for (const key of ["0", "3", "9"]) document.dispatchEvent(keyEvent(key));
+    expect(input.snapshot.tokens.size).toBe(0);
+  });
+});
+
 describe("createMockTableInput", () => {
   it("reports itself connected on the mouse", () => {
     const input = createMockTableInput({element, markers: [1, 2, 3, 4]});
