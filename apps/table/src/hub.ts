@@ -182,7 +182,7 @@ function hintFor(voice: Voice, tracker: TrackerOptions, state: TableStatus["stat
   const copy = voice.pick(HUB_TEXT);
   if (!tracker.tracker) return copy.clickHint;
   if (state === "connected") return tracker.discovered ? copy.bothHint : copy.touchHint;
-  return words(voice).waitingHint(tracker.version, tracker.address);
+  return words(voice).waitingHint(tracker.version, tracker.address, tracker.carried);
 }
 
 /** How far around the arming ring of an icon goes: its whole circumference. */

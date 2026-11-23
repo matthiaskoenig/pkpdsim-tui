@@ -16,6 +16,12 @@
  * a table that was started with `npm run dev` works at its address with nothing added to it,
  * including through a single forwarded port over ssh. A page which finds nothing runs on the
  * mouse, which is what a published build does.
+ *
+ * A server which was started on a real table, `npm run dev -- --tuio 10.0.0.20:3343`, says so
+ * to the pages it serves, and `carryTracker` is where they are told. That tracker is then the
+ * one which drives them: it is waited for rather than looked for once, because a table which is
+ * slow to answer is still the table and nothing else is going to drive it, and it is named by
+ * its own address, the machine of the exhibition, in the panel and in every sentence about it.
  */
 
 import {DEFAULT_TUIO_HOST, DEFAULT_TUIO_PATH, DEFAULT_TUIO_PORT} from "./receiver.ts";
@@ -35,6 +41,12 @@ export interface TrackerOptions {
   readonly version: TuioVersion;
   /** Whether the page found this tracker behind its own server rather than being told about it. */
   readonly discovered: boolean;
+  /**
+   * Whether the server of the page named this tracker, rather than the address of the page: the
+   * real table of a booth, which is said once to the server and carried at `/tuio`. What a
+   * sentence about a tracker which is not answering asks for depends on it.
+   */
+  readonly carried: boolean;
 }
 
 /** What a page knows about where it came from: `window.location`, or a test. */
@@ -61,16 +73,33 @@ function addressOf(host: string, port: number, path: string): string {
 }
 
 function trackerAt(
-  found: Omit<TrackerOptions, "address" | "tracker" | "discovered">, tracker = true,
+  found: Omit<TrackerOptions, "address" | "tracker" | "discovered" | "carried">, tracker = true,
 ): TrackerOptions {
   return {
-    ...found, tracker, discovered: false,
+    ...found, tracker, discovered: false, carried: false,
     address: addressOf(found.host, found.port, found.path),
   };
 }
 
 /** The path a page looks for a tracker of its own server at. */
 export const SAME_ORIGIN_PATH = "/tuio";
+
+/**
+ * The tracker the server of this page carries at `SAME_ORIGIN_PATH`, as a person reads it:
+ * `10.0.0.20:3343`, the real table it was started on. It is said once, at the start of the
+ * page, from the one place the address of a table is written down.
+ */
+let carried = "";
+
+/** What the server of this page carries at `/tuio`, or nothing where it carries no table. */
+export function carriedTracker(): string {
+  return carried;
+}
+
+/** Says which real table the server of this page carries. The empty name is none. */
+export function carryTracker(name: string): void {
+  carried = name.trim();
+}
 /** How long that look takes before the page settles for the mouse, in milliseconds. */
 const PROBE_TIMEOUT = 1500;
 
@@ -170,9 +199,13 @@ export async function resolveTracker(
 ): Promise<TrackerOptions> {
   const asked = trackerOptions(parameters, origin);
   if (asked.tracker || parameters.has("tuio") || origin === undefined) return asked;
-  if (typeof WebSocket === "undefined") return asked;
   const query = new URLSearchParams(parameters);
   query.set("tuio", SAME_ORIGIN_PATH);
   const probe = trackerOptions(query, origin);
+  // The server of this page carries a real table: that is the tracker, and it is waited for
+  // rather than asked once, because a table which has not answered yet is still the table. It
+  // is named by its own address, which is what whoever looks after the table reads.
+  if (carried !== "") return {...probe, discovered: true, carried: true, address: carried};
+  if (typeof WebSocket === "undefined") return asked;
   return await answers(trackerUrl(probe), PROBE_TIMEOUT) ? {...probe, discovered: true} : asked;
 }

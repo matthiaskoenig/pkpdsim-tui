@@ -3,7 +3,9 @@
 export {signedAngle, TWO_PI, unwrapAngle, wrapAngle} from "./angle.ts";
 export {hitTest} from "./hit-test.ts";
 export type {Anchor, Point} from "./hit-test.ts";
-export {MARKER_IDS, markerIds, markerOf, markersOn, rolesOn} from "./markers.ts";
+export {
+  MARKER_IDS, markerIds, markerOf, markersOn, parseMarkerIds, rolesOn,
+} from "./markers.ts";
 export {createMockTableInput, MOCK_SOURCE} from "./mock.ts";
 export type {MockTableInput, MockTableInputOptions} from "./mock.ts";
 export {
@@ -20,7 +22,9 @@ export {
 export type {TuioObjectLike, TuioPointerLike, TuioSession, TuioTokenLike} from "./snapshot.ts";
 export {createTuioTableInput, DEFAULT_TUIO_VERSION, TUIO_VERSIONS} from "./tuio.ts";
 export type {TuioTableInputOptions, TuioVersion} from "./tuio.ts";
-export {resolveTracker, SAME_ORIGIN_PATH, trackerOptions, trackerUrl} from "./options.ts";
+export {
+  carriedTracker, carryTracker, resolveTracker, SAME_ORIGIN_PATH, trackerOptions, trackerUrl,
+} from "./options.ts";
 export {openTableInput} from "./table-input.ts";
 export type {TableInputOptions, TableInputSource} from "./table-input.ts";
 export type {PageOrigin, TrackerOptions} from "./options.ts";

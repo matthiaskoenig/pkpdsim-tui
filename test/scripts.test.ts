@@ -33,6 +33,16 @@ describe("every command of the repository", () => {
     }
   });
 
+  // The command a booth is started with. It is the one place the table of this exhibition is
+  // written down: the tracker it reports its objects over and the ids printed on its pucks, so
+  // `npm run table` is the whole of it and no address of that table carries either.
+  it("has one for the table itself, with its tracker and the ids of its markers", () => {
+    const table = scripts["table"] ?? "";
+    expect(table).toContain("--no-simulator");
+    expect(table).toMatch(/--tuio \d+\.\d+\.\d+\.\d+:\d+/u);
+    expect(table).toMatch(/--ids \d+(,\d+)+/u);
+  });
+
   it("quotes nothing the way only a POSIX shell reads it", () => {
     for (const [name, command] of Object.entries(scripts)) {
       expect(command, name).not.toContain("'");

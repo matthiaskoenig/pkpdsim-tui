@@ -22,7 +22,8 @@
  *   --host <host>      open the table to the network (default: this machine only)
  *   --page-port <port> the port the simulator serves its page on (default 3344)
  *   --tuio-port <port> the port of the tracker (default 3333)
- *   --tuio <host:port> the tracker of a real table the page is pointed at, e.g. 10.0.0.20:3343
+ *   --tuio <host:port> the tracker of a real table, e.g. 10.0.0.20:3343, which the server
+ *                      carries at `/tuio` instead of the simulator
  *   --ids <list>       the ids the markers of the table carry, e.g. 1,3,5,6,11,12,21
  *   --no-simulator     the application alone, for a real table or another tracker
  *   --preview          the built application instead of the development server
@@ -60,8 +61,9 @@ function usage() {
     `  --host <host>      open the table to the network (default ${DEFAULTS.host}, this machine only)`,
     `  --page-port <port> the page of the simulator (default ${DEFAULTS.pagePort})`,
     `  --tuio-port <port> the tracker of the simulator (default ${DEFAULTS.tuioPort})`,
-    "  --tuio <host:port> the tracker of a real table, e.g. 10.0.0.20:3343, which the printed",
-    "                     address points the page at; the simulator is not needed with one",
+    "  --tuio <host:port> the tracker of a real table, e.g. 10.0.0.20:3343. The server carries",
+    "                     it at /tuio, so every page of the table reaches it and no address",
+    "                     has to name it. The simulator is not needed with one",
     "  --ids <list>       the ids the markers of the table carry, e.g. 1,3,5,6,11,12,21",
     "  --no-simulator     the application alone, for a real table or another tracker",
     "  --preview          the built application instead of the development server",
@@ -86,9 +88,9 @@ function parseOptions(argv) {
       index += 1;
       options.app = argv[index] ?? "";
     } else if (flag === "--tuio") {
-      // The tracker of a real table: its own WebSocket, which the page is pointed at with
-      // `?tuio=`. It is the address of a machine on the network of the exhibition, so it is
-      // only ever read into a query here, and nothing which could be anything else is taken.
+      // The tracker of a real table: its own WebSocket, which the server of the page carries at
+      // `/tuio` in place of the simulator. It is said here and nowhere else, so every page of
+      // the table talks to the same tracker and no address of one has to name it.
       index += 1;
       const value = (argv[index] ?? "").trim();
       if (!/^[A-Za-z0-9._:/-]+$/u.test(value)) {
@@ -142,18 +144,13 @@ async function waitForServer(url, until) {
 }
 
 /**
- * The address to open, with what the flags put into its query: the ids of the markers of the
- * table belong to the booth and travel with every page of it, so they stand in the address of
- * the body as well as in the address of one table. A comma and a colon are legal in a query and
- * are what a person reads, so neither is escaped here.
+ * The address to open. The tracker of the table and the ids of its markers are not in it: they
+ * are said once, to the server, which gives them to every page it serves, so the address of a
+ * booth is the address of the application and nothing else - the page a visitor is handed, the
+ * page a table opens again and a page somebody typed are all the same table.
  */
 function address(base, options, app = "") {
-  const query = [
-    ...(app === "" ? [] : [`app=${app}`]),
-    ...(options.tuio === "" ? [] : [`tuio=${options.tuio}`]),
-    ...(options.ids === "" ? [] : [`ids=${options.ids}`]),
-  ];
-  return `${base}/${query.length === 0 ? "" : `?${query.join("&")}`}`;
+  return `${base}/${app === "" ? "" : `?app=${app}`}`;
 }
 
 function banner(options) {
@@ -180,7 +177,15 @@ function banner(options) {
   if (options.tuio !== "") {
     lines.push(
       `  The tracker          ${options.tuio}`,
-      "                       the table itself, which the address above points the page at",
+      `                       the table itself, carried at ${base}/tuio: every`,
+      "                       page above is driven by it, with nothing in its address",
+    );
+  }
+  if (options.ids !== "") {
+    lines.push(
+      `  The objects          ${options.ids}`,
+      "                       the ids of the markers of this table, in the order the",
+      "                       objects of a table are picked up",
     );
   }
   lines.push(
@@ -258,7 +263,15 @@ async function main() {
       ...process.env,
       TUIO_TABLE_HOST: options.host,
       TUIO_SIMULATOR_PAGE: `127.0.0.1:${options.pagePort}`,
-      TUIO_TRACKER: `127.0.0.1:${options.tuioPort}`,
+      // The tracker every page of this server reaches at `/tuio`: the real table where one was
+      // named, and the simulator of this machine otherwise. This is the one place either is
+      // said, so a table at an exhibition is one flag and no address of it carries a machine.
+      TUIO_TRACKER: options.tuio === "" ? `127.0.0.1:${options.tuioPort}` : options.tuio,
+      // What the pages of this server are told about the booth they belong to: the real table
+      // which drives them, which they then wait for and name, and the ids of the markers of
+      // that table, which every one of them reads. Empty is a laptop and the simulator.
+      TUIO_TABLE_TRACKER: options.tuio,
+      TUIO_TABLE_IDS: options.ids,
     },
   });
   vite.on("exit", code => stop(code ?? 0));

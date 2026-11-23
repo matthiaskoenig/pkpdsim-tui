@@ -8,25 +8,45 @@ The tables of [Interactive Scape](https://www.interactive-scape.com/) recognise 
 
 ## Start it on a table
 
-A real table brings two things of its own: the tracker it reports its objects over, and the markers whose ids are printed on its pucks. Both are said when the application is started, and this is the whole of it:
+A real table brings two things of its own: the tracker it reports its objects over, and the markers whose ids are printed on its pucks. Both belong to the booth and not to a visitor, so both are said once, in the command of the table, and starting it is the whole of it:
 
 !!! tip "The command for a real table"
 
     ```bash
-    npm run dev -- --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+    npm run table
     ```
 
-    `--no-simulator` leaves the simulator out, because the table is the tracker. `--tuio` is where that tracker listens, the host and the port of the table itself. `--ids` are the ids of its markers, in the order the objects of a table are picked up. The command prints the address to open, which carries both:
+    Then open the address, which carries nothing at all:
 
     ```
-    http://localhost:5173/?tuio=10.0.0.20:3343&ids=1,3,5,6,11,12,21
+    http://localhost:5173/
     ```
 
-Open that address on the machine the table is driven from. It is the body, from which a visitor opens a table; `&app=cardiovascular` opens one at once, which is what a booth with one subject uses.
+That command is the table of this exhibition written down once, in `package.json`:
+
+```bash
+node scripts/dev.mjs --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+```
+
+`--no-simulator` leaves the simulator out, because the table is the tracker. `--tuio` is where that tracker listens, the host and the port of the table itself: the server carries it at `/tuio`, where every page it serves finds it. `--ids` are the ids of the markers of the table, in the order the objects of a table are picked up, and every page it serves reads them. Another table is the same command with its own two, either in `package.json` or after `--`:
+
+```bash
+npm run table -- --tuio 10.0.0.21:3343 --ids 2,4,8,9,14,15,22
+```
+
+The address is the body, from which a visitor opens a table; `?app=cardiovascular` opens one at once, which is what a booth with one subject uses.
+
+Because the table is said to the server and not to the address, there is one place to change it and nothing to keep in step: the page a visitor is handed, the page a table opens again after a visit, and a page somebody typed are all the same table. A page may still name a tracker or a list of ids of its own, with `?tuio=` and `?ids=` below, which is how a second table on the same server or another set of pucks is tried without stopping the booth.
+
+A built page for a booth of its own takes the same two over the environment, where the launcher is not what starts it:
+
+```bash
+TUIO_TABLE_TRACKER=10.0.0.20:3343 TUIO_TABLE_IDS=1,3,5,6,11,12,21 npm run build
+```
 
 ## Point the browser at the tracker
 
-Find the WebSocket host and port of the table in its own configuration. They go into the address as `?tuio=<table host>:<table port>`, which is what `--tuio` above writes for you:
+Find the WebSocket host and port of the table in its own configuration, and give them to the `--tuio` of `npm run table` above. A page which belongs to no booth can be pointed at one by its own address instead:
 
 ```
 http://<the machine that serves the application>:5173/?tuio=10.0.0.20:3343
@@ -34,17 +54,17 @@ http://<the machine that serves the application>:5173/?tuio=10.0.0.20:3343
 
 If the browser runs on the table itself, the host is `localhost`. Start with the [simulator settings](simulator.md), which is the same protocol on the same port.
 
-A page told about a tracker this way listens to it alone, so a stray mouse cannot put objects on the surface of an exhibition. A page told nothing looks for a tracker behind its own server at `/tuio` and otherwise runs on the mouse, which is what the development server and a deployed build respectively give you.
+A page told about a tracker this way listens to it alone, so a stray mouse cannot put objects on the surface of an exhibition. A page told nothing looks for a tracker behind its own server at `/tuio`: a server started on a table carries the table there and the page waits for it, naming the table itself in the panel and in the sentence it says while the table has not answered; a server which carries the simulator is found the same way, and a page which finds nothing runs on the mouse, which is what a published build does.
 
 ## The ids of the markers
 
-The objects of a table are numbered from 1 here: the first object of a table is 1, the second 2, and the same pucks serve all four tables. The markers of a real table carry whatever ids were printed on them, which is `[1, 3, 5, 6, 11, 12, 21]` on one table and something else on the next. `?ids=` says them, in the order the objects of a table are picked up, and the nth object of every table is then read from the nth id:
+The objects of a table are numbered from 1 here: the first object of a table is 1, the second 2, and the same pucks serve all four tables. The markers of a real table carry whatever ids were printed on them, which is `[1, 3, 5, 6, 11, 12, 21]` on one table and something else on the next. The `--ids` of `npm run table` says them, in the order the objects of a table are picked up, and the nth object of every table is then read from the nth id.
+
+The circulation then reads 1, 3 and 5, liver surgery reads 1 and 3, and the drug reads 1, 3, 5, 6, 11 and 12. Every number a visitor sees is the id of the puck in their hand: the one on the card beside an object, the one in the panel, and the one in the sentence which asks for an object. The list is of the table, so every page of that table reads it and nobody has to carry it from one page to the next. A page which is not of a booth, or which is trying another set of pucks, says its own list:
 
 ```
 http://localhost:5173/?ids=1,3,5,6,11,12,21
 ```
-
-The circulation then reads 1, 3 and 5, liver surgery reads 1 and 3, and the drug reads 1, 3, 5, 6, 11 and 12. Every number a visitor sees is the id of the puck in their hand: the one on the card beside an object, the one in the panel, and the one in the sentence which asks for an object. The list is of the table and not of the visitor, so it stays in the address while somebody walks from one table to the next, and a table which starts again keeps it.
 
 Give at least as many ids as the table with the most objects needs, which is six, for the drug through the body. A list which is not a list of whole numbers, which names one puck twice, or which does not reach as far as the objects of a table is refused at the start, with the reason, rather than left to a visitor who turns an object nothing answers to.
 

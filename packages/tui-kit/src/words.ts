@@ -74,7 +74,7 @@ export interface KitCopy {
   readonly mouseHint: (markers: string) => Phrase;
   readonly tableHint: Phrase;
   readonly bothHint: (markers: string) => Phrase;
-  readonly waitingHint: (version: string, address: string) => string;
+  readonly waitingHint: (version: string, address: string, carried: boolean) => string;
   /** The object on the surface which this table does not read. */
   readonly markerTitle: (marker: number) => string;
   readonly noRole: string;
@@ -167,8 +167,10 @@ const EN: KitCopy = {
     child: `Put an object on the table and turn it, or press ${markers} here.`,
     adult: `Put an object on the table and turn it, or press ${markers} here to place one.`,
   }),
-  waitingHint: (version, address) => `Start a TUIO ${version} tracker on ${address}, or drop `
-    + `"?tuio" from the address to drive the table with the mouse.`,
+  waitingHint: (version, address, carried) => `Start a TUIO ${version} tracker on ${address}, `
+    + (carried
+      ? `or start the table without "--tuio" to drive it with the mouse.`
+      : `or drop "?tuio" from the address to drive the table with the mouse.`),
   markerTitle: marker => `Marker ${marker}`,
   noRole: "no role",
   noRoleNote: {
@@ -260,8 +262,9 @@ const DE: KitCopy = {
     adult: `Stellen Sie ein Objekt auf den Tisch und drehen Sie es, oder drücken Sie hier `
       + `${markers}, um eines abzulegen.`,
   }),
-  waitingHint: (version, address) => `Starten Sie einen TUIO-${version}-Tracker auf ${address}, `
-    + `oder lassen Sie "?tuio" aus der Adresse weg, um den Tisch mit der Maus zu bedienen.`,
+  waitingHint: (version, address, carried) => `Starten Sie einen TUIO-${version}-Tracker auf `
+    + `${address}, oder starten Sie den Tisch ${carried ? `ohne "--tuio"` : `ohne "?tuio"`}, `
+    + `um ihn mit der Maus zu bedienen.`,
   markerTitle: marker => `Marker ${marker}`,
   noRole: "keine Rolle",
   noRoleNote: {
@@ -352,8 +355,10 @@ const ES: KitCopy = {
     child: `Pon un objeto sobre la mesa y gíralo, o pulsa ${markers} aquí.`,
     adult: `Coloque un objeto sobre la mesa y gírelo, o pulse ${markers} aquí para colocar uno.`,
   }),
-  waitingHint: (version, address) => `Inicie un tracker TUIO ${version} en ${address}, o quite `
-    + `"?tuio" de la dirección para manejar la mesa con el ratón.`,
+  waitingHint: (version, address, carried) => `Inicie un tracker TUIO ${version} en ${address}, `
+    + (carried
+      ? `o inicie la mesa sin "--tuio" para manejarla con el ratón.`
+      : `o quite "?tuio" de la dirección para manejar la mesa con el ratón.`),
   markerTitle: marker => `Marcador ${marker}`,
   noRole: "sin función",
   noRoleNote: {
@@ -385,6 +390,8 @@ export function languageOptions(): readonly {id: Locale; label: string}[] {
 export interface DriveState {
   readonly tracker: boolean;
   readonly discovered: boolean;
+  /** Whether the server of the page named the tracker, which is the table of a booth. */
+  readonly carried: boolean;
   readonly version: string;
   readonly address: string;
   readonly connected: boolean;
@@ -400,7 +407,7 @@ export function driveHint(voice: Voice, drive: DriveState, roles: readonly Token
   // markers of that table are the numbers of its objects.
   const markers = keySpan(roles, voice);
   if (!drive.tracker) return voice.say(copy.mouseHint(markers));
-  if (!drive.connected) return copy.waitingHint(drive.version, drive.address);
+  if (!drive.connected) return copy.waitingHint(drive.version, drive.address, drive.carried);
   return drive.discovered ? voice.say(copy.bothHint(markers)) : voice.say(copy.tableHint);
 }
 
