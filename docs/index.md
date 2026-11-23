@@ -42,6 +42,8 @@ The exports are not in the repository, and each of the three commands writes the
 | `http://localhost:5173/?app=cardiovascular` | One table directly; `lobes`, `glimepiride` and `perfusion` are the others |
 | `http://localhost:5173/?lang=de&level=child` | The same, in German and said the way a six year old is told it, see [Languages and the voice](languages.md) |
 | `http://localhost:5173/simulator/` | The simulator, with the application under its own surface |
+| `http://localhost:5173/?ids=1,3,5,6,11,12,21` | The ids the markers of a real table carry, in the order the objects of a table are picked up, see [Run on a table](table.md#the-ids-of-the-markers) |
+| `http://localhost:5173/?tuio=10.0.0.20:3343` | The tracker of a real table, which the page listens to alone |
 
 Both the mouse and the objects work while `npm run dev` is running. The digit keys put an object down under the pointer, dragging moves it, the wheel turns it, backspace lifts it, and escape leaves a table for the body. `?tuio=off` keeps a page on the mouse alone, `?tuio=<host>:<port>` points it at a tracker somewhere else.
 
@@ -56,6 +58,17 @@ npm run dev -- --help
 ```
 
 `--no-simulator` leaves the simulator out, for a real table or another tracker, and `--preview` serves the build instead of the development server. [Development](development.md) has the whole list.
+
+### On a real table
+
+The table is the tracker, and its markers carry their own ids. Both are said at the start, and the command prints the address to open:
+
+```bash
+npm run dev -- --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+# http://localhost:5173/?tuio=10.0.0.20:3343&ids=1,3,5,6,11,12,21
+```
+
+See [Run on a table](table.md#start-it-on-a-table).
 
 Because everything is on one port, a table on another machine is one forwarded port:
 

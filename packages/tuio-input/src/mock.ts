@@ -152,9 +152,15 @@ export function createMockTableInput(options: MockTableInputOptions): MockTableI
     const key = (event as KeyboardEvent).key;
     const digit = Number.parseInt(key, 10);
     if (Number.isInteger(digit) && digit >= 0 && digit <= 9) {
-      // The panel names an object by its marker, so that is the key which puts it down. A
-      // table whose markers do not fit on the ten keys falls back to the place in its list.
-      const marker = markers.includes(digit) ? digit : markers[digit - 1];
+      // The panel names an object by its marker, so that is the key which puts it down, as long
+      // as the markers of a table are the numbers of its objects. A table which was given the
+      // ids of the markers of a real one, `?ids=1,3,5,6,11,12,21`, is placed by the place in
+      // that list instead: those ids are not ten keys, and the objects whose id is no digit
+      // would otherwise be the ones a laptop cannot put down.
+      const numbered = markers.every((marker, index) => marker === index + 1);
+      const marker = numbered
+        ? (digit >= 1 && digit <= markers.length ? digit : undefined)
+        : markers[digit - 1];
       if (marker !== undefined) place(marker, cursor.x, cursor.y);
       return;
     }

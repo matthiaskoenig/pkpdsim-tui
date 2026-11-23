@@ -10,6 +10,8 @@
  *   ?tuio=host:port       a tracker somewhere else, which is how a table is addressed
  *   ?tuio=/tuio           a tracker behind the server this page came from, on its port
  *   ?tuio-version=1.1     a tracker that speaks TUIO 1.1 rather than TUIO 2.0
+ *   ?ids=1,3,5,6,11,12,21 the ids the markers of this table carry, in the order the objects of
+ *                         a table are picked up; the markers from 1 otherwise
  *   ?sex=female           the female reference body, on the body and in every table
  *   ?age=35               the age of the person every table is solved for, 3 to 120 years
  *   ?bw=60                what that person weighs, the reference of their age otherwise
@@ -25,6 +27,7 @@ import {
 import type {
   ChoiceGroup, GlyphKind, LabOptions, TableApp, TableHost, Voice,
 } from "@pkpdsim-tui/tui-kit";
+import {markerIds} from "@pkpdsim-tui/tuio-input";
 import {startAbout} from "./about.ts";
 import {askWelcome} from "./welcome.ts";
 import {askPerson, personLine, personOf, writePerson} from "./person.ts";
@@ -138,6 +141,10 @@ function labOf(voice: Voice): LabOptions {
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
+  // The ids of the markers of this table, read before anything opens: a list which is not one
+  // is a booth nobody can drive, and it is said here rather than at the first object a visitor
+  // picks up. Every table of the collection reads the same list.
+  const markers = markerIds(parameters);
   const entry = tableOf(parameters);
   const about = entry === undefined && parameters.get("app") === ABOUT;
   // The question of who is at the table, opened again from the landing page.
@@ -267,7 +274,7 @@ async function start(): Promise<void> {
       // take with it. A new visit starts without them.
       clearStars();
       const kept = new URLSearchParams();
-      for (const key of ["tuio", "tuio-version", "species"]) {
+      for (const key of ["tuio", "tuio-version", "ids", "species"]) {
         const value = parameters.get(key);
         if (value !== null) kept.set(key, value);
       }
@@ -287,6 +294,7 @@ async function start(): Promise<void> {
     scene: element<SVGSVGElement>("scene"),
     chrome: element<HTMLElement>("chrome"),
     parameters,
+    markerIds: markers,
     voice,
     title,
     // Who this table is solved for, from the third question of the first screen.
@@ -308,7 +316,9 @@ async function start(): Promise<void> {
     // it, so both stay. Everything goes at the landing page, which is where a visit ends.
     reset: () => {
       const kept = new URLSearchParams();
-      for (const key of ["app", "lang", "level", "tuio", "tuio-version", "sex", "age", "bw"]) {
+      for (const key of [
+        "app", "lang", "level", "tuio", "tuio-version", "ids", "sex", "age", "bw",
+      ]) {
         const value = parameters.get(key);
         if (value !== null) kept.set(key, value);
       }

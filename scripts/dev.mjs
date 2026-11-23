@@ -22,6 +22,8 @@
  *   --host <host>      open the table to the network (default: this machine only)
  *   --page-port <port> the port the simulator serves its page on (default 3344)
  *   --tuio-port <port> the port of the tracker (default 3333)
+ *   --tuio <host:port> the tracker of a real table the page is pointed at, e.g. 10.0.0.20:3343
+ *   --ids <list>       the ids the markers of the table carry, e.g. 1,3,5,6,11,12,21
  *   --no-simulator     the application alone, for a real table or another tracker
  *   --preview          the built application instead of the development server
  *   --help             this text
@@ -35,7 +37,7 @@ import {binScript} from "./bin.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const DEFAULTS = {
-  port: 5173, pagePort: 3344, tuioPort: 3333, app: "", host: "localhost",
+  port: 5173, pagePort: 3344, tuioPort: 3333, app: "", host: "localhost", ids: "", tuio: "",
   simulator: true, preview: false,
 };
 
@@ -57,7 +59,10 @@ function usage() {
     `  --port <port>      the one port of the table (default ${DEFAULTS.port})`,
     `  --host <host>      open the table to the network (default ${DEFAULTS.host}, this machine only)`,
     `  --page-port <port> the page of the simulator (default ${DEFAULTS.pagePort})`,
-    `  --tuio-port <port> the tracker (default ${DEFAULTS.tuioPort})`,
+    `  --tuio-port <port> the tracker of the simulator (default ${DEFAULTS.tuioPort})`,
+    "  --tuio <host:port> the tracker of a real table, e.g. 10.0.0.20:3343, which the printed",
+    "                     address points the page at; the simulator is not needed with one",
+    "  --ids <list>       the ids the markers of the table carry, e.g. 1,3,5,6,11,12,21",
     "  --no-simulator     the application alone, for a real table or another tracker",
     "  --preview          the built application instead of the development server",
     "  --help             this text",
@@ -80,6 +85,26 @@ function parseOptions(argv) {
     } else if (flag === "--app") {
       index += 1;
       options.app = argv[index] ?? "";
+    } else if (flag === "--tuio") {
+      // The tracker of a real table: its own WebSocket, which the page is pointed at with
+      // `?tuio=`. It is the address of a machine on the network of the exhibition, so it is
+      // only ever read into a query here, and nothing which could be anything else is taken.
+      index += 1;
+      const value = (argv[index] ?? "").trim();
+      if (!/^[A-Za-z0-9._:/-]+$/u.test(value)) {
+        throw new Error(`--tuio is the address of a tracker, like 10.0.0.20:3343, got "${value}".`);
+      }
+      options.tuio = value;
+    } else if (flag === "--ids") {
+      // The ids of the markers of a real table, which the address of the page carries. They are
+      // read here as well so a list which is not one is said at the prompt rather than on the
+      // glass, see `markers.ts` of `@pkpdsim-tui/tuio-input`.
+      index += 1;
+      const value = (argv[index] ?? "").trim();
+      if (!/^\d+(,\d+)*$/u.test(value)) {
+        throw new Error(`--ids is the ids of the markers, like 1,3,5,6,11,12,21, got "${value}".`);
+      }
+      options.ids = value;
     } else if (flag === "--host") {
       // `--host` on its own is every interface, which is what vite means by it as well.
       const next = argv[index + 1];
@@ -116,15 +141,30 @@ async function waitForServer(url, until) {
   return false;
 }
 
+/**
+ * The address to open, with what the flags put into its query: the ids of the markers of the
+ * table belong to the booth and travel with every page of it, so they stand in the address of
+ * the body as well as in the address of one table. A comma and a colon are legal in a query and
+ * are what a person reads, so neither is escaped here.
+ */
+function address(base, options, app = "") {
+  const query = [
+    ...(app === "" ? [] : [`app=${app}`]),
+    ...(options.tuio === "" ? [] : [`tuio=${options.tuio}`]),
+    ...(options.ids === "" ? [] : [`ids=${options.ids}`]),
+  ];
+  return `${base}/${query.length === 0 ? "" : `?${query.join("&")}`}`;
+}
+
 function banner(options) {
   const base = `http://localhost:${options.port}`;
   const lines = [
     "",
-    `  The table            ${base}/`,
+    `  The table            ${address(base, options)}`,
     "                       the body, and every table is opened from it",
   ];
   if (options.app !== "") {
-    lines.push(`  ${options.app.padEnd(20).slice(0, 20)} ${base}/?app=${options.app}`);
+    lines.push(`  ${options.app.padEnd(20).slice(0, 20)} ${address(base, options, options.app)}`);
   }
   if (options.simulator) {
     lines.push(
@@ -132,8 +172,16 @@ function banner(options) {
       "                       the simulator, with the application under it",
     );
     if (options.app !== "") {
-      lines.push(`                       ${base}/simulator/?table=${options.app}`);
+      lines.push(
+        `                       ${address(`${base}/simulator`, options, options.app)
+          .replace("?app=", "?table=")}`);
     }
+  }
+  if (options.tuio !== "") {
+    lines.push(
+      `  The tracker          ${options.tuio}`,
+      "                       the table itself, which the address above points the page at",
+    );
   }
   lines.push(
     `  Over ssh             ssh -L ${options.port}:localhost:${options.port} <machine>`,

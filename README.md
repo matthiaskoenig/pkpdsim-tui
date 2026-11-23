@@ -26,7 +26,18 @@ npm run dev                  # http://localhost:5173
 
 The exports are not in the repository. `npm run sync` reads a pkpdsim checkout beside this one, the two export commands compile the models which live in their own repositories, and a table which finds no model of its own says which of the three writes it.
 
-That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`, and `npm run dev:app` for the application alone, without the simulator, which is what a real table or another tracker asks for. `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
+That one port carries the application, the TUIO simulator at `/simulator/` and the tracker at `/tuio`. Use another port with `npm run dev -- --port 8080`, and `npm run dev -- --help` lists the rest. Linux, macOS and Windows all run it.
+
+## On a real table
+
+A table brings its own tracker and its own markers, and both are said when the application is started:
+
+```bash
+npm run dev -- --no-simulator --tuio 10.0.0.20:3343 --ids 1,3,5,6,11,12,21
+# http://localhost:5173/?tuio=10.0.0.20:3343&ids=1,3,5,6,11,12,21
+```
+
+`--no-simulator` leaves the simulator out, because the table is the tracker; `--tuio` is where that tracker listens; `--ids` are the ids printed on the pucks of the table, in the order the objects of a table are picked up, so the nth object of every table is read from the nth id. Without them the objects are the markers 1 up, which is what the simulator and the mouse give. [Run on a table](https://matthiaskoenig.github.io/pkpdsim-tui/table/) has the whole of it.
 
 ## Documentation
 

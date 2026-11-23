@@ -396,16 +396,43 @@ export interface DriveState {
  */
 export function driveHint(voice: Voice, drive: DriveState, roles: readonly TokenRole[]): string {
   const copy = words(voice);
-  const markers = markerSpan(roles, voice);
+  // Both hints name the keys of a laptop, which are the markers of a table only where the
+  // markers of that table are the numbers of its objects.
+  const markers = keySpan(roles, voice);
   if (!drive.tracker) return voice.say(copy.mouseHint(markers));
   if (!drive.connected) return copy.waitingHint(drive.version, drive.address);
   return drive.discovered ? voice.say(copy.bothHint(markers)) : voice.say(copy.tableHint);
 }
 
+/** The markers of the objects of a table, each one of them once and in order. */
+function markersOf(roles: readonly TokenRole[]): readonly number[] {
+  return [...new Set(roles.flatMap(role => role.markers))].sort((a, b) => a - b);
+}
+
+/** Whether the markers of a table are the numbers of its objects, 1 up. */
+function numbered(markers: readonly number[]): boolean {
+  return markers.every((marker, index) => marker === index + 1);
+}
+
 /** The markers a table reads, as a person says them: "1 to 6", "1 and 2", "1 bis 6". */
 export function markerSpan(roles: readonly TokenRole[], voice?: Voice): string {
+  return numberSpan(markersOf(roles), voice);
+}
+
+/**
+ * The keys of a laptop which put the objects of a table down: the marker of an object where the
+ * markers of the table are the numbers of its objects, and the place of an object in the list
+ * where they are the ids of a real table, `?ids=1,3,5,6,11,12,21`, which is what the mouse of
+ * `@pkpdsim-tui/tuio-input` does with them.
+ */
+export function keySpan(roles: readonly TokenRole[], voice?: Voice): string {
+  const markers = markersOf(roles);
+  return numberSpan(
+    numbered(markers) ? markers : markers.map((_, index) => index + 1), voice);
+}
+
+function numberSpan(markers: readonly number[], voice?: Voice): string {
   const copy = voice === undefined ? EN : words(voice);
-  const markers = [...new Set(roles.flatMap(role => role.markers))].sort((a, b) => a - b);
   const runs: number[][] = [];
   for (const marker of markers) {
     const last = runs.at(-1);

@@ -347,9 +347,11 @@ function appAddress(raw) {
       "tuio", sameServer ? TRACKER_PATH : `${window.location.hostname}:${settings.port}`);
     if (settings.version === "2.0") url.searchParams.delete("tuio-version");
     else url.searchParams.set("tuio-version", settings.version);
-    // A colon and a slash are legal in a query and are what a person reads, so the address of
-    // the tracker stays readable in the address bar of the application.
-    url.search = url.searchParams.toString().replaceAll("%3A", ":").replaceAll("%2F", "/");
+    // A colon, a slash and a comma are legal in a query and are what a person reads, so the
+    // address of the tracker and the ids of the markers stay readable in the address bar of the
+    // application.
+    url.search = url.searchParams.toString()
+      .replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%2C", ",");
   }
   return url.href;
 }
@@ -865,6 +867,17 @@ function connect() {
  * The application the address of this page asks for: `?table=cardiovascular` is a table of the
  * application beside this page, and anything which looks like an address is taken as one.
  */
+/**
+ * The ids of the markers of a table travel with the table: a surface which is driving the pucks
+ * of a real table is set to their ids, and the application under it reads the same list, so the
+ * mapping of a table can be tried before the table itself is there.
+ */
+function withIds(address) {
+  const ids = new URL(window.location.href).searchParams.get("ids");
+  if (ids === null || !/^\d+(,\d+)*$/u.test(ids) || address.includes("ids=")) return address;
+  return `${address}${address.includes("?") ? "&" : "?"}ids=${ids}`;
+}
+
 function wantedApp() {
   const wanted = new URL(window.location.href).searchParams.get("table");
   if (wanted === null || wanted.trim() === "") return "";
@@ -873,16 +886,16 @@ function wantedApp() {
   // from the address bar, because a link somebody was sent would then open a page of its
   // choosing inside this one; the field above the surface still takes any address, which is a
   // table somebody typed in rather than one that was handed to them.
-  if (value.startsWith("/")) return value;
+  if (value.startsWith("/")) return withIds(value);
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       const url = new URL(value);
-      return url.origin === window.location.origin ? `${url.pathname}${url.search}` : "";
+      return url.origin === window.location.origin ? withIds(`${url.pathname}${url.search}`) : "";
     } catch {
       return "";
     }
   }
-  return value === "overview" ? "/" : `/?app=${encodeURIComponent(value)}`;
+  return withIds(value === "overview" ? "/" : `/?app=${encodeURIComponent(value)}`);
 }
 
 recall();

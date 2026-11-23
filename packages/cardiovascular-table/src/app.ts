@@ -20,7 +20,7 @@ import type {
 } from "@pkpdsim-tui/cardio-sim";
 import {createSolver, fetchSolverAssets, loadCoreHost} from "@pkpdsim-tui/core-runtime";
 import type {Solver} from "@pkpdsim-tui/core-runtime";
-import {openTableInput} from "@pkpdsim-tui/tuio-input";
+import {markersOn, openTableInput, rolesOn} from "@pkpdsim-tui/tuio-input";
 import type {TableSnapshot, TableStatus} from "@pkpdsim-tui/tuio-input";
 import {unassignedMarkers, winningTokens} from "@pkpdsim-tui/tuio-input";
 import {
@@ -62,7 +62,8 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
   const voice = host.voice;
   const copy = voice.pick(CARDIO_TEXT);
   const kit = words(voice);
-  const roles = cardiovascularRoles(voice);
+  // The objects of this table, read from the markers this table carries, see `?ids=`.
+  const roles = rolesOn(host.markerIds, cardiovascularRoles(voice));
   const stats = visibleStats(cardiovascularStats(voice), voice);
   const parameters = host.parameters;
   const assets = host.assets;
@@ -167,7 +168,7 @@ export async function startCardiovascularTable(host: TableHost): Promise<void> {
 
   const {input, tracker} = await openTableInput({
     parameters, element: surface,
-    markers: [...CARDIOVASCULAR_MARKERS],
+    markers: markersOn(host.markerIds, CARDIOVASCULAR_MARKERS),
   });
 
   const origins = new Map<number, number>();

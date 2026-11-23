@@ -3,7 +3,7 @@ import {
   describeArc, formatDelta, formatFactor, formatNumber, mixHex, organRadius, perfusionColor,
   PERFUSION_HIGH, PERFUSION_LOW, PERFUSION_NEUTRAL, polarPoint, vesselWidth,
 } from "../src/format.ts";
-import {markerSpan} from "../src/words.ts";
+import {keySpan, markerSpan} from "../src/words.ts";
 import {trackSpan} from "../src/tokens.ts";
 import {ABSOLUTE_SPAN} from "@pkpdsim-tui/tuio-input";
 import type {TokenRole} from "@pkpdsim-tui/tuio-input";
@@ -146,5 +146,32 @@ describe("markerSpan", () => {
 
   it("is empty for a table with no objects of its own", () => {
     expect(markerSpan([])).toBe("");
+  });
+});
+
+// The keys of a laptop are the markers of a table only where its markers are the numbers of
+// its objects: a table told the ids of a real one, `?ids=1,3,5,6,11,12,21`, is driven by the
+// place of an object in that list, because those ids are not ten keys.
+describe("keySpan", () => {
+  const role = (id: string, markers: readonly number[]): TokenRole => ({
+    id, label: id, description: "", unit: "", markers,
+    min: 0, max: 1, reference: 0, mode: "absolute", scale: "linear", turns: 1,
+  });
+
+  it("is the markers themselves where they are the numbers of the objects", () => {
+    const roles = [1, 2, 3].map(marker => role(`r${marker}`, [marker]));
+    expect(keySpan(roles)).toBe("1 to 3");
+    expect(keySpan(roles)).toBe(markerSpan(roles));
+  });
+
+  it("is the place of every object where the markers are the ids of a table", () => {
+    expect(keySpan([1, 3, 5, 6, 11, 12].map(marker => role(`r${marker}`, [marker]))))
+      .toBe("1 to 6");
+    expect(keySpan([role("a", [7]), role("b", [21])])).toBe("1 and 2");
+    expect(keySpan([role("a", [7])])).toBe("1");
+  });
+
+  it("is empty for a table with no objects of its own", () => {
+    expect(keySpan([])).toBe("");
   });
 });
