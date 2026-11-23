@@ -110,7 +110,8 @@ function fail(voice: Voice, message: string): void {
   element<HTMLElement>("boot-message").textContent = copy.failedVisitor;
   const detail = document.createElement("p");
   detail.className = "boot-detail";
-  detail.textContent = `${message} ${copy.failedHint}`;
+  // The whole of what whoever looks after the table needs: which file, why, and what to run.
+  detail.textContent = message;
   const again = document.createElement("button");
   again.className = "boot-again";
   again.type = "button";
