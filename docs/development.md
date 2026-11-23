@@ -253,7 +253,7 @@ A release is prepared on a branch, because `develop` takes nothing else, and tag
 
     This starts `ci.yml` once more on the tagged tree, and when the checks pass it creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing: a tag can be neither moved nor deleted.
 
-6.  Put the resources of the table on the release, from a checkout which has them all:
+7.  Put the resources of the table on the release, from a checkout which has them all:
 
     ```bash
     npm run assets:check   # all of them, or there is nothing to pack
